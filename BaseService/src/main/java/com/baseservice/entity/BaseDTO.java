@@ -1,16 +1,22 @@
 package com.baseservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
+import java.io.Serializable;
+
+/**
+ * DTO for {@link BaseEntity}
+ */
+@Value
 @Builder
-public class BaseDTO {
-
-    private String nome;
-    private String endereco;
-    private String tipoBase;
+public class BaseDTO implements Serializable {
+    @NotBlank(message = "Campo nome é requerido")
+    String nome;
+    @NotBlank(message = "Campo endereço é requerido")
+    String endereco;
+    @NotEmpty
+    String tipoBase;
 }

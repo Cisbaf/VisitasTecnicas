@@ -4,6 +4,7 @@ import com.baseservice.entity.BaseDTO;
 import com.baseservice.repository.BaseRepository;
 import com.baseservice.service.capsule.BaseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,12 +20,17 @@ public class BaseServiceImp implements BaseService {
 
     @Override
     public BaseDTO createBase(BaseDTO baseDTO) {
-        if (baseDTO == null) {
-            throw new IllegalArgumentException("Base cannot be null");
+        try {
+            if (baseDTO == null) {
+                throw new IllegalArgumentException("Base cannot be null");
+            }
+            var baseEntity = toEntity(baseDTO);
+            var savedEntity = baseRepository.save(baseEntity);
+            return toDTO(savedEntity);
+        }catch (DataIntegrityViolationException e ){
+            throw new IllegalArgumentException(e.getMessage());
         }
-        var baseEntity = toEntity(baseDTO);
-        var savedEntity = baseRepository.save(baseEntity);
-        return toDTO(savedEntity);
+
     }
 
     @Override
@@ -65,4 +71,13 @@ public class BaseServiceImp implements BaseService {
         }
         baseRepository.deleteById(id);
     }
+
+    @Override
+    public boolean existsById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
+        return baseRepository.existsById(id);
+    }
+
 }

@@ -14,4 +14,5 @@ public interface BaseService {
      BaseDTO update(Long id, BaseDTO viaturaDTO);
 
      void deleteBase(Long id);
+     boolean existsById(Long id);
 }

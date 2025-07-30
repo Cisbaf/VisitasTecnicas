@@ -28,6 +28,12 @@ public class BaseController {
         }
     }
 
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
+        boolean exists = baseService.existsById(id);
+        return ResponseEntity.ok(exists);
+    }
+
     @PostMapping
     public ResponseEntity<BaseDTO> save(@RequestBody BaseDTO BaseDTO) {
         return ResponseEntity.ok(baseService.createBase(BaseDTO));

@@ -1,0 +1,121 @@
+classDiagram
+    direction LR
+
+%%---------------- Entidades ----------------
+
+    class VisitaTecnica {
+        + UUID id <<PK>>
+        + Date data
+        + String municipio
+    }
+    class Base {
+        + UUID id <<PK>>
+        + String nome
+        + String endereco
+        + String tipo           // USA/USB
+    }
+    class Viatura {
+        + UUID id <<PK>>
+        + String placa
+        + String modelo
+        + String ano
+        + String tipoViatura    // USA, USB, Motolância
+        + String statusOperacional // Ativa, Manutenção, Inativa
+        + UUID idBase <<FK>>    // Referencia Base
+    }
+    class EquipeTecnica {
+        + UUID id <<PK>>
+        + List<String> membros
+    }
+    class ChecklistItem {
+        + UUID id <<PK>>
+        + String categoria      // Ex: Estrutura Física, Visual, Viatura, Digital
+        + String descricao      // O que deve ser verificado
+        + String tipoResposta   // Ex: Booleana (Sim/Não), Conformidade (Conforme/Parcial/Não Conforme), Texto
+    }
+    class AvaliacaoChecklist {
+        + UUID id <<PK>>
+        + String statusConformidade // Resultado da avaliação
+        + String observacao     // Observações específicas
+        + UUID idVisitaTecnica <<FK>> // Referencia VisitaTecnica
+        + UUID idChecklistItem <<FK>> // Referencia ChecklistItem
+        + UUID idViatura <<FK>> // Referencia Viatura (apenas se a avaliação for de viatura)
+    }
+    class Inconformidade {
+        + UUID id <<PK>>
+        + String descricao
+        + String nivelCriticidade
+        + UUID idAvaliacaoChecklist <<FK>> // Referencia AvaliacaoChecklist
+    }
+    class IndicadorOperacional {
+        + UUID id <<PK>>
+        + String nome
+        + Float valor
+        + Date dataColeta
+        + UUID idVisitaTecnica <<FK>> // Referencia VisitaTecnica
+    }
+    class RelatoEquipe {
+        + UUID id <<PK>>
+        + String autor
+        + String mensagem
+        + Date data
+        + Boolean solucionado
+        + String gestorResponsavel
+        + String tema
+        + UUID idVisitaTecnica <<FK>> // Referencia VisitaTecnica
+    }
+    class ArquivoMidia {
+        + UUID id <<PK>>
+        + String tipoArquivo    // foto, vídeo
+        + String url
+        + Date uploadDate
+        + UUID idVisitaTecnica <<FK>> // Referencia VisitaTecnica (para mídias gerais da visita)
+        + UUID idInconformidade <<FK>> // Referencia Inconformidade (para mídias específicas de inconformidades)
+    }
+    class RelatorioTecnico {
+        + UUID id <<PK>>
+        + Date geradoEm
+        + String pdfUrl
+        + String pontoForte
+        + String pontoCritico
+        + String encaminhamentos
+        + UUID idVisitaTecnica <<FK>> // Referencia VisitaTecnica
+    }
+
+%%-------------- Relacionamentos Explícitos --------------
+
+    VisitaTecnica "1" -- "1..*" Base : visita_em
+    note "Uma **Visita Técnica** ocorre em uma ou mais **Bases**. A **VisitaTecnica** terá **FK** para **Base**, ou uma tabela intermediária se for para várias Bases."
+
+    VisitaTecnica "1" -- "1" EquipeTecnica : realizada_por
+    note "Uma **Visita Técnica** é realizada por uma única **Equipe Técnica**. A **VisitaTecnica** terá **FK** para **EquipeTecnica**."
+
+    Base "1" -- "0..*" Viatura : possui
+    note "Uma **Base** pode possuir várias **Viaturas**. A **Viatura** terá **FK** para **Base**."
+
+    VisitaTecnica "1" -- "0..*" AvaliacaoChecklist : contem_avaliacoes
+    note "Uma **Visita Técnica** tem muitas **Avaliações de Checklist**. A **AvaliacaoChecklist** terá **FK** para **VisitaTecnica**."
+
+    ChecklistItem "1" -- "0..*" AvaliacaoChecklist : é_avaliado_em
+    note "Um **Checklist Item** é avaliado muitas vezes. A **AvaliacaoChecklist** terá **FK** para **ChecklistItem**."
+
+    Viatura "1" -- "0..*" AvaliacaoChecklist : avalia_viatura
+    note "Uma **Viatura** pode ter muitas **Avaliações de Checklist** específicas dela. A **AvaliacaoChecklist** terá **FK opcional** para **Viatura**."
+
+    AvaliacaoChecklist "1" -- "0..*" Inconformidade : identifica
+    note "Uma **Avaliação de Checklist** pode identificar muitas **Inconformidades**. A **Inconformidade** terá **FK** para **AvaliacaoChecklist**."
+
+    Inconformidade "1" -- "0..*" ArquivoMidia : documentada_por
+    note "Uma **Inconformidade** pode ser documentada por muitas **Mídias**. A **ArquivoMidia** terá **FK opcional** para **Inconformidade**."
+
+    VisitaTecnica "1" -- "0..*" IndicadorOperacional : registra
+    note "Uma **Visita Técnica** registra muitos **Indicadores Operacionais**. O **IndicadorOperacional** terá **FK** para **VisitaTecnica**."
+
+    VisitaTecnica "1" -- "0..*" RelatoEquipe : inclui
+    note "Uma **Visita Técnica** inclui muitos **Relatos da Equipe**. O **RelatoEquipe** terá **FK** para **VisitaTecnica**."
+
+    VisitaTecnica "1" -- "0..*" ArquivoMidia : armazena
+    note "Uma **Visita Técnica** armazena muitas **Mídias** gerais. A **ArquivoMidia** terá **FK opcional** para **VisitaTecnica**."
+
+    RelatorioTecnico "1" -- "1" VisitaTecnica : documenta
+    note "Um **Relatório Técnico** documenta uma única **Visita Técnica**. O **RelatorioTecnico** terá **FK** para **VisitaTecnica**."

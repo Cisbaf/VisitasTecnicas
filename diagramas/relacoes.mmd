@@ -1,0 +1,65 @@
+graph TD
+    subgraph "1. Cadastros Básicos (Pilares)"
+        A[**BaseService**<br>Gerenciar Bases]
+        B[**EquipeTecnicaService**<br>Gerenciar Equipes]
+        C[**ChecklistItemService**<br>Gerenciar Itens Checklist]
+    end
+
+    subgraph "2. Ativos"
+        D[**ViaturaService**<br>Gerenciar Viaturas]
+    end
+
+    subgraph "3. Evento Principal (Visita)"
+        E[**VisitaTecnicaService**<br>Gerenciar Visitas Técnicas]
+        F[**IndicadorOperacionalService**<br>Gerenciar Indicadores]
+        G[**RelatoEquipeService**<br>Gerenciar Relatos]
+    end
+
+    subgraph "4. Avaliação e Detalhes"
+        H[**AvaliacaoChecklistService**<br>Gerenciar Avaliações Checklist]
+        I[**InconformidadeService**<br>Gerenciar Inconformidades]
+    end
+
+    subgraph "5. Documentação Final"
+        J[**ArquivoMidiaService**<br>Gerenciar Arquivos Mídia]
+        K[**RelatorioTecnicoService**<br>Gerar Relatórios Técnicos]
+    end
+
+%% -- Conexões de Dependência --
+
+%% Camada 1 para Camada 2
+    A --> D
+
+%% Camada 1 para Camada 3
+    A --> E
+    B --> E
+
+%% Camada 3 para Camada 4
+    E --> H
+    C --> H
+    D --> H
+
+%% Camada 3 para Camada 4 (dados diretos da visita)
+    E --> F
+    E --> G
+
+%% Camada 4 para Camada 4 (dentro da avaliação)
+    H --> I
+
+%% Camada 3/4 para Camada 5
+    E --> J
+    I --> J
+    E --> K
+
+%% -- Estilos para clareza (Opcional, mas útil para visualização) --
+    style A stroke:#333,stroke-width:2px
+    style B stroke:#333,stroke-width:2px
+    style C stroke:#333,stroke-width:2px
+    style D stroke:#333,stroke-width:2px
+    style E stroke:#333,stroke-width:2px
+    style F stroke:#333,stroke-width:2px
+    style G stroke:#333,stroke-width:2px
+    style H stroke:#333,stroke-width:2px
+    style I stroke:#333,stroke-width:2px
+    style J stroke:#333,stroke-width:2px
+    style K stroke:#333,stroke-width:2px

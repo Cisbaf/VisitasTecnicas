@@ -1,7 +1,9 @@
 package com.viaturaservice.controller;
 
 import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.service.IdBaseExists;
 import com.viaturaservice.service.capsule.ViaturaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +14,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ViaturaController {
     private final ViaturaService viaturaService;
+    private final IdBaseExists exists;
+
 
     @GetMapping
     public ResponseEntity<List<ViaturaDTO>> findAll() {
-        return ResponseEntity.ok( viaturaService.getAllViaturas());
+        return ResponseEntity.ok(viaturaService.getAllViaturas());
     }
 
     @GetMapping("/{id}")
@@ -28,9 +32,10 @@ public class ViaturaController {
         }
     }
 
+
     @PostMapping
-    public ResponseEntity<ViaturaDTO> save(@RequestBody ViaturaDTO viaturaDTO) {
-        if (viaturaDTO == null) {
+    public ResponseEntity<ViaturaDTO> save(@RequestBody @Valid ViaturaDTO viaturaDTO) {
+        if (viaturaDTO == null || !exists.existsById(viaturaDTO.getIdBase())) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(viaturaService.createViatura(viaturaDTO));
@@ -44,8 +49,9 @@ public class ViaturaController {
         viaturaService.deleteViatura(id);
         return ResponseEntity.noContent().build();
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<ViaturaDTO> update(@PathVariable Long id, @RequestBody ViaturaDTO viaturaDTO) {
+    public ResponseEntity<ViaturaDTO> update(@PathVariable Long id, @RequestBody @Valid ViaturaDTO viaturaDTO) {
         if (id == null || viaturaDTO == null) {
             return ResponseEntity.badRequest().build();
         }

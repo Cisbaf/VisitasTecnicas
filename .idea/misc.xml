@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/GatewayService/pom.xml" />
         <option value="$PROJECT_DIR$/ViaturaService/pom.xml" />
         <option value="$PROJECT_DIR$/BaseService/pom.xml" />
+        <option value="$PROJECT_DIR$/VisitaService/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

@@ -1,6 +1,6 @@
 package com.viaturaservice;
 
-import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.entity.ViaturaRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,7 +14,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class ViaturaDTOTest {
+class ViaturaRequestTest {
 
     private Validator validator;
 
@@ -24,13 +24,13 @@ class ViaturaDTOTest {
         validator = factory.getValidator();
     }
 
-    @DisplayName("Validação de ViaturaDTO")
+    @DisplayName("Validação de ViaturaRequest")
     @Nested
-    class ValidacaoViaturaDTO {
+    class ValidacaoViaturaRequest {
 
         @org.junit.jupiter.api.Test
         void deveSerValidoQuandoTodosOsCamposForemValidos() {
-            ViaturaDTO dto = ViaturaDTO.builder()
+            ViaturaRequest dto = ViaturaRequest.builder()
                     .placa("ABC1234")
                     .modelo("Gol")
                     .ano("2020")
@@ -40,13 +40,13 @@ class ViaturaDTOTest {
                     .itens(List.of())
                     .build();
 
-            Set<ConstraintViolation<ViaturaDTO>> violations = validator.validate(dto);
+            Set<ConstraintViolation<ViaturaRequest>> violations = validator.validate(dto);
             assertTrue(violations.isEmpty());
         }
 
         @org.junit.jupiter.api.Test
         void deveFalharQuandoPlacaForInvalida() {
-            ViaturaDTO dto = ViaturaDTO.builder()
+            ViaturaRequest dto = ViaturaRequest.builder()
                     .placa("1234567")
                     .modelo("Gol")
                     .ano("2020")
@@ -56,14 +56,14 @@ class ViaturaDTOTest {
                     .itens(List.of())
                     .build();
 
-            Set<ConstraintViolation<ViaturaDTO>> violations = validator.validate(dto);
+            Set<ConstraintViolation<ViaturaRequest>> violations = validator.validate(dto);
             assertFalse(violations.isEmpty());
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("placa")));
         }
 
         @org.junit.jupiter.api.Test
         void deveFalharQuandoAnoNaoTiverQuatroDigitos() {
-            ViaturaDTO dto = ViaturaDTO.builder()
+            ViaturaRequest dto = ViaturaRequest.builder()
                     .placa("ABC1234")
                     .modelo("Gol")
                     .ano("20")
@@ -73,14 +73,14 @@ class ViaturaDTOTest {
                     .itens(List.of())
                     .build();
 
-            Set<ConstraintViolation<ViaturaDTO>> violations = validator.validate(dto);
+            Set<ConstraintViolation<ViaturaRequest>> violations = validator.validate(dto);
             assertFalse(violations.isEmpty());
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("ano")));
         }
 
         @org.junit.jupiter.api.Test
         void deveFalharQuandoIdBaseForNuloOuNegativo() {
-            ViaturaDTO dtoNulo = ViaturaDTO.builder()
+            ViaturaRequest dtoNulo = ViaturaRequest.builder()
                     .placa("ABC1234")
                     .modelo("Gol")
                     .ano("2020")
@@ -90,7 +90,7 @@ class ViaturaDTOTest {
                     .itens(List.of())
                     .build();
 
-            ViaturaDTO dtoNegativo = ViaturaDTO.builder()
+            ViaturaRequest dtoNegativo = ViaturaRequest.builder()
                     .placa("ABC1234")
                     .modelo("Gol")
                     .ano("2020")
@@ -100,8 +100,8 @@ class ViaturaDTOTest {
                     .itens(List.of())
                     .build();
 
-            Set<ConstraintViolation<ViaturaDTO>> violationsNulo = validator.validate(dtoNulo);
-            Set<ConstraintViolation<ViaturaDTO>> violationsNegativo = validator.validate(dtoNegativo);
+            Set<ConstraintViolation<ViaturaRequest>> violationsNulo = validator.validate(dtoNulo);
+            Set<ConstraintViolation<ViaturaRequest>> violationsNegativo = validator.validate(dtoNegativo);
 
             assertFalse(violationsNulo.isEmpty());
             assertFalse(violationsNegativo.isEmpty());
@@ -111,7 +111,7 @@ class ViaturaDTOTest {
 
         @org.junit.jupiter.api.Test
         void deveFalharQuandoItensForNulo() {
-            ViaturaDTO dto = ViaturaDTO.builder()
+            ViaturaRequest dto = ViaturaRequest.builder()
                     .placa("ABC1234")
                     .modelo("Gol")
                     .ano("2020")
@@ -121,7 +121,7 @@ class ViaturaDTOTest {
                     .itens(null)
                     .build();
 
-            Set<ConstraintViolation<ViaturaDTO>> violations = validator.validate(dto);
+            Set<ConstraintViolation<ViaturaRequest>> violations = validator.validate(dto);
             assertFalse(violations.isEmpty());
             assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("itens")));
         }

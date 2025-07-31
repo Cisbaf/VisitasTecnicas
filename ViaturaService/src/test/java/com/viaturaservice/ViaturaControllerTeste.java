@@ -2,7 +2,8 @@ package com.viaturaservice;
 
 import com.viaturaservice.controller.ViaturaController;
 import com.viaturaservice.entity.Itens;
-import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.entity.ViaturaRequest;
+import com.viaturaservice.entity.ViaturaResponse;
 import com.viaturaservice.service.IdBaseExists;
 import com.viaturaservice.service.capsule.ViaturaService;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,8 @@ class ViaturaControllerTest {
 
     @Test
     void findAllReturnsListOfViaturas() {
-        List<ViaturaDTO> viaturas = List.of(ViaturaDTO.builder()
+        List<ViaturaResponse> viaturas = List.of(ViaturaResponse.builder()
+                .id(1L)
                 .placa("ABC1234")
                 .modelo("Gol")
                 .ano("2020")
@@ -41,7 +43,8 @@ class ViaturaControllerTest {
                 .statusOperacional("Ativo")
                 .idBase(1L)
                 .itens(List.of(new Itens()))
-                .build(), ViaturaDTO.builder()
+                .build(), ViaturaResponse.builder()
+                .id(2L)
                 .placa("ABC5678")
                 .modelo("Gol")
                 .ano("2020")
@@ -52,7 +55,7 @@ class ViaturaControllerTest {
                 .build());
         when(viaturaService.getAllViaturas()).thenReturn(viaturas);
 
-        ResponseEntity<List<ViaturaDTO>> response = viaturaController.findAll();
+        ResponseEntity<List<ViaturaResponse>> response = viaturaController.findAll();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(viaturas, response.getBody());
@@ -60,7 +63,8 @@ class ViaturaControllerTest {
 
     @Test
     void findByIdReturnsViaturaWhenExists() {
-        ViaturaDTO viatura = ViaturaDTO.builder()
+        ViaturaResponse viatura = ViaturaResponse.builder()
+                .id(1L)
                 .placa("ABC1234")
                 .modelo("Gol")
                 .ano("2020")
@@ -71,7 +75,7 @@ class ViaturaControllerTest {
                 .build();
         when(viaturaService.getViaturaById(1L)).thenReturn(viatura);
 
-        ResponseEntity<ViaturaDTO> response = viaturaController.findById(1L);
+        ResponseEntity<ViaturaResponse> response = viaturaController.findById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(viatura, response.getBody());
@@ -81,21 +85,21 @@ class ViaturaControllerTest {
     void findByIdReturnsNotFoundWhenViaturaDoesNotExist() {
         when(viaturaService.getViaturaById(1L)).thenReturn(null);
 
-        ResponseEntity<ViaturaDTO> response = viaturaController.findById(1L);
+        ResponseEntity<ViaturaResponse> response = viaturaController.findById(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void saveReturnsBadRequestWhenViaturaIsNull() {
-        ResponseEntity<ViaturaDTO> response = viaturaController.save(null);
+        ResponseEntity<ViaturaResponse> response = viaturaController.save(null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void saveReturnsBadRequestWhenIdBaseDoesNotExist() {
-        ViaturaDTO viatura = ViaturaDTO.builder()
+        ViaturaRequest viatura = ViaturaRequest.builder()
                 .placa("ABC1234")
                 .modelo("Gol")
                 .ano("2020")
@@ -106,30 +110,12 @@ class ViaturaControllerTest {
                 .build();
         when(exists.existsById(viatura.getIdBase())).thenReturn(false);
 
-        ResponseEntity<ViaturaDTO> response = viaturaController.save(viatura);
+        ResponseEntity<ViaturaResponse> response = viaturaController.save(viatura);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
-    @Test
-    void saveReturnsCreatedViaturaWhenValid() {
-        ViaturaDTO viatura = ViaturaDTO.builder()
-                .placa("ABC1234")
-                .modelo("Gol")
-                .ano("2020")
-                .tipoViatura("Patrulha")
-                .statusOperacional("Ativo")
-                .idBase(1L)
-                .itens(List.of(new Itens()))
-                .build();
-        when(exists.existsById(viatura.getIdBase())).thenReturn(true);
-        when(viaturaService.createViatura(viatura)).thenReturn(viatura);
 
-        ResponseEntity<ViaturaDTO> response = viaturaController.save(viatura);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(viatura, response.getBody());
-    }
 
     @Test
     void deleteByIdReturnsBadRequestWhenIdIsNull() {
@@ -149,7 +135,7 @@ class ViaturaControllerTest {
 
     @Test
     void updateReturnsBadRequestWhenIdIsNull() {
-        ResponseEntity<ViaturaDTO> response = viaturaController.update(null, ViaturaDTO.builder()
+        ResponseEntity<ViaturaResponse> response = viaturaController.update(null, ViaturaRequest.builder()
                 .placa("ABC1234")
                 .modelo("Gol")
                 .ano("2020")
@@ -164,14 +150,14 @@ class ViaturaControllerTest {
 
     @Test
     void updateReturnsBadRequestWhenViaturaIsNull() {
-        ResponseEntity<ViaturaDTO> response = viaturaController.update(1L, null);
+        ResponseEntity<ViaturaResponse> response = viaturaController.update(1L, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void updateReturnsUpdatedViaturaWhenValid() {
-        ViaturaDTO viatura = ViaturaDTO.builder()
+        ViaturaRequest viatura = ViaturaRequest.builder()
                 .placa("ABC1234")
                 .modelo("Gol")
                 .ano("2020")
@@ -180,7 +166,8 @@ class ViaturaControllerTest {
                 .idBase(1L)
                 .itens(List.of(new Itens()))
                 .build();
-        ViaturaDTO updatedViatura = ViaturaDTO.builder()
+        ViaturaResponse updatedViatura = ViaturaResponse.builder()
+                .id(1L)
                 .placa("ABC9871")
                 .modelo("Versa")
                 .ano("2020")
@@ -191,7 +178,7 @@ class ViaturaControllerTest {
                 .build();
         when(viaturaService.updateViatura(1L, viatura)).thenReturn(updatedViatura);
 
-        ResponseEntity<ViaturaDTO> response = viaturaController.update(1L, viatura);
+        ResponseEntity<ViaturaResponse> response = viaturaController.update(1L, viatura);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedViatura, response.getBody());

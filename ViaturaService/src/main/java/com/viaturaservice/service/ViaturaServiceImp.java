@@ -1,7 +1,8 @@
 package com.viaturaservice.service;
 
-import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaEntity;
+import com.viaturaservice.entity.ViaturaResponse;
 import com.viaturaservice.repository.ViaturaRepository;
 import com.viaturaservice.service.capsule.ViaturaService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,9 @@ public class ViaturaServiceImp implements ViaturaService {
     private final ViaturaRepository viaturaRepository;
     private final ViaturaMapper mapper;
 
-    public ViaturaDTO createViatura(ViaturaDTO viaturaDTO) {
+    public ViaturaResponse createViatura(ViaturaRequest viaturaRequest) {
         try{
-        ViaturaEntity entity = mapper.toEntity(viaturaDTO);
+        ViaturaEntity entity = mapper.toEntity(viaturaRequest);
         ViaturaEntity savedEntity = viaturaRepository.save(entity);
         return toDTO(savedEntity);
         } catch (DataIntegrityViolationException e) {
@@ -29,21 +30,21 @@ public class ViaturaServiceImp implements ViaturaService {
         }
     }
 
-    public ViaturaDTO getViaturaById(Long id) {
+    public ViaturaResponse getViaturaById(Long id) {
 
         return viaturaRepository.findById(id)
                 .map(ViaturaMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Viatura não encontrada."));
     }
 
-    public List<ViaturaDTO> getAllViaturas() {
+    public List<ViaturaResponse> getAllViaturas() {
         return viaturaRepository.findAll().stream()
                 .map(ViaturaMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    public ViaturaDTO updateViatura(Long id, ViaturaDTO viaturaDTO) {
-        ViaturaEntity entity = mapper.toEntity(viaturaDTO);
+    public ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest) {
+        ViaturaEntity entity = mapper.toEntity(viaturaRequest);
         entity.setId(id);
         ViaturaEntity updatedEntity = viaturaRepository.save(entity);
         return toDTO(updatedEntity);

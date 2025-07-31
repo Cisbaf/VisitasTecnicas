@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Value
 @Builder
-public class ViaturaDTO implements Serializable {
+public class ViaturaRequest implements Serializable {
 
     @Pattern(regexp = "^[A-Z]{3}\\d{4}$|^[A-Z]{3}\\d[A-Z]\\d{2}$", message = "Placa inválida. Formato esperado: AAA9999 ou AAA9A99")
     @Length(min = 7, max = 7, message = "A placa deve ter exatamente 7 caracteres")

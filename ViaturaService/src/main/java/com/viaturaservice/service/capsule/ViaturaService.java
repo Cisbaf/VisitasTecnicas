@@ -1,17 +1,18 @@
 package com.viaturaservice.service.capsule;
 
-import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.entity.ViaturaRequest;
+import com.viaturaservice.entity.ViaturaResponse;
 
 import java.util.List;
 
 public interface ViaturaService {
-     ViaturaDTO createViatura(ViaturaDTO viaturaDTO);
+     ViaturaResponse createViatura(ViaturaRequest viaturaRequest);
 
-     ViaturaDTO getViaturaById(Long id);
+     ViaturaResponse getViaturaById(Long id);
 
-     List<ViaturaDTO> getAllViaturas();
+     List<ViaturaResponse> getAllViaturas();
 
-     ViaturaDTO updateViatura(Long id, ViaturaDTO viaturaDTO);
+     ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest);
 
      void deleteViatura(Long id);
 }

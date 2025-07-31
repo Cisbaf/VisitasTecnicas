@@ -1,15 +1,15 @@
 package com.viaturaservice.entity;
 
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Itens implements Serializable {
+@Embeddable
+public class Itens {
     private String nome;
     private int conformidade;
 

@@ -1,32 +1,34 @@
 package com.viaturaservice.service;
 
-import com.viaturaservice.entity.ViaturaDTO;
 import com.viaturaservice.entity.ViaturaEntity;
+import com.viaturaservice.entity.ViaturaRequest;
+import com.viaturaservice.entity.ViaturaResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
 class ViaturaMapper {
     private final IdBaseExists exists;
 
-    protected ViaturaEntity toEntity(ViaturaDTO viaturaDTO) {
-        if (exists.existsById(viaturaDTO.getIdBase())) {
+    protected ViaturaEntity toEntity(ViaturaRequest viaturaRequest) {
+        if (exists.existsById(viaturaRequest.getIdBase())) {
             return ViaturaEntity.builder()
-                    .placa(viaturaDTO.getPlaca().toUpperCase())
-                    .modelo(viaturaDTO.getModelo())
-                    .ano(viaturaDTO.getAno())
-                    .tipoViatura(viaturaDTO.getTipoViatura())
-                    .statusOperacional(viaturaDTO.getStatusOperacional())
-                    .idBase(viaturaDTO.getIdBase())
-                    .itens(viaturaDTO.getItens())
+                    .placa(viaturaRequest.getPlaca().toUpperCase())
+                    .modelo(viaturaRequest.getModelo())
+                    .ano(viaturaRequest.getAno())
+                    .tipoViatura(viaturaRequest.getTipoViatura())
+                    .statusOperacional(viaturaRequest.getStatusOperacional())
+                    .idBase(viaturaRequest.getIdBase())
+                    .itens(viaturaRequest.getItens())
                     .build();
         }
-        throw new IllegalArgumentException("Base ID does not exist: " + viaturaDTO.getIdBase());
+        throw new IllegalArgumentException("Base ID does not exist: " + viaturaRequest.getIdBase());
     }
 
-    protected static ViaturaDTO toDTO(ViaturaEntity viaturaEntity) {
-        return ViaturaDTO.builder()
+    protected static ViaturaResponse toDTO(ViaturaEntity viaturaEntity) {
+        return ViaturaResponse.builder()
+                .id(viaturaEntity.getId())
                 .placa(viaturaEntity.getPlaca())
                 .modelo(viaturaEntity.getModelo())
                 .ano(viaturaEntity.getAno())

@@ -1,6 +1,7 @@
 package com.viaturaservice.controller;
 
-import com.viaturaservice.entity.ViaturaDTO;
+import com.viaturaservice.entity.ViaturaRequest;
+import com.viaturaservice.entity.ViaturaResponse;
 import com.viaturaservice.service.IdBaseExists;
 import com.viaturaservice.service.capsule.ViaturaService;
 import jakarta.validation.Valid;
@@ -18,15 +19,15 @@ public class ViaturaController {
 
 
     @GetMapping
-    public ResponseEntity<List<ViaturaDTO>> findAll() {
+    public ResponseEntity<List<ViaturaResponse>> findAll() {
         return ResponseEntity.ok(viaturaService.getAllViaturas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ViaturaDTO> findById(@PathVariable Long id) {
-        ViaturaDTO viaturaDTO = viaturaService.getViaturaById(id);
-        if (viaturaDTO != null) {
-            return ResponseEntity.ok(viaturaDTO);
+    public ResponseEntity<ViaturaResponse> findById(@PathVariable Long id) {
+        var viaturaRequest = viaturaService.getViaturaById(id);
+        if (viaturaRequest != null) {
+            return ResponseEntity.ok(viaturaRequest);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -34,11 +35,11 @@ public class ViaturaController {
 
 
     @PostMapping
-    public ResponseEntity<ViaturaDTO> save(@RequestBody @Valid ViaturaDTO viaturaDTO) {
-        if (viaturaDTO == null || !exists.existsById(viaturaDTO.getIdBase())) {
+    public ResponseEntity<ViaturaResponse> save(@RequestBody @Valid ViaturaRequest viaturaRequest) {
+        if (viaturaRequest == null || !exists.existsById(viaturaRequest.getIdBase())) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(viaturaService.createViatura(viaturaDTO));
+        return ResponseEntity.ok(viaturaService.createViatura(viaturaRequest));
     }
 
     @DeleteMapping
@@ -51,11 +52,11 @@ public class ViaturaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ViaturaDTO> update(@PathVariable Long id, @RequestBody @Valid ViaturaDTO viaturaDTO) {
-        if (id == null || viaturaDTO == null) {
+    public ResponseEntity<ViaturaResponse> update(@PathVariable Long id, @RequestBody @Valid ViaturaRequest viaturaRequest) {
+        if (id == null || viaturaRequest == null) {
             return ResponseEntity.badRequest().build();
         }
-        ViaturaDTO updatedViatura = viaturaService.updateViatura(id, viaturaDTO);
+        ViaturaResponse updatedViatura = viaturaService.updateViatura(id, viaturaRequest);
         return ResponseEntity.ok(updatedViatura);
     }
 

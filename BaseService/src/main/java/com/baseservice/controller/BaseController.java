@@ -1,8 +1,10 @@
 package com.baseservice.controller;
 
-import com.baseservice.entity.BaseDTO;
+import com.baseservice.entity.BaseRequest;
+import com.baseservice.entity.BaseResponse;
 import com.baseservice.service.capsule.BaseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,15 +16,15 @@ public class BaseController {
     private final BaseService baseService;
 
     @GetMapping
-    public ResponseEntity<List<BaseDTO>> findAll() {
+    public ResponseEntity<List<BaseResponse>> findAll() {
         return ResponseEntity.ok( baseService.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BaseDTO> findById(@PathVariable Long id) {
-        BaseDTO BaseDTO = baseService.getById(id);
-        if (BaseDTO != null) {
-            return ResponseEntity.ok(BaseDTO);
+    public ResponseEntity<BaseResponse> findById(@PathVariable Long id) {
+        BaseResponse response = baseService.getById(id);
+        if (response != null) {
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -35,15 +37,15 @@ public class BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<BaseDTO> save(@RequestBody BaseDTO BaseDTO) {
-        return ResponseEntity.ok(baseService.createBase(BaseDTO));
+    public ResponseEntity<BaseResponse> save(@RequestBody BaseRequest BaseRequest) {
+        return ResponseEntity.ok(baseService.createBase(BaseRequest));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BaseDTO> update(@PathVariable Long id, @RequestBody BaseDTO BaseDTO) {
-        BaseDTO updatedBase = baseService.update(id, BaseDTO);
-        if (updatedBase != null) {
-            return ResponseEntity.ok(updatedBase);
+    public ResponseEntity<BaseResponse> update(@PathVariable Long id, @RequestBody BaseRequest BaseRequest) {
+        BaseResponse response = baseService.update(id, BaseRequest);
+        if (response != null) {
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -53,5 +55,11 @@ public class BaseController {
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         baseService.deleteBase(id);
         return ResponseEntity.noContent().build();
+    }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> onRuntime(RuntimeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ex.getMessage());
     }
 }

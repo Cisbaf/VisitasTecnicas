@@ -1,6 +1,7 @@
 package com.baseservice.service;
 
-import com.baseservice.entity.BaseDTO;
+import com.baseservice.entity.BaseRequest;
+import com.baseservice.entity.BaseResponse;
 import com.baseservice.repository.BaseRepository;
 import com.baseservice.service.capsule.BaseService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,12 @@ public class BaseServiceImp implements BaseService {
     private final BaseRepository baseRepository;
 
     @Override
-    public BaseDTO createBase(BaseDTO baseDTO) {
+    public BaseResponse createBase(BaseRequest baseRequest) {
         try {
-            if (baseDTO == null) {
+            if (baseRequest == null) {
                 throw new IllegalArgumentException("Base cannot be null");
             }
-            var baseEntity = toEntity(baseDTO);
+            var baseEntity = toEntity(baseRequest);
             var savedEntity = baseRepository.save(baseEntity);
             return toDTO(savedEntity);
         }catch (DataIntegrityViolationException e ){
@@ -34,7 +35,7 @@ public class BaseServiceImp implements BaseService {
     }
 
     @Override
-    public BaseDTO getById(Long id) {
+    public BaseResponse getById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
@@ -44,20 +45,20 @@ public class BaseServiceImp implements BaseService {
     }
 
     @Override
-    public List<BaseDTO> getAll() {
+    public List<BaseResponse> getAll() {
         return baseRepository.findAll().stream().map(BaseMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
-    public BaseDTO update(Long id, BaseDTO baseDTO) {
-        if (id == null || baseDTO == null) {
+    public BaseResponse update(Long id, BaseRequest baseRequest) {
+        if (id == null || baseRequest == null) {
             throw new IllegalArgumentException("ID and base cannot be null");
         }
         return baseRepository.findById(id)
                 .map(existingEntity -> {
-                    existingEntity.setNome(baseDTO.getNome());
-                    existingEntity.setEndereco(baseDTO.getEndereco());
-                    existingEntity.setTipoBase(baseDTO.getTipoBase());
+                    existingEntity.setNome(baseRequest.getNome());
+                    existingEntity.setEndereco(baseRequest.getEndereco());
+                    existingEntity.setTipoBase(baseRequest.getTipoBase());
 
                     var updatedEntity = baseRepository.save(existingEntity);
                     return toDTO(updatedEntity);

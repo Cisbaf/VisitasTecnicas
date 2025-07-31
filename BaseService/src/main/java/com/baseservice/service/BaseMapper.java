@@ -1,19 +1,21 @@
 package com.baseservice.service;
 
-import com.baseservice.entity.BaseDTO;
+import com.baseservice.entity.BaseRequest;
 import com.baseservice.entity.BaseEntity;
+import com.baseservice.entity.BaseResponse;
 
 class BaseMapper {
 
-    protected static BaseEntity toEntity(BaseDTO baseDTO) {
+    protected static BaseEntity toEntity(BaseRequest baseRequest) {
         return BaseEntity.builder()
-                .nome(baseDTO.getNome())
-                .endereco(baseDTO.getEndereco())
-                .tipoBase(baseDTO.getTipoBase())
+                .nome(baseRequest.getNome())
+                .endereco(baseRequest.getEndereco())
+                .tipoBase(baseRequest.getTipoBase())
                 .build();
     }
-    protected static BaseDTO toDTO(BaseEntity baseEntity) {
-        return BaseDTO.builder()
+    protected static BaseResponse toDTO(BaseEntity baseEntity) {
+        return BaseResponse.builder()
+                .id(baseEntity.getId())
                 .nome(baseEntity.getNome())
                 .endereco(baseEntity.getEndereco())
                 .tipoBase(baseEntity.getTipoBase())

@@ -1,17 +1,18 @@
 package com.baseservice.service.capsule;
 
-import com.baseservice.entity.BaseDTO;
+import com.baseservice.entity.BaseRequest;
+import com.baseservice.entity.BaseResponse;
 
 import java.util.List;
 
 public interface BaseService {
-     BaseDTO createBase(BaseDTO viaturaDTO);
+     BaseResponse createBase(BaseRequest viaturaDTO);
 
-     BaseDTO getById(Long id);
+     BaseResponse getById(Long id);
 
-     List<BaseDTO> getAll();
+     List<BaseResponse> getAll();
 
-     BaseDTO update(Long id, BaseDTO viaturaDTO);
+     BaseResponse update(Long id, BaseRequest viaturaDTO);
 
      void deleteBase(Long id);
      boolean existsById(Long id);

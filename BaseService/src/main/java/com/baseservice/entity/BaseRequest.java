@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 @Value
 @Builder
-public class BaseDTO implements Serializable {
+public class BaseRequest implements Serializable {
     @NotBlank(message = "Campo nome é requerido")
     String nome;
     @NotBlank(message = "Campo endereço é requerido")

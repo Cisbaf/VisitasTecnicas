@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +24,9 @@ public class CheckListServiceImp implements CheckListService {
         if (request == null) {
             throw new IllegalArgumentException("CheckList não pode ser nulo");
         }
+        if (repository.existsByCategoria(request.categoria())) {
+            throw new IllegalArgumentException("Já existe um CheckList com a categoria: " + request.categoria());
+        }
         var entity = mapper.toEntity(request);
         var savedEntity = repository.save(entity);
         return mapper.toResponse(savedEntity);
@@ -35,6 +39,8 @@ public class CheckListServiceImp implements CheckListService {
         throw new IllegalArgumentException("Lista de CheckLists não pode ser nula ou vazia");
     }
         List<CheckListResponse> responses = requests.stream()
+                .filter(Objects::nonNull)
+                .filter(request -> !repository.existsByCategoria(request.categoria()))
                 .map(mapper::toEntity)
                 .map(repository::save)
                 .map(mapper::toResponse)

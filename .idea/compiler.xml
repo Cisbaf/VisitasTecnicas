@@ -9,26 +9,17 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for CheckListItemService" enabled="true">
+      <profile name="Annotation profile for BaseService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-        </processorPath>
-        <module name="CheckListItemService" />
-        <module name="ViaturaService" />
-      </profile>
-      <profile name="Annotation profile for VisitaService" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="VisitaService" />
         <module name="BaseService" />
+        <module name="CheckListItemService" />
+        <module name="ViaturaService" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -30,7 +30,7 @@ class CheckListMapperTest {
         assertEquals(1L, response.id());
         assertEquals("Categoria", response.categoria());
 
-        CheckDescription desc = response.descricao().get(0);
+        CheckDescription desc = response.descricao().getFirst();
         assertEquals("Teste completo", desc.getDescricao());
         assertEquals(100, desc.getConformidadePercent());
         assertEquals(TipoConformidade.CONFORME, desc.getTipoConformidade());
@@ -72,8 +72,8 @@ class CheckListMapperTest {
 
         assertNotNull(entity);
         assertEquals("Parcial", entity.getCategoria());
-        assertEquals(75, entity.getDescricao().get(0).getConformidadePercent());
-        assertNull(entity.getDescricao().get(0).getTipoConformidade());
+        assertEquals(75, entity.getDescricao().getFirst().getConformidadePercent());
+        assertNull(entity.getDescricao().getFirst().getTipoConformidade());
     }
 
     @Test

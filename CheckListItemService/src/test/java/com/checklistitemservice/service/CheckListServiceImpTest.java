@@ -123,7 +123,7 @@ class CheckListServiceImpTest {
         assertEquals("TI", result.categoria());
         assertEquals(1, result.descricao().size());
 
-        CheckDescription item = result.descricao().get(0);
+        CheckDescription item = result.descricao().getFirst();
         assertEquals(75, item.getConformidadePercent());
         assertEquals(TipoConformidade.PARCIAL, item.getTipoConformidade());
     }
@@ -241,7 +241,7 @@ class CheckListServiceImpTest {
 
         CheckListResponse result = service.createCheckList(request);
 
-        assertEquals(TipoConformidade.NAO_CONFORME, result.descricao().get(0).getTipoConformidade());
+        assertEquals(TipoConformidade.NAO_CONFORME, result.descricao().getFirst().getTipoConformidade());
     }
 
     @Test
@@ -259,6 +259,6 @@ class CheckListServiceImpTest {
         when(repository.save(entity)).thenReturn(entity);
 
         assertDoesNotThrow(() -> service.createCheckList(request));
-        assertNull(entity.getDescricao().get(0).getObservacao());
+        assertNull(entity.getDescricao().getFirst().getObservacao());
     }
 }

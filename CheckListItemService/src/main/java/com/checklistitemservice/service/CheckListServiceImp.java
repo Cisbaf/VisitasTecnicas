@@ -1,0 +1,93 @@
+package com.checklistitemservice.service;
+
+import com.checklistitemservice.entity.dto.CheckListRequest;
+import com.checklistitemservice.entity.dto.CheckListResponse;
+import com.checklistitemservice.respository.CheckListRepository;
+import com.checklistitemservice.service.capsule.CheckListService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CheckListServiceImp implements CheckListService {
+    private final CheckListMapper mapper;
+    private final CheckListRepository repository;
+    private final String nullMessage = "CheckList não encontrado com ID: ";
+
+
+    @Override
+    public CheckListResponse createCheckList(CheckListRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("CheckList não pode ser nulo");
+        }
+        var entity = mapper.toEntity(request);
+        var savedEntity = repository.save(entity);
+        return mapper.toResponse(savedEntity);
+
+    }
+
+    @Override
+    public List<CheckListResponse> createCheckLists(List<CheckListRequest> requests) {
+    if (requests == null || requests.isEmpty()) {
+        throw new IllegalArgumentException("Lista de CheckLists não pode ser nula ou vazia");
+    }
+        List<CheckListResponse> responses = requests.stream()
+                .map(mapper::toEntity)
+                .map(repository::save)
+                .map(mapper::toResponse)
+                .toList();
+
+        if (responses.isEmpty()) {
+            throw new IllegalArgumentException("Nenhum CheckList foi criado");
+    }
+        return responses;
+    }
+
+    @Override
+    public CheckListResponse getById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID não pode ser nulo");
+        }
+        return repository.findById(id)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new IllegalArgumentException(nullMessage + id));
+    }
+
+    @Override
+    public List<CheckListResponse> getAll() {
+        return repository.findAll().stream().map(mapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public CheckListResponse update(Long id, CheckListRequest request) {
+    if (id == null || request == null) {
+        throw new IllegalArgumentException("ID e CheckList não podem ser nulos");
+    }
+        var existingEntity = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(nullMessage + id));
+
+        var updatedEntity = mapper.toEntity(request);
+        updatedEntity.setId(existingEntity.getId()); // Preserva o ID existente
+        var savedEntity = repository.save(updatedEntity);
+        return mapper.toResponse(savedEntity);
+    }
+
+    @Override
+    public void deleteCheckList(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID não pode ser nulo");
+        }
+        if (!existsById(id)) {
+            throw new IllegalArgumentException(nullMessage + id);
+        }
+        repository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return id != null && repository.existsById(id);
+    }
+}

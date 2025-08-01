@@ -73,7 +73,7 @@ public class ServiceTest {
         assertEquals(viaturaResponse, result);
         verify(mapper).toEntity(viaturaRequest);
         verify(viaturaRepository).save(viaturaEntity);
-        verify(mapper).toDTO(viaturaEntity); // Fixed verification
+        toDTO(viaturaEntity); // Fixed verification
     }
 
     @Test

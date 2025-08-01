@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/ViaturaService/pom.xml" />
         <option value="$PROJECT_DIR$/BaseService/pom.xml" />
         <option value="$PROJECT_DIR$/VisitaService/pom.xml" />
+        <option value="$PROJECT_DIR$/CheckListItemService/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

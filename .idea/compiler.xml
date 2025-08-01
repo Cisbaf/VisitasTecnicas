@@ -9,15 +9,15 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for BaseService" enabled="true">
+      <profile name="Annotation profile for CheckListItemService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="BaseService" />
+        <module name="CheckListItemService" />
+        <module name="ViaturaService" />
       </profile>
       <profile name="Annotation profile for VisitaService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -25,9 +25,10 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="VisitaService" />
-        <module name="ViaturaService" />
+        <module name="BaseService" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -37,6 +38,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="BaseService" options="-parameters" />
+      <module name="CheckListItemService" options="-parameters" />
       <module name="DiscoveryService" options="-parameters" />
       <module name="GatewayService" options="-parameters" />
       <module name="ViaturaService" options="-parameters" />

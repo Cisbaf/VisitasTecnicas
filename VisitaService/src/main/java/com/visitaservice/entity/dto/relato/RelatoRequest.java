@@ -1,10 +1,7 @@
 package com.visitaservice.entity.dto.relato;
 
-import com.visitaservice.entity.VisitaEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -26,5 +23,5 @@ public record RelatoRequest(
         @NotNull(message = "Campo não pode ser nulo")
         Boolean resolvido,
         @NotNull
-        VisitaEntity visitas
+        Long id_visita
 ) implements Serializable {}

@@ -2,6 +2,7 @@ package com.baseservice;
 
 import com.baseservice.controller.BaseController;
 import com.baseservice.entity.BaseRequest;
+import com.baseservice.entity.BaseResponse;
 import com.baseservice.service.capsule.BaseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -33,11 +34,11 @@ class BaseControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("GET / returns list of BaseRequest")
+    @DisplayName("GET / returns list of BaseResponse")
     void findAll_ReturnsList() throws Exception {
-        BaseRequest dto1 = BaseRequest.builder().nome("B1").endereco("E1").tipoBase("T1").build();
-        BaseRequest dto2 = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        doReturn(List.of(dto1, dto2)).when(baseService).getAll();
+        BaseResponse res1 = BaseResponse.builder().nome("B1").endereco("E1").tipoBase("T1").build();
+        BaseResponse res2 = BaseResponse.builder().nome("B2").endereco("E2").tipoBase("T2").build();
+        doReturn(List.of(res1, res2)).when(baseService).getAll();
 
         mockMvc.perform(get("/").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -48,10 +49,10 @@ class BaseControllerTest {
     }
 
     @Test
-    @DisplayName("GET /{id} returns BaseRequest when found")
+    @DisplayName("GET /{id} returns BaseResponse when found")
     void findById_Found() throws Exception {
-        BaseRequest dto = BaseRequest.builder().nome("B1").endereco("E1").tipoBase("T1").build();
-        doReturn(dto).when(baseService).getById(1L);
+        BaseResponse res = BaseResponse.builder().nome("B1").endereco("E1").tipoBase("T1").build();
+        doReturn(res).when(baseService).getById(1L);
 
         mockMvc.perform(get("/1").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -59,7 +60,7 @@ class BaseControllerTest {
     }
 
     @Test
-    @DisplayName("GET /{id} returns 404 when service returns null")
+    @DisplayName("GET /{id} returns 404 when not found")
     void findById_NotFound() throws Exception {
         doReturn(null).when(baseService).getById(2L);
 
@@ -78,52 +79,63 @@ class BaseControllerTest {
     }
 
     @Test
-    @DisplayName("POST / saves BaseRequest and returns it")
+    @DisplayName("POST / saves and returns BaseResponse")
     void save_ReturnsSaved() throws Exception {
-        BaseRequest dto = BaseRequest.builder().nome("B1").endereco("E1").tipoBase("T1").build();
-        doReturn(dto).when(baseService).createBase(any(BaseRequest.class));
+        BaseRequest req = BaseRequest.builder().nome("B1").endereco("E1").tipoBase("T1").build();
+        BaseResponse res = BaseResponse.builder().nome("B1").endereco("E1").tipoBase("T1").build();
+        doReturn(res).when(baseService).createBase(any(BaseRequest.class));
 
         mockMvc.perform(post("/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("B1"));
     }
 
     @Test
-    @DisplayName("PUT /{id} updates BaseRequest and returns it")
+    @DisplayName("POST / with invalid body returns 400")
+    void save_InvalidJson() throws Exception {
+        mockMvc.perform(post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ \"invalid\": \"json\" }"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /{id} updates and returns BaseResponse")
     void update_ReturnsUpdated() throws Exception {
-        BaseRequest dto = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        doReturn(dto).when(baseService).update(1L, dto);
+        BaseRequest req = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
+        BaseResponse res = BaseResponse.builder().nome("B2").endereco("E2").tipoBase("T2").build();
+        doReturn(res).when(baseService).update(1L, req);
 
         mockMvc.perform(put("/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.endereco").value("E2"));
     }
 
     @Test
-    @DisplayName("PUT /{id} returns 404 when service returns null")
+    @DisplayName("PUT /{id} returns 404 when not found")
     void update_NotFound() throws Exception {
-        BaseRequest dto = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        doReturn(null).when(baseService).update(3L, dto);
+        BaseRequest req = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
+        doReturn(null).when(baseService).update(3L, req);
 
         mockMvc.perform(put("/3")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("DELETE /{id} returns no content")
+    @DisplayName("DELETE /{id} returns 204 when successful")
     void deleteById_Success() throws Exception {
         mockMvc.perform(delete("/1"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("DELETE /{id} propagates exception")
+    @DisplayName("DELETE /{id} returns 500 when service throws")
     void deleteById_Throws() throws Exception {
         doThrow(new RuntimeException("erro")).when(baseService).deleteBase(5L);
 

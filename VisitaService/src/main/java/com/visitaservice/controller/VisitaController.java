@@ -1,7 +1,7 @@
 package com.visitaservice.controller;
 
-import com.visitaservice.entity.VisitaRequest;
-import com.visitaservice.entity.VisitaResponse;
+import com.visitaservice.entity.dto.visita.VisitaRequest;
+import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.service.capsule.VisitaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

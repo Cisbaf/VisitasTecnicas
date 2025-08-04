@@ -1,9 +1,10 @@
-package com.visitaservice.service;
+package com.visitaservice.service.visita;
 
 
 import com.visitaservice.entity.VisitaEntity;
-import com.visitaservice.entity.VisitaRequest;
-import com.visitaservice.entity.VisitaResponse;
+import com.visitaservice.entity.dto.visita.VisitaRequest;
+import com.visitaservice.entity.dto.visita.VisitaResponse;
+import com.visitaservice.service.IdBaseExists;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

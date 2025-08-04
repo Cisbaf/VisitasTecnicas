@@ -1,15 +1,16 @@
-package com.visitaservice.service;
+package com.visitaservice.service.visita;
 
-import com.visitaservice.entity.VisitaRequest;
-import com.visitaservice.entity.VisitaResponse;
+import com.visitaservice.entity.dto.visita.VisitaRequest;
+import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.repository.VisitaRepository;
+import com.visitaservice.service.IdBaseExists;
 import com.visitaservice.service.capsule.VisitaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.visitaservice.service.VisitaMapper.toResponse;
+import static com.visitaservice.service.visita.VisitaMapper.toResponse;
 
 @Service
 @RequiredArgsConstructor

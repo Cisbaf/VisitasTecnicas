@@ -1,5 +1,7 @@
-package com.visitaservice.entity;
+package com.visitaservice.entity.dto.visita;
 
+import com.visitaservice.entity.EquipeTecnica;
+import com.visitaservice.entity.VisitaEntity;
 import lombok.Builder;
 
 import java.io.Serializable;

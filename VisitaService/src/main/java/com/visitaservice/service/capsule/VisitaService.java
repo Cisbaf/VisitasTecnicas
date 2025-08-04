@@ -1,7 +1,7 @@
 package com.visitaservice.service.capsule;
 
-import com.visitaservice.entity.VisitaRequest;
-import com.visitaservice.entity.VisitaResponse;
+import com.visitaservice.entity.dto.visita.VisitaRequest;
+import com.visitaservice.entity.dto.visita.VisitaResponse;
 
 import java.util.List;
 

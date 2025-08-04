@@ -1,5 +1,7 @@
-package com.visitaservice.entity;
+package com.visitaservice.entity.dto.visita;
 
+import com.visitaservice.entity.EquipeTecnica;
+import com.visitaservice.entity.VisitaEntity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;

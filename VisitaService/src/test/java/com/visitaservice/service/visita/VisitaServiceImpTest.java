@@ -1,11 +1,11 @@
-package com.visitaservice.service;
+package com.visitaservice.service.visita;
 
 import com.visitaservice.entity.EquipeTecnica;
 import com.visitaservice.entity.VisitaEntity;
-import com.visitaservice.entity.VisitaRequest;
-import com.visitaservice.entity.VisitaResponse;
+import com.visitaservice.entity.dto.visita.VisitaRequest;
+import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.repository.VisitaRepository;
-import com.visitaservice.service.capsule.VisitaService;
+import com.visitaservice.service.IdBaseExists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.visitaservice.service.VisitaMapper.toResponse;
+import static com.visitaservice.service.visita.VisitaMapper.toResponse;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

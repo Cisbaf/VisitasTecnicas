@@ -32,11 +32,19 @@ public class ViaturaController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        boolean exists = viaturaService.existsViaturaById(id);
+        return ResponseEntity.ok(exists);
+    }
 
 
     @PostMapping
     public ResponseEntity<ViaturaResponse> save(@RequestBody @Valid ViaturaRequest viaturaRequest) {
-        if (viaturaRequest == null || !exists.existsById(viaturaRequest.getIdBase())) {
+        if (viaturaRequest == null || !exists.existsById(viaturaRequest.idBase())) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(viaturaService.createViatura(viaturaRequest));

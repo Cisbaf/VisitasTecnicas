@@ -12,18 +12,18 @@ class ViaturaMapper {
     private final IdBaseExists exists;
 
     protected ViaturaEntity toEntity(ViaturaRequest viaturaRequest) {
-        if (exists.existsById(viaturaRequest.getIdBase())) {
+        if (exists.existsById(viaturaRequest.idBase())) {
             return ViaturaEntity.builder()
-                    .placa(viaturaRequest.getPlaca().toUpperCase())
-                    .modelo(viaturaRequest.getModelo())
-                    .ano(viaturaRequest.getAno())
-                    .tipoViatura(viaturaRequest.getTipoViatura())
-                    .statusOperacional(viaturaRequest.getStatusOperacional())
-                    .idBase(viaturaRequest.getIdBase())
-                    .itens(viaturaRequest.getItens())
+                    .placa(viaturaRequest.placa().toUpperCase())
+                    .modelo(viaturaRequest.modelo())
+                    .ano(viaturaRequest.ano())
+                    .tipoViatura(viaturaRequest.tipoViatura())
+                    .statusOperacional(viaturaRequest.statusOperacional())
+                    .idBase(viaturaRequest.idBase())
+                    .itens(viaturaRequest.itens())
                     .build();
         }
-        throw new IllegalArgumentException("Base ID does not exist: " + viaturaRequest.getIdBase());
+        throw new IllegalArgumentException("Base ID does not exist: " + viaturaRequest.idBase());
     }
 
     protected static ViaturaResponse toDTO(ViaturaEntity viaturaEntity) {

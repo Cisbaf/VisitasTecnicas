@@ -10,6 +10,8 @@ public interface ViaturaService {
 
      ViaturaResponse getViaturaById(Long id);
 
+     boolean existsViaturaById(Long id);
+
      List<ViaturaResponse> getAllViaturas();
 
      ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest);

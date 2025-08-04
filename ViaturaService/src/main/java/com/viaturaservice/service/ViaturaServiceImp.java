@@ -37,6 +37,11 @@ public class ViaturaServiceImp implements ViaturaService {
                 .orElseThrow(() -> new RuntimeException("Viatura não encontrada."));
     }
 
+    @Override
+    public boolean existsViaturaById(Long id) {
+        return viaturaRepository.existsById(id);
+    }
+
     public List<ViaturaResponse> getAllViaturas() {
         return viaturaRepository.findAll().stream()
                 .map(ViaturaMapper::toDTO)

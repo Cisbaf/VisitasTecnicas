@@ -108,7 +108,7 @@ class ViaturaControllerTest {
                 .idBase(1L)
                 .itens(List.of(new Itens()))
                 .build();
-        when(exists.existsById(viatura.getIdBase())).thenReturn(false);
+        when(exists.existsById(viatura.idBase())).thenReturn(false);
 
         ResponseEntity<ViaturaResponse> response = viaturaController.save(viatura);
 

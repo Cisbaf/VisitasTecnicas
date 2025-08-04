@@ -2,6 +2,7 @@ package com.avaliacaoservice.controller;
 
 import com.avaliacaoservice.entity.AvaliacaoEntity;
 import com.avaliacaoservice.service.AvaliacaoService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ public class AvaliacaoController {
     public final AvaliacaoService avaliacaoService;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get Avaliacao by ID", description = "Retrieve an avaliacao by its unique identifier.")
     public ResponseEntity<AvaliacaoEntity> findById(@PathVariable Long id) {
         AvaliacaoEntity avaliacao = avaliacaoService.findById(id);
         if (avaliacao != null) {
@@ -23,6 +25,7 @@ public class AvaliacaoController {
         }
     }
     @GetMapping
+    @Operation(summary = "Get All Avaliacoes", description = "Retrieve a list of all avaliacoes.")
     public ResponseEntity<List<AvaliacaoEntity>> findAll() {
         List<AvaliacaoEntity> avaliacoes = avaliacaoService.findAll();
         if (avaliacoes != null && !avaliacoes.isEmpty()) {
@@ -32,6 +35,7 @@ public class AvaliacaoController {
         }
     }
     @PostMapping
+    @Operation(summary = "Create Avaliacao", description = "Create a new avaliacao with the provided details.")
     public ResponseEntity<AvaliacaoEntity> createAvaliacao(@RequestBody AvaliacaoEntity avaliacao) {
         if (avaliacao == null) {
             return ResponseEntity.badRequest().build();
@@ -40,6 +44,7 @@ public class AvaliacaoController {
         return ResponseEntity.ok(createdAvaliacao);
     }
     @PutMapping("/{id}")
+    @Operation(summary = "Update Avaliacao by ID", description = "Update an avaliacao by its unique identifier.")
     public ResponseEntity<AvaliacaoEntity> updateAvaliacao(@PathVariable Long id, @RequestBody AvaliacaoEntity avaliacao) {
         if (id == null || avaliacao == null) {
             return ResponseEntity.badRequest().build();
@@ -52,6 +57,7 @@ public class AvaliacaoController {
         }
     }
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete Avaliacao by ID", description = "Delete an avaliacao by its unique identifier.")
     public ResponseEntity<Void> deleteAvaliacao(@PathVariable Long id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();

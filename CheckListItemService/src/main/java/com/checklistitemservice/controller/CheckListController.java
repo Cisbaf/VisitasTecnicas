@@ -3,6 +3,7 @@ package com.checklistitemservice.controller;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.service.capsule.CheckListService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,13 @@ public class CheckListController {
     private final CheckListService service;
 
     @GetMapping
+    @Operation(summary = "Get all CheckLists", description = "Retrieve a list of all checklists.")
     public ResponseEntity<List<CheckListResponse>> findAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get CheckList by ID", description = "Retrieve a checklist by its unique identifier.")
     public ResponseEntity<CheckListResponse> findById(@PathVariable Long id) {
         CheckListResponse checkListResponse = service.getById(id);
         if (checkListResponse != null) {
@@ -31,6 +34,7 @@ public class CheckListController {
     }
 
     @PostMapping("/save")
+    @Operation(summary = "Create a new CheckList", description = "Create a new checklist with the provided details.")
     public ResponseEntity<CheckListResponse> save(@RequestBody @Valid CheckListRequest request) {
         if (request == null) {
             return ResponseEntity.badRequest().build();
@@ -39,6 +43,7 @@ public class CheckListController {
     }
 
     @PostMapping("/saveAll")
+    @Operation(summary = "Create multiple CheckLists", description = "Create multiple checklists with the provided details.")
     public ResponseEntity<List<CheckListResponse>> saveAll(@RequestBody @Valid List<CheckListRequest> requests) {
         if (requests == null) {
             return ResponseEntity.badRequest().build();
@@ -47,6 +52,7 @@ public class CheckListController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete CheckList by ID", description = "Delete a checklist by its unique identifier.")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();
@@ -56,6 +62,7 @@ public class CheckListController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update CheckList by ID", description = "Update the details of an existing checklist by its ID.")
     public ResponseEntity<CheckListResponse> update(@PathVariable Long id, @RequestBody @Valid CheckListRequest request) {
         if (id == null || request == null) {
             return ResponseEntity.badRequest().build();
@@ -65,6 +72,7 @@ public class CheckListController {
     }
 
     @GetMapping("/exists/{id}")
+    @Operation(summary = "Check if CheckList exists by ID", description = "Check if a checklist exists by its unique identifier.")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(service.existsById(id));
     }

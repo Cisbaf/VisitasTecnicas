@@ -18,13 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Date;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = VisitaController.class)
@@ -41,13 +38,11 @@ class VisitaControllerTest {
 
     private VisitaRequest validRequest;
     private VisitaResponse validResponse;
-    private List<EquipeTecnica> membros;
     private final Long EXISTING_ID = 1L;
-    private final Long NON_EXISTING_ID = 99L;
 
     @BeforeEach
     void setUp() {
-        membros = List.of(
+        List<EquipeTecnica> membros = List.of(
                 new EquipeTecnica("Ana", "Médica"),
                 new EquipeTecnica("Bruno", "Paramédico")
         );

@@ -137,7 +137,7 @@ class VisitaServiceImpTest {
             List<VisitaResponse> list = service.getAll();
 
             assertEquals(1, list.size());
-            assertEquals(EXISTING_ID, list.get(0).id());
+            assertEquals(EXISTING_ID, list.getFirst().id());
             mockStatic.verify(() -> toResponse(entity));
         }
     }

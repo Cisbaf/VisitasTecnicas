@@ -34,6 +34,16 @@ public class ViaturaController {
             return ResponseEntity.notFound().build();
         }
     }
+    @Operation(summary = "Get Viatura by Base ID", description = "Retrieve a viatura by its base ID.")
+    @GetMapping("/base/{idBase}")
+    public ResponseEntity<ViaturaResponse> findByIdBase(@PathVariable Long idBase) {
+        var viaturaRequest = viaturaService.getViaturaByIdBase(idBase);
+        if (viaturaRequest != null) {
+            return ResponseEntity.ok(viaturaRequest);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     @Operation(summary = "Check if Viatura exists by ID", description = "Check if a viatura exists by its ID.")
     @GetMapping("/exists/{id}")

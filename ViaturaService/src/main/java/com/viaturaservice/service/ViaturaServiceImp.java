@@ -38,6 +38,13 @@ public class ViaturaServiceImp implements ViaturaService {
     }
 
     @Override
+    public ViaturaResponse getViaturaByIdBase(Long idBase) {
+        return viaturaRepository.findViaturaEntitiesByIdBase(idBase)
+                .map(ViaturaMapper::toDTO)
+                .orElseThrow(() -> new IllegalArgumentException("Viatura não encontrada para a base com ID: " + idBase));
+    }
+
+    @Override
     public boolean existsViaturaById(Long id) {
         return viaturaRepository.existsById(id);
     }

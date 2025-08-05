@@ -6,15 +6,17 @@ import com.viaturaservice.entity.ViaturaResponse;
 import java.util.List;
 
 public interface ViaturaService {
-     ViaturaResponse createViatura(ViaturaRequest viaturaRequest);
+    ViaturaResponse createViatura(ViaturaRequest viaturaRequest);
 
-     ViaturaResponse getViaturaById(Long id);
+    ViaturaResponse getViaturaById(Long id);
 
-     boolean existsViaturaById(Long id);
+    ViaturaResponse getViaturaByIdBase(Long idBase);
 
-     List<ViaturaResponse> getAllViaturas();
+    boolean existsViaturaById(Long id);
 
-     ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest);
+    List<ViaturaResponse> getAllViaturas();
 
-     void deleteViatura(Long id);
+    ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest);
+
+    void deleteViatura(Long id);
 }

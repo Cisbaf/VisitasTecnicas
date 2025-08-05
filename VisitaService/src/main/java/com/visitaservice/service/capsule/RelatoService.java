@@ -13,6 +13,10 @@ public interface RelatoService {
 
     List<RelatoResponse> getAll();
 
+    List<RelatoResponse> getAllByVisitaId(Long visitasId);
+
+
+
     RelatoResponse updateRelato(Long id, RelatoRequest request);
 
     void delete(Long id);

@@ -4,6 +4,7 @@ import com.visitaservice.entity.RelatoEntity;
 import com.visitaservice.entity.dto.relato.RelatoRequest;
 import com.visitaservice.entity.dto.relato.RelatoResponse;
 import com.visitaservice.repository.RelatoRepository;
+import com.visitaservice.repository.VisitaRepository;
 import com.visitaservice.service.capsule.RelatoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -19,6 +20,7 @@ public class RelatoServiceImp implements RelatoService {
     private final RelatoRepository repository;
     private final RelatoMapper mapper;
     private final String RELATO_NOT_FOUND = "Relato não encontrado com o id: ";
+    private final VisitaRepository visitaRepository;
 
     public RelatoResponse createRelato(RelatoRequest request) {
         RelatoEntity entity = mapper.toEntity(request);
@@ -33,6 +35,13 @@ public class RelatoServiceImp implements RelatoService {
     }
     public List<RelatoResponse> getAll() {
         return repository.findAll().stream()
+                .map(RelatoMapper::toResponse)
+                .toList();
+    }
+    public List<RelatoResponse> getAllByVisitaId(Long visitasId) {
+        var visista = visitaRepository.findById(visitasId).orElseThrow(() -> new IllegalArgumentException(RELATO_NOT_FOUND + visitasId));
+
+        return repository.findAllByVisitas(visista).stream()
                 .map(RelatoMapper::toResponse)
                 .toList();
     }

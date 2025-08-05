@@ -9,7 +9,7 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for VisitaService" enabled="true">
+      <profile name="Annotation profile for RelatorioService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -18,6 +18,7 @@
         </processorPath>
         <module name="AvaliacaoService" />
         <module name="VisitaService" />
+        <module name="RelatorioService" />
         <module name="CheckListItemService" />
         <module name="BaseService" />
         <module name="ViaturaService" />
@@ -34,6 +35,7 @@
       <module name="CheckListItemService" options="-parameters" />
       <module name="DiscoveryService" options="-parameters" />
       <module name="GatewayService" options="-parameters" />
+      <module name="RelatorioService" options="-parameters" />
       <module name="ViaturaService" options="-parameters" />
       <module name="VisitaService" options="-parameters" />
       <module name="VisitarTecnica" options="-parameters" />

@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/VisitaService/pom.xml" />
         <option value="$PROJECT_DIR$/CheckListItemService/pom.xml" />
         <option value="$PROJECT_DIR$/AvaliacaoService/pom.xml" />
+        <option value="$PROJECT_DIR$/RelatorioService/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

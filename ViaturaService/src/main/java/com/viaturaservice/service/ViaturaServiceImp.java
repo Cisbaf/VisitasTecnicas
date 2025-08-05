@@ -38,11 +38,11 @@ public class ViaturaServiceImp implements ViaturaService {
     }
 
     @Override
-    public ViaturaResponse getViaturaByIdBase(Long idBase) {
-        return viaturaRepository.findViaturaEntitiesByIdBase(idBase)
-                .map(ViaturaMapper::toDTO)
-                .orElseThrow(() -> new IllegalArgumentException("Viatura não encontrada para a base com ID: " + idBase));
+    public List<ViaturaResponse> getAllViaturasByIdBase(Long idBase) {
+        return viaturaRepository.findAllByIdBase(idBase).stream()
+                .map(ViaturaMapper::toDTO).toList();
     }
+
 
     @Override
     public boolean existsViaturaById(Long id) {

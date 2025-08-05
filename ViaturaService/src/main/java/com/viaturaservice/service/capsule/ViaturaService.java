@@ -10,7 +10,7 @@ public interface ViaturaService {
 
     ViaturaResponse getViaturaById(Long id);
 
-    ViaturaResponse getViaturaByIdBase(Long idBase);
+    List<ViaturaResponse> getAllViaturasByIdBase(Long idBase);
 
     boolean existsViaturaById(Long id);
 

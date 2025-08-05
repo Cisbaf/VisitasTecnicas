@@ -1,5 +1,6 @@
 package com.visitaservice.service.capsule;
 
+import com.visitaservice.entity.EquipeTecnica;
 import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 
@@ -11,6 +12,8 @@ public interface VisitaService {
      VisitaResponse getById(Long id);
 
      List<VisitaResponse> getAll();
+
+     List<EquipeTecnica> getAllMembrosByVisitaId(Long visitaId);
 
      VisitaResponse updateVisita(Long id, VisitaRequest request);
 

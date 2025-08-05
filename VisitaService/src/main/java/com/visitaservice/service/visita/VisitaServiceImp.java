@@ -1,5 +1,7 @@
 package com.visitaservice.service.visita;
 
+import com.visitaservice.entity.EquipeTecnica;
+import com.visitaservice.entity.VisitaEntity;
 import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.repository.VisitaRepository;
@@ -41,6 +43,13 @@ public class VisitaServiceImp implements VisitaService {
     @Override
     public List<VisitaResponse> getAll() {
         return visitaRepository.findAll().stream().map(VisitaMapper::toResponse).toList();
+    }
+
+    @Override
+    public List<EquipeTecnica> getAllMembrosByVisitaId(Long visitaId) {
+        return visitaRepository.findById(visitaId)
+                .map(VisitaEntity::getMembros)
+                .orElseThrow(() -> new IllegalArgumentException(visitNotFoundMessage + visitaId));
     }
 
     @Override

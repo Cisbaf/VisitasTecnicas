@@ -1,5 +1,6 @@
 package com.visitaservice.controller;
 
+import com.visitaservice.entity.EquipeTecnica;
 import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.service.capsule.VisitaService;
@@ -32,6 +33,11 @@ public class VisitaController {
     @Operation(summary = "Check if Visita exists", description = "Check if a visita exists by its ID.")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(service.existsVisitaById(id));
+    }
+    @GetMapping("/membros/{visitaId}")
+    @Operation(summary = "Get all members of a Visita", description = "Retrieve all team members associated with a specific visita ID.")
+    public ResponseEntity<List<EquipeTecnica>> getAllMembrosByVisitaId(@PathVariable Long visitaId) {
+        return ResponseEntity.ok(service.getAllMembrosByVisitaId(visitaId));
     }
 
     @Operation(summary = "Create a new Visita", description = "Create a new visita with the provided details.")

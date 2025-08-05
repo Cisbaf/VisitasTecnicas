@@ -24,6 +24,7 @@ public class AvaliacaoController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @GetMapping
     @Operation(summary = "Get All Avaliacoes", description = "Retrieve a list of all avaliacoes.")
     public ResponseEntity<List<AvaliacaoEntity>> findAll() {
@@ -34,6 +35,18 @@ public class AvaliacaoController {
             return ResponseEntity.noContent().build();
         }
     }
+
+    @GetMapping("/visita/{idVisita}")
+    @Operation(summary = "Get Avaliacao by Visita ID", description = "Retrieve an avaliacao by its associated visita ID.")
+    public ResponseEntity<List<AvaliacaoEntity>> findByIdVisita(@PathVariable Long idVisita) {
+        var avaliacao = avaliacaoService.findByIdVisita(idVisita);
+        if (avaliacao != null) {
+            return ResponseEntity.ok(avaliacao);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping
     @Operation(summary = "Create Avaliacao", description = "Create a new avaliacao with the provided details.")
     public ResponseEntity<AvaliacaoEntity> createAvaliacao(@RequestBody AvaliacaoEntity avaliacao) {
@@ -43,6 +56,7 @@ public class AvaliacaoController {
         AvaliacaoEntity createdAvaliacao = avaliacaoService.createAvaliacao(avaliacao);
         return ResponseEntity.ok(createdAvaliacao);
     }
+
     @PutMapping("/{id}")
     @Operation(summary = "Update Avaliacao by ID", description = "Update an avaliacao by its unique identifier.")
     public ResponseEntity<AvaliacaoEntity> updateAvaliacao(@PathVariable Long id, @RequestBody AvaliacaoEntity avaliacao) {
@@ -56,6 +70,7 @@ public class AvaliacaoController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Avaliacao by ID", description = "Delete an avaliacao by its unique identifier.")
     public ResponseEntity<Void> deleteAvaliacao(@PathVariable Long id) {

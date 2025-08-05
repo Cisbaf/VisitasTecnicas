@@ -18,6 +18,7 @@ class CheckListMapper {
                 .id(entity.getId())
                 .categoria(entity.getCategoria())
                 .descricao(entity.getDescricao())
+                .visitaId(entity.getVisitaId())
                 .build();
     }
 
@@ -28,6 +29,7 @@ class CheckListMapper {
         return CheckListEntity.builder()
                 .categoria(request.categoria())
                 .descricao(request.descricao())
+                .visitaId(request.visitaId())
                 .build();
     }
 

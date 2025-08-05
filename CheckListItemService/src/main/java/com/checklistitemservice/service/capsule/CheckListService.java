@@ -14,6 +14,8 @@ public interface CheckListService {
 
     List<CheckListResponse> getAll();
 
+    List<CheckListResponse> getByVisitaId(Long visitaId);
+
     CheckListResponse update(Long id, CheckListRequest request);
 
     void deleteCheckList(Long id);

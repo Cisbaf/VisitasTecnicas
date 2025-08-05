@@ -68,6 +68,11 @@ public class CheckListServiceImp implements CheckListService {
     }
 
     @Override
+    public List<CheckListResponse> getByVisitaId(Long visitaId) {
+        return repository.findAllByVisitaId(visitaId).stream().map(mapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
     public CheckListResponse update(Long id, CheckListRequest request) {
     if (id == null || request == null) {
         throw new IllegalArgumentException("ID e CheckList não podem ser nulos");

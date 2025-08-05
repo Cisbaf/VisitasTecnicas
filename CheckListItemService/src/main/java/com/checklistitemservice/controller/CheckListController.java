@@ -33,6 +33,17 @@ public class CheckListController {
         }
     }
 
+    @GetMapping("/visita/{visitaId}")
+    @Operation(summary = "Get CheckLists by Visita ID", description = "Retrieve a list of checklists associated with a specific visita ID.")
+    public ResponseEntity<List<CheckListResponse>> findByVisitaId(@PathVariable Long visitaId) {
+        List<CheckListResponse> checkLists = service.getByVisitaId(visitaId);
+        if (checkLists != null && !checkLists.isEmpty()) {
+            return ResponseEntity.ok(checkLists);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping("/save")
     @Operation(summary = "Create a new CheckList", description = "Create a new checklist with the provided details.")
     public ResponseEntity<CheckListResponse> save(@RequestBody @Valid CheckListRequest request) {

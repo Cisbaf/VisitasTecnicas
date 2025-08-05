@@ -20,6 +20,7 @@ public class CheckDescription {
 
     @Enumerated(EnumType.ORDINAL)
     private TipoConformidade tipoConformidade; //  Conforme 1 / Parcial 2 / Não Conforme 0
-    private Criticidade criticidade;
+    @Enumerated(EnumType.ORDINAL)
+    private Criticidade criticidade; //  Alta 3 / Média 2 / Baixa 1 / Nenhuma 0
 
 }

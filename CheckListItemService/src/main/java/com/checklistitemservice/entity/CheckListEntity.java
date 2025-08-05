@@ -19,4 +19,5 @@ public class CheckListEntity {
     private String categoria;
     @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
     private List<CheckDescription> descricao;
+    private Long visitaId;
 }

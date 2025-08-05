@@ -14,8 +14,12 @@ import java.util.List;
  */
 @Builder
 public record CheckListRequest(
+
         @NotBlank
         String categoria,
+        @NotNull(message = "Visita é requerida")
+        Long visitaId,
         @NotNull(message = "Itens do checklist são requeridos")
         List<CheckDescription> descricao
+
 ) implements Serializable { }

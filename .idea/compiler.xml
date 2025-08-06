@@ -9,17 +9,18 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for VisitaService" enabled="true">
+      <profile name="Annotation profile for ArquivoMidia" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="AvaliacaoService" />
         <module name="VisitaService" />
-        <module name="RelatorioService" />
+        <module name="ArquivoMidia" />
         <module name="CheckListItemService" />
+        <module name="AvaliacaoService" />
+        <module name="RelatorioService" />
         <module name="BaseService" />
         <module name="ViaturaService" />
       </profile>
@@ -30,6 +31,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ArquivoMidia" options="-parameters" />
       <module name="AvaliacaoService" options="-parameters" />
       <module name="BaseService" options="-parameters" />
       <module name="CheckListItemService" options="-parameters" />

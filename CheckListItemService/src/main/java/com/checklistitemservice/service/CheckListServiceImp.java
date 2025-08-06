@@ -7,6 +7,7 @@ import com.checklistitemservice.service.capsule.CheckListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -38,6 +39,8 @@ public class CheckListServiceImp implements CheckListService {
     if (requests == null || requests.isEmpty()) {
         throw new IllegalArgumentException("Lista de CheckLists não pode ser nula ou vazia");
     }
+
+    try{
         List<CheckListResponse> responses = requests.stream()
                 .filter(Objects::nonNull)
                 .filter(request -> !repository.existsByCategoria(request.categoria()))
@@ -45,11 +48,14 @@ public class CheckListServiceImp implements CheckListService {
                 .map(repository::save)
                 .map(mapper::toResponse)
                 .toList();
-
         if (responses.isEmpty()) {
-            throw new IllegalArgumentException("Nenhum CheckList foi criado");
+            throw new IllegalArgumentException("Nenhum CheckList foi criado, todas as categorias já existem.");
+        }
+        return  responses;
+    }catch (Exception exception) {
+        throw new IllegalArgumentException("Erro ao criar CheckLists: " + exception.getMessage());
     }
-        return responses;
+
     }
 
     @Override
@@ -69,7 +75,11 @@ public class CheckListServiceImp implements CheckListService {
 
     @Override
     public List<CheckListResponse> getByVisitaId(Long visitaId) {
-        return repository.findAllByVisitaId(visitaId).stream().map(mapper::toResponse).collect(Collectors.toList());
+        var checkList = repository.findAllByVisitaId(visitaId).stream().map(mapper::toResponse).toList();
+        if (checkList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return checkList;
     }
 
     @Override
@@ -81,7 +91,7 @@ public class CheckListServiceImp implements CheckListService {
                 .orElseThrow(() -> new IllegalArgumentException(nullMessage + id));
 
         var updatedEntity = mapper.toEntity(request);
-        updatedEntity.setId(existingEntity.getId()); // Preserva o ID existente
+        updatedEntity.setId(existingEntity.getId());
         var savedEntity = repository.save(updatedEntity);
         return mapper.toResponse(savedEntity);
     }

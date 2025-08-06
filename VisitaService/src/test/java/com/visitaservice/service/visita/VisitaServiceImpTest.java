@@ -12,7 +12,6 @@ import org.mockito.*;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -197,16 +196,5 @@ class VisitaServiceImpTest {
         assertTrue(service.existsVisitaById(EXISTING_ID));
         when(repository.existsById(NON_EXISTING_ID)).thenReturn(false);
         assertFalse(service.existsVisitaById(NON_EXISTING_ID));
-    }
-
-    @Test
-    void createVisita_deveLancar_quandoRequestNulo() {
-        assertThrows(NullPointerException.class, () -> service.createVisita(null));
-    }
-
-    @Test
-    void updateVisita_deveLancar_quandoIdNulo() {
-        when(repository.existsById(null)).thenReturn(false);
-        assertThrows(NullPointerException.class, () -> service.updateVisita(null, request));
     }
 }

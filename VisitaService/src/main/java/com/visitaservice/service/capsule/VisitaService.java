@@ -5,23 +5,23 @@ import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 public interface VisitaService {
-     VisitaResponse createVisita(VisitaRequest request);
+    VisitaResponse createVisita(VisitaRequest request);
 
-     VisitaResponse getById(Long id);
+    VisitaResponse getById(Long id);
 
-     List<VisitaResponse> getAll();
+    List<VisitaResponse> getAll();
 
-     List<EquipeTecnica> getAllMembrosByVisitaId(Long visitaId);
-     List<VisitaResponse> getAllByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim);
+    List<EquipeTecnica> getAllMembrosByVisitaId(Long visitaId);
+
+    List<VisitaResponse> getAllByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim);
 
 
-          VisitaResponse updateVisita(Long id, VisitaRequest request);
+    VisitaResponse updateVisita(Long id, VisitaRequest request);
 
-     void delete(Long id);
+    void delete(Long id);
 
-     Boolean existsVisitaById(Long id);
+    Boolean existsVisitaById(Long id);
 }

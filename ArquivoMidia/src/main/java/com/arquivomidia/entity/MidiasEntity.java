@@ -16,7 +16,8 @@ public class MidiasEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String tipoArquivo;
+    @Enumerated(EnumType.STRING)
+    private TipoMidia tipoArquivo;
     private String url;
     private LocalDate dataUpload;
     private Long idVisita;

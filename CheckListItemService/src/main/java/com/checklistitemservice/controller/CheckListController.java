@@ -40,7 +40,7 @@ public class CheckListController {
         if (checkLists != null && !checkLists.isEmpty()) {
             return ResponseEntity.ok(checkLists);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
     }
 

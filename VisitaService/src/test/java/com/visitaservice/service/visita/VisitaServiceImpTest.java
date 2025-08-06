@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +47,7 @@ class VisitaServiceImpTest {
         );
 
         request = VisitaRequest.builder()
-                .dataVisita(new Date(1627776000000L))  // 1 ago 2021
+                .dataVisita(LocalDate.now())  // 1 ago 2021
                 .idBase(EXISTING_ID)
                 .membros(membros)
                 .build();

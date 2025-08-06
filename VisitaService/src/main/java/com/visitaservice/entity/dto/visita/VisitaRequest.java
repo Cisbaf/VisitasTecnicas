@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -18,7 +18,7 @@ import java.util.List;
 @Builder
 public class VisitaRequest implements Serializable {
     @NotNull(message = "A data da visita é requerida")
-    Date dataVisita;
+    LocalDate dataVisita;
     @NotNull(message = "A base visitada é requerida")
     @Positive
     Long idBase;

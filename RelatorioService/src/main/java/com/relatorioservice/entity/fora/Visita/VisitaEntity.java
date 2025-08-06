@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
 public class VisitaEntity {
 
     private Long id;
-    private Date dataVisita;
+    private LocalDate dataVisita;
     private Long idBase;
     private List<EquipeTecnica> membros;
 

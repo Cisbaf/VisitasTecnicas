@@ -7,9 +7,12 @@ import com.visitaservice.service.capsule.VisitaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.DataException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -38,6 +41,14 @@ public class VisitaController {
     @Operation(summary = "Get all members of a Visita", description = "Retrieve all team members associated with a specific visita ID.")
     public ResponseEntity<List<EquipeTecnica>> getAllMembrosByVisitaId(@PathVariable Long visitaId) {
         return ResponseEntity.ok(service.getAllMembrosByVisitaId(visitaId));
+    }
+
+    @GetMapping("/periodo/{idBase}")
+    @Operation(summary = "Get Visitas by Period", description = "Retrieve visitas for a specific base within a date range.")
+    public ResponseEntity<List<VisitaResponse>> getAllByPeriod(@PathVariable Long idBase,
+                                                               @RequestParam() LocalDate dataInicio,
+                                                               @RequestParam() LocalDate  dataFim) {
+        return ResponseEntity.ok(service.getAllByPeriod(idBase, dataInicio, dataFim));
     }
 
     @Operation(summary = "Create a new Visita", description = "Create a new visita with the provided details.")

@@ -6,7 +6,9 @@ import com.relatorioservice.entity.fora.Visita.VisitaEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @FeignClient(name = "visita", url = "${gateway.url}")
@@ -20,4 +22,11 @@ public interface VisitaServiceClient {
 
     @GetMapping("/visita/relatos/visita/{visitaId}")
     List<RelatoEntity> getRelatosByVisita(@PathVariable Long visitaId);
+
+    @GetMapping("/visita/periodo/{idBase}")
+    List<VisitaEntity> getAllByPeriod(@PathVariable Long idBase,
+                                      @RequestParam() LocalDate dataInicio,
+                                      @RequestParam() LocalDate dataFim);
+
+
 }

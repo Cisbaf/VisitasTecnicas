@@ -3,6 +3,7 @@ package com.visitaservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class VisitaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date dataVisita;
+    private LocalDate dataVisita;
     private Long idBase;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<EquipeTecnica> membros;

@@ -5,6 +5,7 @@ import com.visitaservice.entity.VisitaEntity;
 import lombok.Builder;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,6 @@ import java.util.List;
  * DTO for {@link VisitaEntity}
  */
 @Builder
-public record VisitaResponse(Long id, Date dataVisita, Long idBase,
+public record VisitaResponse(Long id, LocalDate dataVisita, Long idBase,
                              List<EquipeTecnica> membros) implements Serializable {
 }

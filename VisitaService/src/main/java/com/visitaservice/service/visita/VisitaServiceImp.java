@@ -10,6 +10,7 @@ import com.visitaservice.service.capsule.VisitaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.visitaservice.service.visita.VisitaMapper.toResponse;
@@ -43,6 +44,15 @@ public class VisitaServiceImp implements VisitaService {
     @Override
     public List<VisitaResponse> getAll() {
         return visitaRepository.findAll().stream().map(VisitaMapper::toResponse).toList();
+    }
+    public List<VisitaResponse> getAllByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
+        if (exists.existsById(idBase)) {
+            return visitaRepository.findAllByIdBaseAndDataVisitaBetween(idBase, dataInicio, dataFim)
+                    .stream()
+                    .map(VisitaMapper::toResponse)
+                    .toList();
+        }
+        throw new IllegalArgumentException("Base não existe: " + idBase);
     }
 
     @Override

@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -48,7 +49,7 @@ class VisitaControllerTest {
         );
 
         validRequest = VisitaRequest.builder()
-                .dataVisita(new Date(1627776000000L))  // 1 ago 2021
+                .dataVisita(LocalDate.now())  // 1 ago 2021
                 .idBase(EXISTING_ID)
                 .membros(membros)
                 .build();

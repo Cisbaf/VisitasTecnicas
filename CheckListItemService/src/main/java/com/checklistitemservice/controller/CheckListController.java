@@ -87,4 +87,10 @@ public class CheckListController {
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(service.existsById(id));
     }
+
+    @GetMapping("/descexists/{descriptionId}")
+    @Operation(summary = "Check if description exists by ID", description = "Check if a description exists by its unique identifier.")
+    public ResponseEntity<Boolean> descriptionExist(@PathVariable Long descriptionId) {
+        return ResponseEntity.ok(service.descriptionExist(descriptionId));
+    }
 }

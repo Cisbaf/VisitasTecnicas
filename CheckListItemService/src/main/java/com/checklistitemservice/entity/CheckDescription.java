@@ -3,17 +3,18 @@ package com.checklistitemservice.entity;
 import com.checklistitemservice.entity.enums.Criticidade;
 import com.checklistitemservice.entity.enums.TipoConformidade;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Embeddable
-@Data
+@Entity
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class CheckDescription {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String descricao;
     private int conformidadePercent; // Ex: 100% / 50% / 0%
     private String observacao;

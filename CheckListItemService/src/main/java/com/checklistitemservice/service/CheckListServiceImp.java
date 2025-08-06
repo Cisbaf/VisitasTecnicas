@@ -2,6 +2,7 @@ package com.checklistitemservice.service;
 
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
+import com.checklistitemservice.respository.CheckDescRepository;
 import com.checklistitemservice.respository.CheckListRepository;
 import com.checklistitemservice.service.capsule.CheckListService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class CheckListServiceImp implements CheckListService {
     private final CheckListMapper mapper;
     private final CheckListRepository repository;
+    private final CheckDescRepository descRepository;
     private final String nullMessage = "CheckList não encontrado com ID: ";
 
 
@@ -110,5 +112,9 @@ public class CheckListServiceImp implements CheckListService {
     @Override
     public boolean existsById(Long id) {
         return id != null && repository.existsById(id);
+    }
+    @Override
+    public boolean descriptionExist(Long descriptionId) {
+        return descriptionId != null && descRepository.existsById(descriptionId);
     }
 }

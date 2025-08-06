@@ -21,4 +21,6 @@ public interface CheckListService {
     void deleteCheckList(Long id);
 
     boolean existsById(Long id);
+
+    boolean descriptionExist(Long descriptionId);
 }

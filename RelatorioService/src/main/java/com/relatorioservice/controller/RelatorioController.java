@@ -1,5 +1,6 @@
 package com.relatorioservice.controller;
 
+import com.relatorioservice.entity.dtos.BaseRankingDTO;
 import com.relatorioservice.entity.dtos.RelatorioConsolidadoResponse;
 import com.relatorioservice.entity.dtos.RelatorioTecnicoResponse;
 import com.relatorioservice.service.RelatorioTecnicoService;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/relatorios")
@@ -31,5 +33,12 @@ public class RelatorioController {
             @RequestParam LocalDate fim) {
 
         return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodo(idBase, inicio, fim));
+    }
+    @GetMapping("/ranking")
+    @Operation(summary = "Gera um relatório de ranking de visitas")
+    public ResponseEntity<List<BaseRankingDTO>> getRankingVisitas(
+            @RequestParam LocalDate inicio,
+            @RequestParam LocalDate fim) {
+        return ResponseEntity.ok(relatorioService.getRankingBasesPeriodoAtual(inicio, fim));
     }
 }

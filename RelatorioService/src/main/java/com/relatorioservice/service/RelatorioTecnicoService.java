@@ -202,6 +202,60 @@ public class RelatorioTecnicoService {
                 .filter(v -> !v.getItensCriticos().isEmpty())
                 .collect(Collectors.toList()));
 
+        consolidado.setRankingBases(getRankingBasesPeriodoAtual(dataInicio, dataFim));
         return consolidado;
+    }
+
+    public List<BaseRankingDTO> getRankingBasesPeriodoAtual(LocalDate dataInicio, LocalDate dataFim) {
+        // Busca todas as bases
+        List<BaseEntity> todasBases = baseService.getAllBases();
+        List<BaseRankingDTO> ranking = new ArrayList<>();
+
+        for (BaseEntity base : todasBases) {
+            try {
+                // Busca visitas da base no período
+                List<VisitaEntity> visitas = visitaService.getAllByPeriod(
+                        base.getId(),
+                        dataInicio,
+                        dataFim
+                );
+
+                if (visitas.isEmpty()) continue;
+
+                // Encontra a visita mais recente
+                VisitaEntity ultimaVisita = visitas.stream()
+                        .max(Comparator.comparing(VisitaEntity::getDataVisita))
+                        .orElse(null);
+
+                // Gera relatório da última visita
+                RelatorioTecnicoResponse relatorio = this.gerarRelatorio(ultimaVisita.getId());
+
+                // Calcula média geral de conformidades
+                double mediaGeral = relatorio.getConformidades().values().stream()
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(0.0);
+
+                ranking.add(new BaseRankingDTO(
+                        base.getNome(),
+                        base.getId(),
+                        mediaGeral,
+                        ultimaVisita.getDataVisita()
+                ));
+            } catch (Exception e) {
+                // Log de erro para a base específica
+                System.err.println("Erro ao processar base " + base.getId() + ": " + e.getMessage());
+            }
+        }
+
+        // Ordena as bases pela média de conformidade
+        Collections.sort(ranking);
+
+        // Atribui posições no ranking
+        for (int i = 0; i < ranking.size(); i++) {
+            ranking.get(i).setPosicaoRanking(i + 1);
+        }
+
+        return ranking;
     }
 }

@@ -15,4 +15,5 @@ public class RelatorioConsolidadoResponse {
     private List<String> pontosCriticosRecorrentes;
     private Map<String, Double> mediasConformidade;  // Categoria → Média percentual
     private List<ViaturaDTO> viaturasCriticas;
+    private List<BaseRankingDTO> rankingBases;
 }

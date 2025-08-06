@@ -2,14 +2,14 @@ package com.relatorioservice.entity.dtos;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @Data
 public class RelatorioTecnicoDTO {
     private Long visitaId;
-    private Date dataVisita;
+    private LocalDate dataVisita;
     private String baseNome;
     private String municipio;
 

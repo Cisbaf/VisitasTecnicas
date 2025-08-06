@@ -56,6 +56,15 @@ public class AvaliacaoController {
         AvaliacaoEntity createdAvaliacao = avaliacaoService.createAvaliacao(avaliacao);
         return ResponseEntity.ok(createdAvaliacao);
     }
+    @PostMapping("/saveAll")
+    @Operation(summary = "Create Multiple Avaliacoes", description = "Create multiple avaliacoes with the provided list.")
+    public ResponseEntity<List<AvaliacaoEntity>> createAll(@RequestBody List<AvaliacaoEntity> avaliacoes) {
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<AvaliacaoEntity> createdAvaliacoes = avaliacaoService.createAll(avaliacoes);
+        return ResponseEntity.ok(createdAvaliacoes);
+    }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Avaliacao by ID", description = "Update an avaliacao by its unique identifier.")

@@ -15,7 +15,7 @@ class MidiaMapper {
         if (midia == null) {
             return null;
         }
-        return MidiasEntity.builder().dataUpload(LocalDate.now()).tipoArquivo(TipoMidia.valueOf(midia.tipoArquivo().toLowerCase())).url(midia.url()).idVisita(midia.idVisita() != null ? midia.idVisita() : null)
+        return MidiasEntity.builder().dataUpload(LocalDate.now()).tipoArquivo(TipoMidia.valueOf(midia.tipoArquivo().toUpperCase())).url(midia.url()).idVisita(midia.idVisita() != null ? midia.idVisita() : null)
                 .idInconformidade(midia.idInconformidade() != null ? midia.idInconformidade() : null)
                 .build();
     }

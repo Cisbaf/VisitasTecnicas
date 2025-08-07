@@ -9,7 +9,7 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for ArquivoMidia" enabled="true">
+      <profile name="Annotation profile for AuthService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -19,6 +19,7 @@
         <module name="VisitaService" />
         <module name="ArquivoMidia" />
         <module name="CheckListItemService" />
+        <module name="AuthService" />
         <module name="AvaliacaoService" />
         <module name="RelatorioService" />
         <module name="BaseService" />
@@ -32,6 +33,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="ArquivoMidia" options="-parameters" />
+      <module name="AuthService" options="-parameters" />
       <module name="AvaliacaoService" options="-parameters" />
       <module name="BaseService" options="-parameters" />
       <module name="CheckListItemService" options="-parameters" />

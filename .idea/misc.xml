@@ -14,6 +14,7 @@
         <option value="$PROJECT_DIR$/AvaliacaoService/pom.xml" />
         <option value="$PROJECT_DIR$/RelatorioService/pom.xml" />
         <option value="$PROJECT_DIR$/ArquivoMidia/pom.xml" />
+        <option value="$PROJECT_DIR$/AuthService/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

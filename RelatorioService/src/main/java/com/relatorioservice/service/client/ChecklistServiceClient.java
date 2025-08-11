@@ -1,5 +1,6 @@
 package com.relatorioservice.service.client;
 
+import com.relatorioservice.config.FeignClientConfig;
 import com.relatorioservice.entity.fora.checklist.AvaliacaoEntity;
 import com.relatorioservice.entity.fora.checklist.CheckListEntity;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "checklist", url = "${gateway.url}")
+@FeignClient(name = "checklist", url = "${gateway.url}", configuration = FeignClientConfig.class)
 public interface ChecklistServiceClient {
 
     @GetMapping("/checklist/visita/{visitaId}")

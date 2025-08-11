@@ -1,5 +1,6 @@
 package com.relatorioservice.service.client;
 
+import com.relatorioservice.config.FeignClientConfig;
 import com.relatorioservice.entity.fora.Visita.EquipeTecnica;
 import com.relatorioservice.entity.fora.Visita.RelatoEntity;
 import com.relatorioservice.entity.fora.Visita.VisitaEntity;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.List;
 
-@FeignClient(name = "visita", url = "${gateway.url}")
+@FeignClient(name = "visita", url = "${gateway.url}", configuration = FeignClientConfig.class)
 public interface VisitaServiceClient {
 
     @GetMapping("/visita/{id}")

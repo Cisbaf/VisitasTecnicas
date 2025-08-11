@@ -4,11 +4,9 @@ import com.checklistitemservice.entity.CheckListEntity;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.entity.enums.TipoConformidade;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 class CheckListMapper {
 
     CheckListResponse toResponse(CheckListEntity entity) {
@@ -28,7 +26,7 @@ class CheckListMapper {
             return null;
         }
         var descricao = request.descricao();
-        for( var desc : descricao) {
+        for (var desc : descricao) {
             if (desc.getConformidadePercent() <= 44) {
                 desc.setTipoConformidade(TipoConformidade.NAO_CONFORME);
             } else if (desc.getConformidadePercent() >= 70) {

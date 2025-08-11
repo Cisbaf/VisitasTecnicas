@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4f9027a5-a3eb-436e-86db-98822ebf4f16" name="Changes" comment="rename project name">
+      <change beforePath="$PROJECT_DIR$/../.diagramas/entidades.mmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.diagramas/relacoes.mmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/AvaliacaoBases_Back.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/JPASupport-project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/ArquivoMidiaApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/config/FeignClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/controller/MidiasController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/entity/MidiasEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/entity/MidiasRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/entity/MidiasResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/entity/TipoMidia.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/repository/MidiasRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/service/MidiaMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/service/MidiaService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/service/MidiasServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/service/client/DescriptionClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/java/com/arquivomidia/service/client/VisitaClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ArquivoMidia/src/test/java/com/arquivomidia/ArquivoMidiaApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/AuthServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/controller/UserController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/entity/UserEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/entity/userDto/UserRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/entity/userDto/UserResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/respository/UserRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/service/UserMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/service/UserServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/service/capsule/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/java/com/authservice/service/jwt/JtwUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AuthService/src/test/java/com/authservice/AuthServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/AvaliacaoServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/config/FeignClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/controller/AvaliacaoController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/entity/AvaliacaoEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/entity/AvaliacaoRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/repository/AvaliacaoRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/service/AvaliacaoService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/service/exists/CheckListExists.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/service/exists/ViaturaExists.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/java/com/avaliacaoservice/service/exists/VisitaExists.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../AvaliacaoService/src/test/java/com/avaliacaoservice/AvaliacaoServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/BaseServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/controller/BaseController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/entity/BaseEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/entity/BaseRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/entity/BaseResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/repository/BaseRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/service/BaseMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/service/BaseServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/java/com/baseservice/service/capsule/BaseService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/test/java/com/baseservice/BaseControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/test/java/com/baseservice/BaseServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BaseService/src/test/java/com/baseservice/service/BaseServiceImpTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/CheckListItemServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/config/FeignClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/config/RankingBasesConverter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/controller/CheckListController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/controller/IndicadorOpController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/CheckDescription.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/CheckListEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/IndicadorOpEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/dto/BaseRankingDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/dto/CheckListRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/dto/CheckListResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/dto/IndicadorRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/dto/IndicadorResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/enums/Criticidade.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/entity/enums/TipoConformidade.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/respository/CheckDescRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/respository/CheckListRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/respository/IndicadorRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/CheckListMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/CheckListServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/IndicadorMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/IndicadorServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/capsule/CheckListService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/capsule/IndicadorService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/java/com/checklistitemservice/service/capsule/RelatorioServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/test/java/com/checklistitemservice/CheckListItemServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/test/java/com/checklistitemservice/service/CheckListMapperTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/test/java/com/checklistitemservice/service/CheckListServiceImpTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CheckListItemService/src/test/java/com/checklistitemservice/service/TestDataUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/src/main/java/com/discoveryservice/DiscoveryServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DiscoveryService/src/test/java/com/discoveryservice/DiscoveryServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/java/com/gatewayservice/GatewayServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/java/com/gatewayservice/config/AuthenticationFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/java/com/gatewayservice/config/GatewayConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/java/com/gatewayservice/service/JwtUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/java/com/gatewayservice/service/RouterValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../GatewayService/src/test/java/com/gatewayservice/GatewayServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/RelatorioServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/config/FeignClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/controller/RelatorioController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/BaseRankingDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/ItemViaturaDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/MembroDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/RelatoDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/RelatorioConsolidadoResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/RelatorioTecnicoResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/dtos/ViaturaDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/Visita/EquipeTecnica.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/Visita/RelatoEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/Visita/VisitaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/base/BaseEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/checklist/AvaliacaoEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/checklist/CheckDescription.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/checklist/CheckListEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/checklist/enums/Criticidade.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/checklist/enums/TipoConformidade.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/viatura/Itens.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/entity/fora/viatura/ViaturaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/CalcularPontos.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/RelatorioTecnicoService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/client/BaseServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/client/ChecklistServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/client/ViaturaServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/java/com/relatorioservice/service/client/VisitaServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RelatorioService/src/test/java/com/relatorioservice/RelatorioServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/ViaturaServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/config/FeignClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/controller/ViaturaController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/entity/Itens.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/entity/ViaturaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/entity/ViaturaRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/entity/ViaturaResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/repository/ViaturaRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/service/IdBaseExists.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/service/ViaturaMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/service/ViaturaServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/java/com/viaturaservice/service/capsule/ViaturaService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/test/java/com/viaturaservice/ViaturaControllerTeste.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/test/java/com/viaturaservice/ViaturaRequestTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/test/java/com/viaturaservice/ViaturaServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ViaturaService/src/test/java/com/viaturaservice/service/ViaturaServiceImpTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/VisitaServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/controller/RelatoController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/controller/VisitaController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/EquipeTecnica.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/RelatoEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/VisitaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/dto/relato/RelatoRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/dto/relato/RelatoResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/dto/visita/VisitaRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/entity/dto/visita/VisitaResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/repository/RelatoRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/repository/VisitaRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/IdBaseExists.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/capsule/RelatoService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/capsule/VisitaService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/relato/RelatoMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/relato/RelatoServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/visita/VisitaMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/java/com/visitaservice/service/visita/VisitaServiceImp.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/test/java/com/visitaservice/VisitaControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/test/java/com/visitaservice/VisitaServiceApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../VisitaService/src/test/java/com/visitaservice/service/visita/VisitaServiceImpTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="com.intellij.jpb.NewClass" />
+        <option value="Enum" />
+        <option value="com.intellij.jpb.NewRecord" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;GugsFranca&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Cisbaf/VisitasTecnicas.git&quot;,
+    &quot;accountId&quot;: &quot;7d048355-58be-4309-9769-fe6eb26cbc44&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="30YKBJ0d3eNY9Vbp4OYuSvy4aif" />
+  <component name="ProjectViewState">
+    <option name="compactDirectories" value="true" />
+    <option name="flattenModules" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showVisibilityIcons" value="true" />
+    <option name="sortByType" value="true" />
+    <option name="sortKey" value="BY_TYPE" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DtoCreateDialog.USE_JAVA_RECORDS_INITIAL_PROP_KEY": "true",
+    "JUnit.BaseControllerTest.deleteById_Throws.executor": "Run",
+    "JUnit.BaseControllerTest.executor": "Run",
+    "JUnit.BaseControllerTest.save_InvalidJson.executor": "Run",
+    "JUnit.BaseServiceImpTest.executor": "Run",
+    "JUnit.CheckListMapperTest.executor": "Run",
+    "JUnit.CheckListServiceImpTest.createCheckLists_ListWithInvalidElement_ThrowsException.executor": "Debug",
+    "JUnit.CheckListServiceImpTest.executor": "Run",
+    "JUnit.ServiceTest.createViatura_Success.executor": "Run",
+    "JUnit.ServiceTest.executor": "Run",
+    "JUnit.ServiceTest.getAllViaturas.executor": "Run",
+    "JUnit.ServiceTest.updateViatura_Success.executor": "Run",
+    "JUnit.ViaturaControllerTest.executor": "Run",
+    "JUnit.ViaturaControllerTest.updateReturnsBadRequestWhenViaturaIsNull.executor": "Run",
+    "JUnit.ViaturaRequestTest.executor": "Run",
+    "JUnit.ViaturaServiceApplicationTests.contextLoads.executor": "Run",
+    "JUnit.ViaturaServiceImpTest.executor": "Run",
+    "JUnit.ViaturaServiceImpTest.getViaturaById_deveLancarExcecao_quandoIdForNulo.executor": "Run",
+    "JUnit.ViaturaServiceTest.executor": "Run",
+    "JUnit.ViaturaServiceTest.getViaturaByIdReturnsDTOWhenFound.executor": "Run",
+    "JUnit.VisitaControllerTest.executor": "Run",
+    "JUnit.VisitaServiceImpTest.createVisita_deveCriar_quandoBaseExiste.executor": "Run",
+    "JUnit.VisitaServiceImpTest.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.ArquivoMidiaApplication.executor": "Run",
+    "Spring Boot.AuthServiceApplication.executor": "Run",
+    "Spring Boot.AvaliacaoServiceApplication.executor": "Run",
+    "Spring Boot.BaseServiceApplication.executor": "Run",
+    "Spring Boot.CheckListItemServiceApplication.executor": "Run",
+    "Spring Boot.DiscoveryServiceApplication.executor": "Run",
+    "Spring Boot.GatewayServiceApplication.executor": "Run",
+    "Spring Boot.RelatorioServiceApplication.executor": "Run",
+    "Spring Boot.ViaturaServiceApplication (1).executor": "Run",
+    "Spring Boot.ViaturaServiceApplication.executor": "Run",
+    "Spring Boot.VisitaServiceApplication.executor": "Run",
+    "extract.method.default.visibility": "private",
+    "git-widget-placeholder": "gustavo",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/gfonseca/IdeaProjects/ProjetoJoão/AvaliacaoBases_Back",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.lookFeel"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
+  }
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.checklistitemservice.entity" />
+      <recent name="com.viaturaservice.entity" />
+      <recent name="com.viaturaservice.service" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\gfonseca\IdeaProjects\ProjetoSamuJoao\ArquivoMidia\src\main\java\com\arquivomidia" />
+      <recent name="C:\Users\gfonseca\IdeaProjects\ProjetoSamuJoao\GatewayService\src\main\java\com\gatewayservice" />
+      <recent name="C:\Users\gfonseca\IdeaProjects\ProjetoSamuJoao\AuthService\src\main\java\com\authservice" />
+      <recent name="C:\Users\gfonseca\IdeaProjects\ProjetoSamuJoao\RelatorioService\src\main\java\com\relatorioservice\entity\fora\checklist" />
+      <recent name="C:\Users\gfonseca\IdeaProjects\ProjetoSamuJoao\RelatorioService\src\main\java\com\relatorioservice\entity" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.visitaservice.service.visita" />
+      <recent name="com.baseservice.service" />
+      <recent name="com.viaturaservice.service" />
+      <recent name="com.viaturaservice" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.avaliacaoservice.config" />
+      <recent name="com.checklistitemservice.config" />
+      <recent name="com.viaturaservice.config" />
+      <recent name="com.checklistitemservice.service.capsule" />
+      <recent name="com.arquivomidia.service.client" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.RelatorioServiceApplication">
+    <configuration name="BaseControllerTest.save_InvalidJson" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BaseService" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.baseservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.baseservice" />
+      <option name="MAIN_CLASS_NAME" value="com.baseservice.BaseControllerTest" />
+      <option name="METHOD_NAME" value="save_InvalidJson" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VisitaControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="VisitaService" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.visitaservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.visitaservice" />
+      <option name="MAIN_CLASS_NAME" value="com.visitaservice.VisitaControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VisitaServiceImpTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="VisitaService" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.visitaservice.service.visita.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.visitaservice.service.visita" />
+      <option name="MAIN_CLASS_NAME" value="com.visitaservice.service.visita.VisitaServiceImpTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VisitaServiceImpTest.createVisita_deveCriar_quandoBaseExiste" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="VisitaService" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.visitaservice.service.visita.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.visitaservice.service.visita" />
+      <option name="MAIN_CLASS_NAME" value="com.visitaservice.service.visita.VisitaServiceImpTest" />
+      <option name="METHOD_NAME" value="createVisita_deveCriar_quandoBaseExiste" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ArquivoMidiaApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="ArquivoMidia" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.arquivomidia.ArquivoMidiaApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AuthServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <envs>
+        <env name="SECRET" value="ihnesitflscorestpaywoielrcmiuayeisttmst" />
+      </envs>
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="AuthService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.authservice.AuthServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AvaliacaoServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="AvaliacaoService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.avaliacaoservice.AvaliacaoServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BaseServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="BaseService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.baseservice.BaseServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CheckListItemServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="CheckListItemService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.checklistitemservice.CheckListItemServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DiscoveryServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="DiscoveryService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.discoveryservice.DiscoveryServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <envs>
+        <env name="SECRET" value="ihnesitflscorestpaywoielrcmiuayeisttmst" />
+      </envs>
+      <module name="GatewayService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.gatewayservice.GatewayServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RelatorioServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="RelatorioService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.relatorioservice.RelatorioServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.relatorioservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ViaturaServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="ViaturaService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.viaturaservice.ViaturaServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="VisitaServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="VisitaService" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.visitaservice.VisitaServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="JUnit.BaseControllerTest.save_InvalidJson" />
+      <item itemvalue="JUnit.VisitaControllerTest" />
+      <item itemvalue="JUnit.VisitaServiceImpTest" />
+      <item itemvalue="JUnit.VisitaServiceImpTest.createVisita_deveCriar_quandoBaseExiste" />
+      <item itemvalue="Spring Boot.AuthServiceApplication" />
+      <item itemvalue="Spring Boot.ArquivoMidiaApplication" />
+      <item itemvalue="Spring Boot.GatewayServiceApplication" />
+      <item itemvalue="Spring Boot.BaseServiceApplication" />
+      <item itemvalue="Spring Boot.AvaliacaoServiceApplication" />
+      <item itemvalue="Spring Boot.CheckListItemServiceApplication" />
+      <item itemvalue="Spring Boot.VisitaServiceApplication" />
+      <item itemvalue="Spring Boot.DiscoveryServiceApplication" />
+      <item itemvalue="Spring Boot.ViaturaServiceApplication" />
+      <item itemvalue="Spring Boot.RelatorioServiceApplication" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.RelatorioServiceApplication" />
+        <item itemvalue="JUnit.VisitaControllerTest" />
+        <item itemvalue="JUnit.VisitaServiceImpTest.createVisita_deveCriar_quandoBaseExiste" />
+        <item itemvalue="JUnit.VisitaServiceImpTest" />
+        <item itemvalue="JUnit.BaseControllerTest.save_InvalidJson" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.27812.49" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-IU-251.27812.49" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4f9027a5-a3eb-436e-86db-98822ebf4f16" name="Changes" comment="" />
+      <created>1753798928386</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1753798928386</updated>
+      <workItem from="1753798929593" duration="3822000" />
+      <workItem from="1753805955431" duration="8750000" />
+      <workItem from="1753878543970" duration="16371000" />
+      <workItem from="1753965412894" duration="12039000" />
+      <workItem from="1753983637930" duration="4736000" />
+      <workItem from="1754051436290" duration="19911000" />
+      <workItem from="1754310716375" duration="18810000" />
+      <workItem from="1754395765168" duration="21273000" />
+      <workItem from="1754482088499" duration="1658000" />
+      <workItem from="1754485304431" duration="17304000" />
+      <workItem from="1754570377413" duration="55000" />
+      <workItem from="1754570775634" duration="17244000" />
+      <workItem from="1754657855451" duration="11390000" />
+      <workItem from="1754914806624" duration="844000" />
+      <workItem from="1754916266792" duration="1233000" />
+      <workItem from="1754917599972" duration="1040000" />
+    </task>
+    <task id="LOCAL-00004" summary="feat(services): add VisitaService and update BaseService references">
+      <option name="closed" value="true" />
+      <created>1753980683768</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1753980683768</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat(entities): refactor ViaturaDTO to ViaturaRequest and update related classes">
+      <option name="closed" value="true" />
+      <created>1753987845617</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1753987845617</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat(initial-setup): add initial project structure with Maven configuration and application properties">
+      <option name="closed" value="true" />
+      <created>1753987900520</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1753987900520</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat(visita): implement Visita entity, controller, service, and related DTOs">
+      <option name="closed" value="true" />
+      <created>1753987913331</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1753987913331</updated>
+    </task>
+    <task id="LOCAL-00008" summary="refactor(viatura): update ViaturaDTO to ViaturaRequest and ViaturaResponse in service and controller tests">
+      <option name="closed" value="true" />
+      <created>1753987921895</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1753987921895</updated>
+    </task>
+    <task id="LOCAL-00009" summary="feat(checklist): add CheckList entity, controller, service, and related DTOs">
+      <option name="closed" value="true" />
+      <created>1754057789524</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1754057789524</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat(configuration): update database URLs and add .gitignore for folder aliases">
+      <option name="closed" value="true" />
+      <created>1754057800188</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1754057800188</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat(checklist): add existsByCategoria method and validation in CheckListServiceImp">
+      <option name="closed" value="true" />
+      <created>1754067290233</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1754067290233</updated>
+    </task>
+    <task id="LOCAL-00012" summary="test(checklist): add unit tests for CheckListMapper and CheckListServiceImp">
+      <option name="closed" value="true" />
+      <created>1754067305112</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1754067305112</updated>
+    </task>
+    <task id="LOCAL-00013" summary="test(checklist): add unit tests for CheckListMapper and CheckListServiceImp">
+      <option name="closed" value="true" />
+      <created>1754067346389</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1754067346389</updated>
+    </task>
+    <task id="LOCAL-00014" summary="test(checklist): update assertions to use getFirst() for CheckDescription">
+      <option name="closed" value="true" />
+      <created>1754067370936</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1754067370936</updated>
+    </task>
+    <task id="LOCAL-00015" summary="feat: initialize AvaliacaoService with CRUD operations and necessary configurations">
+      <option name="closed" value="true" />
+      <created>1754312686201</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1754312686201</updated>
+    </task>
+    <task id="LOCAL-00016" summary="feat(viatura): add existsById method and update ViaturaRequest to use record syntax">
+      <option name="closed" value="true" />
+      <created>1754312714649</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1754312714649</updated>
+    </task>
+    <task id="LOCAL-00017" summary="feat: update project configuration to include AvaliacaoService and add springdoc-openapi dependency">
+      <option name="closed" value="true" />
+      <created>1754312738401</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1754312738401</updated>
+    </task>
+    <task id="LOCAL-00018" summary="test(base): update tests to use BaseResponse and improve error handling">
+      <option name="closed" value="true" />
+      <created>1754312744623</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1754312744623</updated>
+    </task>
+    <task id="LOCAL-00019" summary="feat: add OpenAPI configuration for multiple services with descriptive titles">
+      <option name="closed" value="true" />
+      <created>1754312753632</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1754312753632</updated>
+    </task>
+    <task id="LOCAL-00020" summary="feat: add OpenAPI annotations for CRUD operations in controllers">
+      <option name="closed" value="true" />
+      <created>1754318059122</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1754318059122</updated>
+    </task>
+    <task id="LOCAL-00021" summary="refactor(visita): reorganize Visita entity classes and update package structure">
+      <option name="closed" value="true" />
+      <created>1754320317062</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1754320317062</updated>
+    </task>
+    <task id="LOCAL-00022" summary="feat(relato): add Relato entity, DTOs, mapper, repository, and service interface">
+      <option name="closed" value="true" />
+      <created>1754320333177</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1754320333177</updated>
+    </task>
+    <task id="LOCAL-00023" summary="feat(relato): update RelatoMapper to fetch VisitaEntity by ID and modify RelatoRequest to use ID instead of entity">
+      <option name="closed" value="true" />
+      <created>1754329325213</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1754329325213</updated>
+    </task>
+    <task id="LOCAL-00024" summary="test(visita): simplify imports and update assertions in controller and service tests">
+      <option name="closed" value="true" />
+      <created>1754329336283</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1754329336283</updated>
+    </task>
+    <task id="LOCAL-00025" summary="feat(relato): implement RelatoController and RelatoServiceImp for CRUD operations">
+      <option name="closed" value="true" />
+      <created>1754329347924</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1754329347924</updated>
+    </task>
+    <task id="LOCAL-00026" summary="feat(checklist): update CheckDescription entity to include Criticidade and observacao fields; modify compiler and encoding configurations for RelatorioService">
+      <option name="closed" value="true" />
+      <created>1754396654956</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1754396654956</updated>
+    </task>
+    <task id="LOCAL-00027" summary="feat(viatura): add endpoint to retrieve Viatura by Base ID and update service and repository methods">
+      <option name="closed" value="true" />
+      <created>1754399242371</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1754399242371</updated>
+    </task>
+    <task id="LOCAL-00028" summary="feat(avaliacao): add endpoint to retrieve Avaliacao by Visita ID and update service and repository methods">
+      <option name="closed" value="true" />
+      <created>1754410634332</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1754410634332</updated>
+    </task>
+    <task id="LOCAL-00029" summary="feat(checklist): add endpoint to retrieve CheckList by Visita ID and update service and repository methods">
+      <option name="closed" value="true" />
+      <created>1754410709337</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1754410709337</updated>
+    </task>
+    <task id="LOCAL-00030" summary="feat(relato): add endpoint to retrieve Relatos by Visita ID and update service and repository methods">
+      <option name="closed" value="true" />
+      <created>1754410737444</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1754410737444</updated>
+    </task>
+    <task id="LOCAL-00031" summary="feat(visita): add endpoint to retrieve Visita by Base ID and update service and repository methods">
+      <option name="closed" value="true" />
+      <created>1754410769663</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1754410769663</updated>
+    </task>
+    <task id="LOCAL-00032" summary="feat(Relatorio Service): initialize service and assign entities">
+      <option name="closed" value="true" />
+      <created>1754411164201</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1754411164201</updated>
+    </task>
+    <task id="LOCAL-00033" summary="feat(Relatorio Service): add Feign Client for cross-microservice data retrieval">
+      <option name="closed" value="true" />
+      <created>1754411252093</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1754411252093</updated>
+    </task>
+    <task id="LOCAL-00034" summary="feat(Relatorio Service): add core service class and REST controller">
+      <option name="closed" value="true" />
+      <created>1754411309842</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1754411309842</updated>
+    </task>
+    <task id="LOCAL-00035" summary="feat(Visita): Adicionando metodo getAll por periodo e trocando Data por LocalDate">
+      <option name="closed" value="true" />
+      <created>1754490406793</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490406793</updated>
+    </task>
+    <task id="LOCAL-00036" summary="refactor(CheckList): trocando notFound por noContent">
+      <option name="closed" value="true" />
+      <created>1754490446493</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490446493</updated>
+    </task>
+    <task id="LOCAL-00037" summary="refactor(CheckList): Modificando a forma como conformidade é salvo utilizando logica">
+      <option name="closed" value="true" />
+      <created>1754490518136</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490518136</updated>
+    </task>
+    <task id="LOCAL-00038" summary="refactor(CheckList): melhorando validação para o envio de CheckLists">
+      <option name="closed" value="true" />
+      <created>1754490555314</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490555314</updated>
+    </task>
+    <task id="LOCAL-00039" summary="feat(Avaliação): criando metodo createAll">
+      <option name="closed" value="true" />
+      <created>1754490666805</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490666805</updated>
+    </task>
+    <task id="LOCAL-00040" summary="refactor(relatorio): Modificando a logica de recebimento de relatorios removendo a necessidade de salvamento em banco de dados">
+      <option name="closed" value="true" />
+      <created>1754490745964</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490745964</updated>
+    </task>
+    <task id="LOCAL-00041" summary="refactor(relatorio): Troca de java.Date por LocalDate">
+      <option name="closed" value="true" />
+      <created>1754490783340</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490783340</updated>
+    </task>
+    <task id="LOCAL-00042" summary="feat(relatorio): criando classe específica para Response">
+      <option name="closed" value="true" />
+      <created>1754490824806</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490824806</updated>
+    </task>
+    <task id="LOCAL-00043" summary="feat(relatorio): criando metodo para consolidar relatorios por base baseado em periodos de visitas">
+      <option name="closed" value="true" />
+      <created>1754490877854</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1754490877854</updated>
+    </task>
+    <task id="LOCAL-00044" summary="refactor: removendo imports inuteis">
+      <option name="closed" value="true" />
+      <created>1754491003663</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1754491003663</updated>
+    </task>
+    <task id="LOCAL-00045" summary="feat(relatorio): Adicionando rank de bases por periodo">
+      <option name="closed" value="true" />
+      <created>1754497514035</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1754497514035</updated>
+    </task>
+    <task id="LOCAL-00046" summary="feat(checkList): Transformando classe de Descrição em entidade e criando endpoint exist by id">
+      <option name="closed" value="true" />
+      <created>1754503307812</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1754503307812</updated>
+    </task>
+    <task id="LOCAL-00047" summary="feat(arquivo-midia): Iniciando midia-service, criando regras de negocio e atribuindo enpoints">
+      <option name="closed" value="true" />
+      <created>1754503416560</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1754503416560</updated>
+    </task>
+    <task id="LOCAL-00048" summary="refactor(arquivo-midia): Modificando o tipo de midia para enum">
+      <option name="closed" value="true" />
+      <created>1754504572100</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1754504572100</updated>
+    </task>
+    <task id="LOCAL-00049" summary="refactor(arquivo-midia): Modificando a entrada do tipo de midia, colocando agora como String uppcase">
+      <option name="closed" value="true" />
+      <created>1754571784684</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1754571784684</updated>
+    </task>
+    <task id="LOCAL-00050" summary="feat(auth-service): Iniciando serviço">
+      <option name="closed" value="true" />
+      <created>1754572030226</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1754572030227</updated>
+    </task>
+    <task id="LOCAL-00051" summary="feat(auth-service): Iniciando serviço">
+      <option name="closed" value="true" />
+      <created>1754572034957</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1754572034957</updated>
+    </task>
+    <task id="LOCAL-00052" summary="rename project name">
+      <option name="closed" value="true" />
+      <created>1754917675419</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1754917675419</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat(viatura): add endpoint to retrieve Viatura by Base ID and update service and repository methods" />
+    <MESSAGE value="feat(avaliacao): add endpoint to retrieve Avaliacao by Visita ID and update service and repository methods" />
+    <MESSAGE value="feat(checklist): add endpoint to retrieve CheckList by Visita ID and update service and repository methods" />
+    <MESSAGE value="feat(relato): add endpoint to retrieve Relatos by Visita ID and update service and repository methods" />
+    <MESSAGE value="feat(visita): add endpoint to retrieve Visita by Base ID and update service and repository methods" />
+    <MESSAGE value="feat(Relatorio Service): initialize service and assign entities" />
+    <MESSAGE value="feat(Relatorio Service): add Feign Client for cross-microservice data retrieval" />
+    <MESSAGE value="feat(Relatorio Service): add core service class and REST controller" />
+    <MESSAGE value="feat(Visita): Adicionando metodo getAll por periodo e trocando Data por LocalDate" />
+    <MESSAGE value="refactor(CheckList): trocando notFound por noContent" />
+    <MESSAGE value="refactor(CheckList): Modificando a forma como conformidade é salvo utilizando logica" />
+    <MESSAGE value="refactor(CheckList): melhorando validação para o envio de CheckLists" />
+    <MESSAGE value="feat(Avaliação): criando metodo createAll" />
+    <MESSAGE value="refactor(relatorio): Modificando a logica de recebimento de relatorios removendo a necessidade de salvamento em banco de dados" />
+    <MESSAGE value="refactor(relatorio): Troca de java.Date por LocalDate" />
+    <MESSAGE value="feat(relatorio): criando classe específica para Response" />
+    <MESSAGE value="feat(relatorio): criando metodo para consolidar relatorios por base baseado em periodos de visitas" />
+    <MESSAGE value="refactor: removendo imports inuteis" />
+    <MESSAGE value="feat(relatorio): Adicionando rank de bases por periodo" />
+    <MESSAGE value="feat(checkList): Transformando classe de Descrição em entidade e criando endpoint exist by id" />
+    <MESSAGE value="feat(arquivo-midia): Iniciando midia-service, criando regras de negocio e atribuindo enpoints" />
+    <MESSAGE value="refactor(arquivo-midia): Modificando o tipo de midia para enum" />
+    <MESSAGE value="refactor(arquivo-midia): Modificando a entrada do tipo de midia, colocando agora como String uppcase" />
+    <MESSAGE value="feat(auth-service): Iniciando serviço" />
+    <MESSAGE value="rename project name" />
+    <option name="LAST_COMMIT_MESSAGE" value="rename project name" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

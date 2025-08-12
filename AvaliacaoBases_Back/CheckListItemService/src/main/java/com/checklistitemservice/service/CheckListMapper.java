@@ -25,23 +25,27 @@ class CheckListMapper {
         if (request == null) {
             return null;
         }
+
+        var entity = CheckListEntity.builder()
+                .categoria(request.categoria())
+                .visitaId(request.visitaId())
+                .build();
+
         var descricao = request.descricao();
         for (var desc : descricao) {
+            desc.setId(null);
             if (desc.getConformidadePercent() <= 44) {
                 desc.setTipoConformidade(TipoConformidade.NAO_CONFORME);
             } else if (desc.getConformidadePercent() >= 70) {
                 desc.setTipoConformidade(TipoConformidade.CONFORME);
             } else {
                 desc.setTipoConformidade(TipoConformidade.PARCIAL);
-
             }
         }
 
-        return CheckListEntity.builder()
-                .categoria(request.categoria())
-                .descricao(descricao)
-                .visitaId(request.visitaId())
-                .build();
-    }
+        entity.setDescricao(descricao);
 
+
+        return entity;
+    }
 }

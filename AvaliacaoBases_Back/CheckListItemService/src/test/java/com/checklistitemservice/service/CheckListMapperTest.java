@@ -7,8 +7,6 @@ import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.entity.enums.TipoConformidade;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,71 +16,60 @@ class CheckListMapperTest {
     private final CheckListMapper mapper = new CheckListMapper();
 
     @Test
-    void toResponse_ValidEntity_ReturnsCorrectResponse() {
-        List<CheckDescription> descriptions = Collections.singletonList(
-                TestDataUtil.createCheckDescription("Teste completo", 100, TipoConformidade.CONFORME, "Aprovado")
-        );
-
-        CheckListEntity entity = new CheckListEntity(1L, "Categoria", descriptions);
-
-        CheckListResponse response = mapper.toResponse(entity);
-
-        assertEquals(1L, response.id());
-        assertEquals("Categoria", response.categoria());
-
-        CheckDescription desc = response.descricao().getFirst();
-        assertEquals("Teste completo", desc.getDescricao());
-        assertEquals(100, desc.getConformidadePercent());
-        assertEquals(TipoConformidade.CONFORME, desc.getTipoConformidade());
-        assertEquals("Aprovado", desc.getObservacao());
-    }
-
-    @Test
-    void toEntity_ValidRequest_ReturnsCorrectEntity() {
-        List<CheckDescription> descriptions = Arrays.asList(
-                TestDataUtil.createCheckDescription("Item 1", 50, TipoConformidade.PARCIAL, "Parcial"),
-                TestDataUtil.createCheckDescription("Item 2", 0, TipoConformidade.NAO_CONFORME, "Rejeitado")
-        );
-
-        CheckListRequest request = new CheckListRequest("Categoria", descriptions);
-
-        CheckListEntity entity = mapper.toEntity(request);
-
-        assertNull(entity.getId());
-        assertEquals("Categoria", entity.getCategoria());
-
-        CheckDescription secondItem = entity.getDescricao().get(1);
-        assertEquals("Item 2", secondItem.getDescricao());
-        assertEquals(0, secondItem.getConformidadePercent());
-        assertEquals(TipoConformidade.NAO_CONFORME, secondItem.getTipoConformidade());
-        assertEquals("Rejeitado", secondItem.getObservacao());
-    }
-
-    @Test
-    void toEntity_WithPartialData_ReturnsEntity() {
-        CheckDescription partialDesc = CheckDescription.builder()
-                .descricao("Descrição parcial")
-                .conformidadePercent(75)
-                // tipoConformidade e observacao omitidos
+    void toResponse_WithValidEntity_ReturnsCorrectResponse() {
+        // Arrange
+        CheckListEntity entity = CheckListEntity.builder()
+                .id(1L)
+                .categoria("Segurança")
+                .visitaId(10L)
+                .descricao(List.of(
+                        new CheckDescription(1L, "Item 1", 80, "OK", TipoConformidade.CONFORME, null),
+                        new CheckDescription(2L, "Item 2", 30, "Problema", TipoConformidade.NAO_CONFORME, null)
+                ))
                 .build();
 
-        CheckListRequest request = new CheckListRequest("Parcial", Collections.singletonList(partialDesc));
+        // Act
+        CheckListResponse response = mapper.toResponse(entity);
 
-        CheckListEntity entity = mapper.toEntity(request);
-
-        assertNotNull(entity);
-        assertEquals("Parcial", entity.getCategoria());
-        assertEquals(75, entity.getDescricao().getFirst().getConformidadePercent());
-        assertNull(entity.getDescricao().getFirst().getTipoConformidade());
+        // Assert
+        assertNotNull(response);
+        assertEquals(1L, response.id());
+        assertEquals("Segurança", response.categoria());
+        assertEquals(10L, response.visitaId());
     }
 
     @Test
-    void toResponse_NullEntity_ReturnsNull() {
+    void toResponse_WithNullEntity_ReturnsNull() {
         assertNull(mapper.toResponse(null));
     }
 
     @Test
-    void toEntity_NullRequest_ReturnsNull() {
+    void toEntity_WithValidRequest_SetsCorrectConformidade() {
+        // Arrange
+        List<CheckDescription> descriptions = List.of(
+                new CheckDescription(null, "Item 1", 30, null, null, null),
+                new CheckDescription(null, "Item 2", 50, null, null, null),
+                new CheckDescription(null, "Item 3", 80, null, null, null)
+        );
+
+        CheckListRequest request = new CheckListRequest("Segurança", 10L,descriptions);
+
+        // Act
+        CheckListEntity entity = mapper.toEntity(request);
+
+        // Assert
+        assertNotNull(entity);
+        assertEquals("Segurança", entity.getCategoria());
+        assertEquals(10L, entity.getVisitaId());
+
+        // Verify conformidade types
+        assertEquals(TipoConformidade.NAO_CONFORME, entity.getDescricao().get(0).getTipoConformidade());
+        assertEquals(TipoConformidade.PARCIAL, entity.getDescricao().get(1).getTipoConformidade());
+        assertEquals(TipoConformidade.CONFORME, entity.getDescricao().get(2).getTipoConformidade());
+    }
+
+    @Test
+    void toEntity_WithNullRequest_ReturnsNull() {
         assertNull(mapper.toEntity(null));
     }
 }

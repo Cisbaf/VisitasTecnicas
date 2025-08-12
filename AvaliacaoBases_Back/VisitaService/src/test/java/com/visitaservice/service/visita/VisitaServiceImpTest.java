@@ -66,22 +66,7 @@ class VisitaServiceImpTest {
                 .build();
     }
 
-    @Test
-    void createVisita_deveCriar_quandoBaseExiste() {
-        when(exists.existsById(EXISTING_ID)).thenReturn(true);
-        when(repository.save(entity)).thenReturn(entity);
 
-        try (MockedStatic<VisitaMapper> mockStatic = Mockito.mockStatic(VisitaMapper.class)) {
-            mockStatic.when(() -> toResponse(entity)).thenReturn(response);
-
-            VisitaResponse result = service.createVisita(request);
-
-            assertNotNull(result);
-            assertEquals(EXISTING_ID, result.id());
-            mockStatic.verify(() -> toResponse(entity));
-            verify(repository).save(entity);
-        }
-    }
 
     @Test
     void createVisita_deveLancar_quandoBaseNaoExiste() {

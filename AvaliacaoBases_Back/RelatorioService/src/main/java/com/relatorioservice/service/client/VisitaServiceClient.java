@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.List;
 
-@FeignClient(name = "visita", url = "${gateway.url}", configuration = FeignClientConfig.class)
+@FeignClient(name = "visita", configuration = FeignClientConfig.class)
 public interface VisitaServiceClient {
 
-    @GetMapping("/visita/{id}")
+    @GetMapping("/{id}")
     VisitaEntity getVisitaById(@PathVariable Long id);
 
-    @GetMapping("/visita/membros/{visitaId}")
+    @GetMapping("/membros/{visitaId}")
     List<EquipeTecnica> getAllMembrosByVisitaId(@PathVariable Long visitaId);
 
-    @GetMapping("/visita/relatos/visita/{visitaId}")
+    @GetMapping("/relatos/visita/{visitaId}")
     List<RelatoEntity> getRelatosByVisita(@PathVariable Long visitaId);
 
-    @GetMapping("/visita/periodo/{idBase}")
+    @GetMapping("/periodo/{idBase}")
     List<VisitaEntity> getAllByPeriod(@PathVariable Long idBase,
                                       @RequestParam() LocalDate dataInicio,
                                       @RequestParam() LocalDate dataFim);

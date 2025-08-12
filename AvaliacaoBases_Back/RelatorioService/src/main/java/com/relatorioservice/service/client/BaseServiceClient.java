@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "base", url = "${gateway.url}",  configuration = FeignClientConfig.class)
+@FeignClient(name = "base",  configuration = FeignClientConfig.class)
 public interface BaseServiceClient {
 
-    @GetMapping("/base/{id}")
+    @GetMapping("/{id}")
     BaseEntity getBaseById(@PathVariable Long id);
 
-    @GetMapping("/base")
+    @GetMapping()
     List<BaseEntity> getAllBases();
 }

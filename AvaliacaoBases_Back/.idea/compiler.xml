@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="DiscoveryService" />
+        <module name="ProjetoUnificado" />
         <module name="GatewayService" />
       </profile>
       <profile name="Annotation profile for VisitaService" enabled="true">
@@ -27,6 +28,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="AvaliacaoBases_Back" target="1.5" />
       <module name="VisitarTecnica" target="21" />
     </bytecodeTargetLevel>
   </component>
@@ -39,6 +41,7 @@
       <module name="CheckListItemService" options="-parameters" />
       <module name="DiscoveryService" options="-parameters" />
       <module name="GatewayService" options="-parameters" />
+      <module name="ProjetoUnificado" options="" />
       <module name="RelatorioService" options="-parameters" />
       <module name="ViaturaService" options="-parameters" />
       <module name="VisitaService" options="-parameters" />

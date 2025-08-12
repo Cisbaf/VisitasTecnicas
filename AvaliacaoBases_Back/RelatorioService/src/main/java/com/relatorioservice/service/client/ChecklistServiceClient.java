@@ -9,15 +9,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "checklist", url = "${gateway.url}", configuration = FeignClientConfig.class)
+@FeignClient(name = "checklist", configuration = FeignClientConfig.class)
 public interface ChecklistServiceClient {
 
-    @GetMapping("/checklist/visita/{visitaId}")
+    @GetMapping("/visita/{visitaId}")
     List<CheckListEntity> findByVisitaId(@PathVariable Long visitaId);
 
-    @GetMapping("/checklist/{id}")
+    @GetMapping("/{id}")
     CheckListEntity getCheckListById(@PathVariable Long id);
 
-    @GetMapping("/avaliacao/visita/{visitaId}")
+    @GetMapping("/visita/{visitaId}")
     List<AvaliacaoEntity> getAvaliacoesByVisita(@PathVariable Long visitaId);
 }

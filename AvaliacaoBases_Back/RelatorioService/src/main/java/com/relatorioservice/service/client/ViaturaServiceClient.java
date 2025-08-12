@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "viatura", url = "${gateway.url}", configuration = FeignClientConfig.class)
+@FeignClient(name = "viatura", configuration = FeignClientConfig.class)
 public interface ViaturaServiceClient {
 
-    @GetMapping("/viatura/base/{baseId}")
+    @GetMapping("/base/{baseId}")
     List<ViaturaEntity> getViaturasByBase(@PathVariable Long baseId);
 
-    @GetMapping("/viatura/{id}")
+    @GetMapping("/{id}")
     ViaturaEntity getViaturaById(@PathVariable Long id);
 }

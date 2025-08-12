@@ -68,8 +68,8 @@ public class AvaliacaoService {
                 throw new IllegalArgumentException("Viatura não existe com o id: " + avaliacao.getIdViatura());
             }
         }
-        if (avaliacaoRepository.existsByIdVisitaAndIdCheckList(avaliacao.getIdVisita(), avaliacao.getIdCheckList())) {
-            throw new IllegalArgumentException("Avaliação já existe para essa visita e checklist: " + avaliacao.getIdVisita() + ", " + avaliacao.getIdCheckList());
+        if (avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(avaliacao.getIdVisita(), avaliacao.getIdCheckList(), avaliacao.getIdViatura())) {
+            throw new IllegalArgumentException("Avaliação já existe para essa visita e checklist: " + avaliacao.getIdVisita() + ", " + avaliacao.getIdCheckList() + ", " + avaliacao.getIdViatura());
         }
     }
 

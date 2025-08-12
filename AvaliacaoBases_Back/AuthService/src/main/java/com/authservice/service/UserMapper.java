@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 public class UserMapper {
     protected static UserResponse toResponse(UserEntity entity) {
         return UserResponse.builder()
+                .id(entity.getId())
                 .user(entity.getUser())
                 .password(entity.getPassword())
                 .role(entity.getRole())

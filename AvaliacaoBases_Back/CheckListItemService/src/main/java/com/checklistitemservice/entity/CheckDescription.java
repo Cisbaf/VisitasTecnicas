@@ -24,4 +24,5 @@ public class CheckDescription {
     @Enumerated(EnumType.ORDINAL)
     private Criticidade criticidade; //  Alta 3 / Média 2 / Baixa 1 / Nenhuma 0
 
+
 }

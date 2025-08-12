@@ -8,5 +8,5 @@ import java.util.List;
 public interface AvaliacaoRepository extends JpaRepository<AvaliacaoEntity, Long> {
     List<AvaliacaoEntity> findByIdVisita(Long idVisita);
 
-    boolean existsByIdVisitaAndIdCheckList(Long idVisita, Long idCheckList);
+    boolean existsByIdVisitaAndIdCheckListAndIdViatura(Long idVisita, Long idCheckList, Long idViatura);
 }

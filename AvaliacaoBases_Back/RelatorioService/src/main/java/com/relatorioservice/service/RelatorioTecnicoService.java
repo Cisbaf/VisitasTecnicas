@@ -9,10 +9,7 @@ import com.relatorioservice.entity.fora.checklist.AvaliacaoEntity;
 import com.relatorioservice.entity.fora.checklist.CheckDescription;
 import com.relatorioservice.entity.fora.checklist.CheckListEntity;
 import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
-import com.relatorioservice.service.client.BaseServiceClient;
-import com.relatorioservice.service.client.ChecklistServiceClient;
-import com.relatorioservice.service.client.ViaturaServiceClient;
-import com.relatorioservice.service.client.VisitaServiceClient;
+import com.relatorioservice.service.client.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +30,7 @@ public class RelatorioTecnicoService {
     private final VisitaServiceClient visitaService;
     private final ChecklistServiceClient checklistService;
     private final ViaturaServiceClient viaturaService;
+    private final AvaliacaoServiceClient avaliacaoService;
 
     public RelatorioTecnicoResponse gerarRelatorio(Long visitaId) {
         VisitaEntity visita = visitaService.getVisitaById(visitaId);
@@ -43,7 +41,7 @@ public class RelatorioTecnicoService {
         List<ViaturaEntity> viaturas = viaturaService.getViaturasByBase(base.getId());
 
         List<CheckListEntity> checklists = checklistService.findByVisitaId(visitaId);
-        List<AvaliacaoEntity> avaliacoes = checklistService.getAvaliacoesByVisita(visitaId);
+        List<AvaliacaoEntity> avaliacoes = avaliacaoService.getAvaliacoesByVisita(visitaId);
 
         return processarRelatorio(visita, base, equipe, relatos, viaturas, checklists, avaliacoes);
     }

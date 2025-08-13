@@ -2,12 +2,14 @@ package com.avaliacaoservice.entity;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 
 import java.io.Serializable;
 
 /**
  * DTO for {@link AvaliacaoEntity}
  */
+@Builder
 public record AvaliacaoRequest(
         @NotNull(message = "Visita é requerida")
         @Positive(message = "Id de visita tem que ser positivo")

@@ -1,6 +1,7 @@
 package com.avaliacaoservice.service;
 
 import com.avaliacaoservice.entity.AvaliacaoEntity;
+import com.avaliacaoservice.entity.AvaliacaoRequest;
 import com.avaliacaoservice.repository.AvaliacaoRepository;
 import com.avaliacaoservice.service.exists.CheckListExists;
 import com.avaliacaoservice.service.exists.ViaturaExists;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.avaliacaoservice.service.AvaliacaoMapper.toEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -39,23 +42,26 @@ public class AvaliacaoService {
         }
     }
 
-    public AvaliacaoEntity createAvaliacao(AvaliacaoEntity avaliacao) {
+    public AvaliacaoEntity createAvaliacao(AvaliacaoRequest avaliacao) {
         if (avaliacao == null) {
             throw new IllegalArgumentException("Avaliação não pode ser nula");
         }
-        checkExist(avaliacao);
+        checkExist(toEntity(avaliacao));
 
-        return avaliacaoRepository.save(avaliacao);
+        return avaliacaoRepository.save(toEntity(avaliacao));
     }
 
-    public List<AvaliacaoEntity> createAll(List<AvaliacaoEntity> avaliacoes) {
+    public List<AvaliacaoEntity> createAll(List<AvaliacaoRequest> avaliacoes) {
         if (avaliacoes == null || avaliacoes.isEmpty()) {
             throw new IllegalArgumentException("Lista de avaliações não pode ser nula ou vazia");
         }
-        for (AvaliacaoEntity avaliacao : avaliacoes) {
-            checkExist(avaliacao);
+        for (AvaliacaoRequest avaliacao : avaliacoes) {
+            var avaliacaoEntity = toEntity(avaliacao);
+            checkExist(avaliacaoEntity);
         }
-        return avaliacaoRepository.saveAll(avaliacoes);
+        return avaliacaoRepository.saveAll(avaliacoes.stream()
+                .map(AvaliacaoMapper::toEntity)
+                .toList());
     }
 
     private void checkExist(AvaliacaoEntity avaliacao) {
@@ -73,17 +79,21 @@ public class AvaliacaoService {
         }
     }
 
-    public AvaliacaoEntity updateAvaliacao(Long id, AvaliacaoEntity avaliacao) {
+    public AvaliacaoEntity updateAvaliacao(Long id, AvaliacaoRequest avaliacao) {
         if (!avaliacaoRepository.existsById(id)) {
             throw new IllegalArgumentException("Avaliação não encontrada com o id: " + id);
         }
-        if (!checkListExists.existsCheckListById(avaliacao.getIdCheckList())
-                || !viaturaExists.existsViaturaById(avaliacao.getIdViatura())
-                || !visitaExists.existsVisitaById(avaliacao.getIdVisita())) {
+        if (!checkListExists.existsCheckListById(avaliacao.idCheckList())
+                || !viaturaExists.existsViaturaById(avaliacao.idViatura())
+                || !visitaExists.existsVisitaById(avaliacao.idVisita())) {
             throw new IllegalArgumentException("CheckList, Viatura ou Visita não existe");
         }
-        avaliacao.setId(id);
-        return avaliacaoRepository.save(avaliacao);
+        if (avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(avaliacao.idVisita(), avaliacao.idCheckList(), avaliacao.idViatura())) {
+            throw new IllegalArgumentException("Avaliação já existe para essa visita e checklist: " + avaliacao.idVisita() + ", " + avaliacao.idCheckList() + ", " + avaliacao.idViatura());
+        }
+        AvaliacaoEntity avaliacaoEntity = toEntity(avaliacao);
+        avaliacaoEntity.setId(id);
+        return avaliacaoRepository.save(avaliacaoEntity);
     }
 
     public void deleteAvaliacao(Long id) {

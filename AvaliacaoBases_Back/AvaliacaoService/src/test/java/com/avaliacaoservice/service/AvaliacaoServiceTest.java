@@ -1,6 +1,7 @@
 package com.avaliacaoservice.service;
 
 import com.avaliacaoservice.entity.AvaliacaoEntity;
+import com.avaliacaoservice.entity.AvaliacaoRequest;
 import com.avaliacaoservice.repository.AvaliacaoRepository;
 import com.avaliacaoservice.service.exists.CheckListExists;
 import com.avaliacaoservice.service.exists.ViaturaExists;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -44,6 +46,15 @@ class AvaliacaoServiceTest {
                 .idViatura(30L)
                 .build();
     }
+
+    private AvaliacaoRequest createSampleAvaliacaoRequest() {
+        return AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(30L)
+                .build();
+    }
+
 
     @Test
     void findById_Success() {
@@ -118,26 +129,36 @@ class AvaliacaoServiceTest {
     @Test
     void createAvaliacao_Success() {
         // Arrange
-        AvaliacaoEntity entity = createSampleAvaliacao();
+        AvaliacaoRequest request = createSampleAvaliacaoRequest();
 
         when(checkListExists.existsCheckListById(20L)).thenReturn(true);
         when(visitaExists.existsVisitaById(10L)).thenReturn(true);
         when(viaturaExists.existsViaturaById(30L)).thenReturn(true);
-        when(avaliacaoRepository.save(entity)).thenReturn(entity);
-        when(avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(10L, 20L, null)).thenReturn(false);
+        when(avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(10L, 20L, 30L)).thenReturn(false);
+
+        // Configuração correta do mock para qualquer entidade
+        when(avaliacaoRepository.save(any(AvaliacaoEntity.class))).thenAnswer(invocation -> {
+            AvaliacaoEntity entity = invocation.getArgument(0);
+            return AvaliacaoEntity.builder()
+                    .id(1L) // ID gerado
+                    .idVisita(entity.getIdVisita())
+                    .idCheckList(entity.getIdCheckList())
+                    .idViatura(entity.getIdViatura())
+                    .build();
+        });
 
         // Act
-        AvaliacaoEntity result = avaliacaoService.createAvaliacao(entity);
+        AvaliacaoEntity result = avaliacaoService.createAvaliacao(request);
 
         // Assert
         assertNotNull(result);
-        assertEquals(entity.getId(), result.getId());
+        assertEquals(1L, result.getId()); // Verifica se o ID foi atribuído
     }
 
     @Test
     void createAvaliacao_CheckListNotFound_ThrowsException() {
         // Arrange
-        AvaliacaoEntity entity = createSampleAvaliacao();
+        var entity = createSampleAvaliacaoRequest();
         when(checkListExists.existsCheckListById(20L)).thenReturn(false);
 
         // Act & Assert
@@ -156,9 +177,14 @@ class AvaliacaoServiceTest {
         when(visitaExists.existsVisitaById(10L)).thenReturn(true);
         when(viaturaExists.existsViaturaById(99L)).thenReturn(false);
 
+        var request = AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(99L)
+                .build();
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> avaliacaoService.createAvaliacao(entity),
+                () -> avaliacaoService.createAvaliacao(request),
                 "Viatura não existe com o id: 99");
     }
 
@@ -166,20 +192,38 @@ class AvaliacaoServiceTest {
     @Test
     void createAll_Success() {
         // Arrange
-        AvaliacaoEntity entity = createSampleAvaliacao();
-        List<AvaliacaoEntity> entities = Collections.singletonList(entity);
+        var request = AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(30L)
+                .build();
+        List<AvaliacaoRequest> requests = List.of(request);
 
         when(checkListExists.existsCheckListById(20L)).thenReturn(true);
         when(visitaExists.existsVisitaById(10L)).thenReturn(true);
         when(viaturaExists.existsViaturaById(30L)).thenReturn(true);
-        when(avaliacaoRepository.saveAll(entities)).thenReturn(entities);
-        when(avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(10L, 20L, null)).thenReturn(false);
+        when(avaliacaoRepository.existsByIdVisitaAndIdCheckListAndIdViatura(10L, 20L, 30L)).thenReturn(false);
+
+        // Configurar saveAll para retornar entidades com IDs gerados
+        when(avaliacaoRepository.saveAll(anyList())).thenAnswer(invocation -> {
+            List<AvaliacaoEntity> entities = invocation.getArgument(0);
+            return entities.stream()
+                    .map(e -> AvaliacaoEntity.builder()
+                            .id(1L) // ID gerado
+                            .idVisita(e.getIdVisita())
+                            .idCheckList(e.getIdCheckList())
+                            .idViatura(e.getIdViatura())
+                            .build())
+                    .collect(Collectors.toList());
+        });
 
         // Act
-        List<AvaliacaoEntity> result = avaliacaoService.createAll(entities);
+        List<AvaliacaoEntity> result = avaliacaoService.createAll(requests);
 
         // Assert
         assertEquals(1, result.size());
+        assertEquals(1L, result.getFirst().getId()); // Verifica ID gerado
+        assertEquals(request.idVisita(), result.getFirst().getIdVisita());
     }
 
     @Test
@@ -198,32 +242,54 @@ class AvaliacaoServiceTest {
     void updateAvaliacao_Success() {
         // Arrange
         Long id = 1L;
-        AvaliacaoEntity entity = createSampleAvaliacao();
+        var request = AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(30L)
+                .build();
 
         when(avaliacaoRepository.existsById(id)).thenReturn(true);
         when(checkListExists.existsCheckListById(20L)).thenReturn(true);
         when(visitaExists.existsVisitaById(10L)).thenReturn(true);
         when(viaturaExists.existsViaturaById(30L)).thenReturn(true);
-        when(avaliacaoRepository.save(entity)).thenReturn(entity);
+
+        // Usar any() para capturar qualquer entidade passada
+        when(avaliacaoRepository.save(any(AvaliacaoEntity.class))).thenAnswer(invocation -> {
+            AvaliacaoEntity entity = invocation.getArgument(0);
+            // Retorna uma nova entidade com ID e dados atualizados
+            return AvaliacaoEntity.builder()
+                    .id(entity.getId() != null ? entity.getId() : id)
+                    .idVisita(entity.getIdVisita())
+                    .idCheckList(entity.getIdCheckList())
+                    .idViatura(entity.getIdViatura())
+                    .build();
+        });
 
         // Act
-        AvaliacaoEntity result = avaliacaoService.updateAvaliacao(id, entity);
+        var result = avaliacaoService.updateAvaliacao(id, request);
 
         // Assert
         assertNotNull(result);
         assertEquals(id, result.getId());
+        assertEquals(request.idVisita(), result.getIdVisita());
     }
+
 
     @Test
     void updateAvaliacao_NotFound_ThrowsException() {
         // Arrange
         Long id = 1L;
-        AvaliacaoEntity entity = createSampleAvaliacao();
         when(avaliacaoRepository.existsById(id)).thenReturn(false);
+
+        var request = AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(30L)
+                .build();
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> avaliacaoService.updateAvaliacao(id, entity),
+                () -> avaliacaoService.updateAvaliacao(id, request),
                 "Avaliação não encontrada com o id: " + id);
     }
 
@@ -231,13 +297,18 @@ class AvaliacaoServiceTest {
     void updateAvaliacao_CheckListNotFound_ThrowsException() {
         // Arrange
         Long id = 1L;
-        AvaliacaoEntity entity = createSampleAvaliacao();
         when(avaliacaoRepository.existsById(id)).thenReturn(true);
         when(checkListExists.existsCheckListById(20L)).thenReturn(false);
 
+        var request = AvaliacaoRequest.builder()
+                .idVisita(10L)
+                .idCheckList(20L)
+                .idViatura(30L)
+                .build();
+
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> avaliacaoService.updateAvaliacao(id, entity),
+                () -> avaliacaoService.updateAvaliacao(id, request),
                 "CheckList, Viatura ou Visita não existe");
     }
 

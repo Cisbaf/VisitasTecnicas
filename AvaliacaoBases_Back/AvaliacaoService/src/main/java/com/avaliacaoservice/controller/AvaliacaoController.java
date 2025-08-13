@@ -1,6 +1,7 @@
 package com.avaliacaoservice.controller;
 
 import com.avaliacaoservice.entity.AvaliacaoEntity;
+import com.avaliacaoservice.entity.AvaliacaoRequest;
 import com.avaliacaoservice.service.AvaliacaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -49,16 +50,17 @@ public class AvaliacaoController {
 
     @PostMapping
     @Operation(summary = "Create Avaliacao", description = "Create a new avaliacao with the provided details.")
-    public ResponseEntity<AvaliacaoEntity> createAvaliacao(@RequestBody AvaliacaoEntity avaliacao) {
+    public ResponseEntity<AvaliacaoEntity> createAvaliacao(@RequestBody AvaliacaoRequest avaliacao) {
         if (avaliacao == null) {
             return ResponseEntity.badRequest().build();
         }
         AvaliacaoEntity createdAvaliacao = avaliacaoService.createAvaliacao(avaliacao);
         return ResponseEntity.ok(createdAvaliacao);
     }
+
     @PostMapping("/saveAll")
     @Operation(summary = "Create Multiple Avaliacoes", description = "Create multiple avaliacoes with the provided list.")
-    public ResponseEntity<List<AvaliacaoEntity>> createAll(@RequestBody List<AvaliacaoEntity> avaliacoes) {
+    public ResponseEntity<List<AvaliacaoEntity>> createAll(@RequestBody List<AvaliacaoRequest> avaliacoes) {
         if (avaliacoes == null || avaliacoes.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -68,7 +70,7 @@ public class AvaliacaoController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Avaliacao by ID", description = "Update an avaliacao by its unique identifier.")
-    public ResponseEntity<AvaliacaoEntity> updateAvaliacao(@PathVariable Long id, @RequestBody AvaliacaoEntity avaliacao) {
+    public ResponseEntity<AvaliacaoEntity> updateAvaliacao(@PathVariable Long id, @RequestBody AvaliacaoRequest avaliacao) {
         if (id == null || avaliacao == null) {
             return ResponseEntity.badRequest().build();
         }

@@ -115,7 +115,7 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </path>
-                    </annotationProcessorPaths><source>24</source><target>24</target><compilerArgs>--enable-preview</compilerArgs>
+                    </annotationProcessorPaths><source>24</source><target>24</target>
                 </configuration>
             </plugin>
             <plugin>

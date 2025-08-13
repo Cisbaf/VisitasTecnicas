@@ -34,7 +34,8 @@ public class RankingBasesConverter implements AttributeConverter<List<BaseRankin
     public List<BaseRankingDTO> convertToEntityAttribute(String dbData) {
         try {
             return objectMapper.readValue(dbData,
-                    new TypeReference<List<BaseRankingDTO>>() {});
+                    new TypeReference<>() {
+                    });
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Error converting JSON to rankingBases", e);
         }

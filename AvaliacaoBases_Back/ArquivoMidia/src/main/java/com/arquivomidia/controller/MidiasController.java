@@ -36,8 +36,12 @@ public class MidiasController {
     @PostMapping
     @Operation(summary = "Save a new media file")
     public ResponseEntity<MidiasResponse> save(@RequestBody MidiasRequest midia) {
-        MidiasResponse savedMidia = service.saveMedia(midia);
-        return ResponseEntity.ok(savedMidia);
+       try{
+           MidiasResponse savedMidia = service.saveMedia(midia);
+           return ResponseEntity.ok(savedMidia);
+       }catch (Exception ex) {
+           return ResponseEntity.badRequest().body(null);
+       }
     }
 
     @DeleteMapping("/{id}")

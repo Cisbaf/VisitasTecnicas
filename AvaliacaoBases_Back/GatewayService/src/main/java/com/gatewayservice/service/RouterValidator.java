@@ -16,7 +16,7 @@ public class RouterValidator {
             "/auth/user/registro"
     );
 
-    public Predicate<ServerHttpRequest> isSecured = request -> {
+    public final Predicate<ServerHttpRequest> isSecured = request -> {
         String path = request.getURI().getPath();
 
         return openEndpoints.stream()

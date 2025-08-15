@@ -19,7 +19,9 @@ public class JwtUtils {
     }
 
     public Claims getClaimsFromToken(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+        String compactToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(compactToken).getPayload();
     }
 
     public boolean isTokenExpired(String token) {

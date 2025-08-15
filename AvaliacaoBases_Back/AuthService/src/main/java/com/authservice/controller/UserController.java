@@ -1,13 +1,18 @@
 package com.authservice.controller;
 
+import com.authservice.entity.userDto.LoginRequest;
 import com.authservice.entity.userDto.UserRequest;
 import com.authservice.entity.userDto.UserResponse;
 import com.authservice.service.capsule.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 
 @RestController
@@ -15,6 +20,12 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
     private final UserService userService;
+    @Value("${jwt.expire}")
+    private String expiration;
+    @Value("${app.cookie.secure:false}")
+    private boolean secureCookie;
+    @Value("${app.cookie.samesite:Strict}")
+    private String sameSite;
 
     @GetMapping("/username/{username}")
     @Operation(summary = "Get user by username")
@@ -75,13 +86,39 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user")
-    public ResponseEntity<String> login(@RequestBody UserRequest request) {
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
         if (request == null) {
             return ResponseEntity.badRequest().build();
         }
         String accessToken = userService.login(request);
-        return ResponseEntity.ok(accessToken);
+        ResponseCookie cookie = ResponseCookie.from("token", accessToken)
+                .httpOnly(true)
+                .secure(secureCookie)
+                .path("/")
+                .maxAge(Long.parseLong(expiration))
+                .sameSite(sameSite)
+                .build();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Login feito com sucesso");
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout user")
+    public ResponseEntity<String> logout() {
+
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(secureCookie)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .sameSite(sameSite)
+                .build();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Logout feito com sucesso");
+    }
+
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing user")

@@ -11,5 +11,6 @@ import java.io.Serializable;
 public record UserRequest(
         @NotBlank(message = "Username é requerido") String user,
         @NotBlank(message = "Senha é requerida") String password,
-        @NotBlank(message = "Cargo é requerido")String role
+        @NotBlank(message = "Cargo é requerido")String role,
+        String base
 ) implements Serializable {}

@@ -1,5 +1,6 @@
 package com.authservice.service.capsule;
 
+import com.authservice.entity.userDto.LoginRequest;
 import com.authservice.entity.userDto.UserRequest;
 import com.authservice.entity.userDto.UserResponse;
 
@@ -10,7 +11,7 @@ public interface UserService {
 
     String register(UserRequest request);
 
-    String login(UserRequest request);
+    String login(LoginRequest request);
 
 
     UserResponse findByUsername(String username);

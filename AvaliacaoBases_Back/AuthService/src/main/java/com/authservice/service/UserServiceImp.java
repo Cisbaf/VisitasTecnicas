@@ -1,5 +1,6 @@
 package com.authservice.service;
 
+import com.authservice.entity.userDto.LoginRequest;
 import com.authservice.entity.userDto.UserRequest;
 import com.authservice.entity.userDto.UserResponse;
 import com.authservice.respository.UserRepository;
@@ -26,19 +27,19 @@ public class UserServiceImp implements UserService {
         var entity = UserMapper.toEntity(request);
         entity.setPassword(BCrypt.hashpw(request.password(), BCrypt.gensalt()));
 
-        var accessToken = jtwUtils.generateToken(entity.getUser(), entity.getRole());
+        var accessToken = jtwUtils.generateToken(entity.getUser(), entity.getRole(), entity.getBase() != null ? entity.getBase() : "");
 
         userRepository.save(entity);
 
         return accessToken ;
     }
 
-    public String login(UserRequest request) {
+    public String login(LoginRequest request) {
         var entity = userRepository.findByUser(request.user());
         if (entity == null || !BCrypt.checkpw(request.password(), entity.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
-        return jtwUtils.generateToken(entity.getUser(), entity.getRole());
+        return jtwUtils.generateToken(entity.getUser(), entity.getRole(), entity.getBase() != null ? entity.getBase() : "");
     }
 
 

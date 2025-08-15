@@ -19,11 +19,13 @@ public class JtwUtils {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String username, String role) {
-        long expireToken = Long.parseLong(expiration) * 1000;
+    public String generateToken(String username, String role, String base) {
+        long expireToken = Long.parseLong(expiration);
         var expirationDate = new Date(System.currentTimeMillis() + expireToken);
 
-        return Jwts.builder().claim("role", role)
+        return Jwts.builder()
+                .claim("role", role)
+                .claim("base", base)
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(expirationDate)

@@ -2,22 +2,18 @@ package com.gatewayservice.config;
 
 import com.gatewayservice.service.JwtUtils;
 import com.gatewayservice.service.RouterValidator;
-import io.jsonwebtoken.JwtException;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 
 @Component
-@RefreshScope
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     private final RouterValidator routerValidator;
-
     private final JwtUtils jwtUtils;
 
     public AuthenticationFilter(RouterValidator routerValidator, JwtUtils jwtUtils) {
@@ -29,37 +25,32 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         var request = exchange.getRequest();
 
-        // Verifica se a rota precisa de autenticação
         if (routerValidator.isSecured.test(request)) {
-            String token = request.getHeaders().getFirst("Authorization");
+            String authHeader = request.getHeaders().getFirst("Authorization");
+            String token = null;
 
-            if (token == null || jwtUtils.isTokenExpired(token)) {
-                return unauthorized(exchange);
+            if (authHeader != null && !authHeader.isBlank()) {
+                token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+            } else {
+                // tenta pegar token do cookie 'token'
+                var cookie = request.getCookies().getFirst("token");
+                if (cookie != null) token = cookie.getValue();
             }
 
-            try {
-                if (!jwtUtils.isValid(token)) {
-                    return unauthorized(exchange);
-                }
-
-                exchange.getAttributes().put("token", token);
-
-            } catch (JwtException e) {
-                return unauthorized(exchange);
+            if (token == null || !jwtUtils.isValid(token) || jwtUtils.isTokenExpired(token)) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
             }
+
+            // opcional: disponibiliza token para downstream (atributo)
+            exchange.getAttributes().put("token", token);
         }
 
         return chain.filter(exchange);
     }
 
-    private Mono<Void> unauthorized(ServerWebExchange exchange) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
-    }
-
     @Override
     public int getOrder() {
-        return -1; // Executa antes de outros filtros
+        return -1;
     }
 }
-

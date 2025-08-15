@@ -13,6 +13,7 @@ public class UserMapper {
                 .user(entity.getUser())
                 .password(entity.getPassword())
                 .role(entity.getRole())
+                .base(entity.getBase() != null ? entity.getBase() : "")
                 .build();
     }
 
@@ -21,6 +22,7 @@ public class UserMapper {
                 .user(request.user())
                 .password(request.password())
                 .role(request.role())
+                .base(request.base() != null ? request.base() : "")
                 .build();
     }
 }

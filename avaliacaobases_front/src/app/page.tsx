@@ -1,8 +1,30 @@
+import { decodeJwtPayload } from "@/lib/decodeJwt";
+import { redirect } from 'next/navigation';
+import { cookies } from "next/headers";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+  const claims = decodeJwtPayload(token as string | undefined);
+  const isAllowed = claims && (claims.role === 'ADMIN' || claims.role === 'FUNCIONARIO');
+
+  if (!isAllowed) {
+    redirect('/login');
+  }
+  if (claims && claims.role === 'FUNCIONARIO' && claims.base) {
+    redirect(`/base/${claims.base}`);
+  }
+  if (claims && claims.role === 'ADMIN') {
+    redirect('/admin');
+  }
+
+
   return (
-    <main>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
+    <main className="flex items-center justify-center h-screen">
+      <div className="flex flex-col items-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
+        <span className="text-lg text-gray-600">Redirecionando...</span>
+      </div>
     </main>
   );
 }

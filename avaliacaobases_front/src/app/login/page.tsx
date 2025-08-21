@@ -90,7 +90,7 @@ export default function LoginPage() {
                             InputProps={{ sx: { pl: 2, borderRadius: '30px' } }}
                         />
 
-                        {error && <Typography color="error" mb={2}>{error}</Typography>}
+                        {error && <Typography color="error" mb={2}>Usuario ou senha não encontrados</Typography>}
                         <Button
                             type="submit"
                             fullWidth

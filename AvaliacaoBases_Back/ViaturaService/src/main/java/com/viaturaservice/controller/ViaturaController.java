@@ -64,9 +64,9 @@ public class ViaturaController {
         return ResponseEntity.ok(viaturaService.createViatura(viaturaRequest));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @Operation(summary = "Delete a Viatura by ID", description = "Delete a viatura by its unique identifier.")
-    public ResponseEntity<Void> deleteById(Long id) {
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();
         }

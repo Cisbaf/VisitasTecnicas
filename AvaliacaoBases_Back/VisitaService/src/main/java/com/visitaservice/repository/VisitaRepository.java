@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface VisitaRepository extends JpaRepository<VisitaEntity, Long> {
     List<VisitaEntity> findAllByIdBaseAndDataVisitaBetween(Long idBase, LocalDate dataVisita, LocalDate dataVisita2);
+    List<VisitaEntity> findVisitaEntitiesByIdBase(Long idBase);
 }

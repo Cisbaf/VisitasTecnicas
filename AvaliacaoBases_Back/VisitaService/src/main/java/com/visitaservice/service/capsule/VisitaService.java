@@ -24,4 +24,6 @@ public interface VisitaService {
     void delete(Long id);
 
     Boolean existsVisitaById(Long id);
+
+    List<VisitaResponse> getVisitaByIdBase(Long idBase);
 }

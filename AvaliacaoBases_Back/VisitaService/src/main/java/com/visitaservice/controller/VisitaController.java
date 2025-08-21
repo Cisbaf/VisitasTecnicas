@@ -49,6 +49,11 @@ public class VisitaController {
                                                                @RequestParam() LocalDate dataFim) {
         return ResponseEntity.ok(service.getAllByPeriod(idBase, dataInicio, dataFim));
     }
+    @GetMapping("/base/{idBase}")
+    @Operation(summary = "Get Visitas by Base ID", description = "Retrieve visitas associated with a specific base ID.")
+    public ResponseEntity<List<VisitaResponse>> getAllByBaseId(@PathVariable Long idBase) {
+        return ResponseEntity.ok(service.getVisitaByIdBase(idBase));
+    }
 
     @Operation(summary = "Create a new Visita", description = "Create a new visita with the provided details.")
     @PostMapping

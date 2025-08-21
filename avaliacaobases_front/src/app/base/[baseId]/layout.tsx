@@ -7,9 +7,7 @@ import {
     AppBar,
     Toolbar,
     Typography,
-    Avatar,
     Chip,
-    Button,
 } from "@mui/material";
 import Sidebar from "../../../components/base/Sidebar";
 

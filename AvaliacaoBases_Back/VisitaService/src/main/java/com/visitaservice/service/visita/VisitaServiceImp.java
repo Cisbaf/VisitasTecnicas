@@ -90,4 +90,15 @@ public class VisitaServiceImp implements VisitaService {
     public Boolean existsVisitaById(Long id) {
         return visitaRepository.existsById(id);
     }
+
+    @Override
+    public List<VisitaResponse> getVisitaByIdBase(Long idBase) {
+        if (exists.existsById(idBase)) {
+            return visitaRepository.findVisitaEntitiesByIdBase(idBase)
+                    .stream()
+                    .map(VisitaMapper::toResponse)
+                    .toList();
+        }
+        throw new IllegalArgumentException("Base não existe: " + idBase);
+    }
 }

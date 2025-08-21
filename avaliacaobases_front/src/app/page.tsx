@@ -20,11 +20,11 @@ export default async function Home() {
 
 
   return (
-    <main className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen">
       <div className="flex flex-col items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
         <span className="text-lg text-gray-600">Redirecionando...</span>
       </div>
-    </main>
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 import { cookies } from 'next/headers';
 import { decodeJwtPayload } from '../../../lib/decodeJwt';
 import { redirect } from 'next/navigation';
+import BasesDashboard from '@/components/base/BasesDashboard';
 
 interface Props { params: { baseId: string } }
 
@@ -28,13 +29,5 @@ export default async function BasePage({ params }: Props) {
     });
     const data = r.ok ? await r.json() : null;
 
-    return (
-        <main style={{ padding: 24 }}>
-            <h1>Painel da Base {baseId}</h1>
-            <p>Usuário: {claims.sub} — Cargo: {claims.role}</p>
-            <p>Base: {claims.base}</p>
-            <p>Data e hora do servidor: {new Date().toLocaleString()}</p>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
-        </main>
-    );
+    return <BasesDashboard />
 }

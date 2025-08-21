@@ -18,6 +18,6 @@ public class UserEntity {
     private String user;
     private String password;
     private String role;
-    private String base;
+    private Long baseId;
 
 }

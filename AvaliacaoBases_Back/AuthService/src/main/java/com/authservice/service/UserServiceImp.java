@@ -4,6 +4,7 @@ import com.authservice.entity.userDto.LoginRequest;
 import com.authservice.entity.userDto.UserRequest;
 import com.authservice.entity.userDto.UserResponse;
 import com.authservice.respository.UserRepository;
+import com.authservice.service.capsule.BaseServiceClient;
 import com.authservice.service.capsule.UserService;
 import com.authservice.service.jwt.JtwUtils;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
     private final JtwUtils jtwUtils;
+    private final BaseServiceClient baseServiceClient;
 
     public boolean existsByUsername(String username) {
         return userRepository.existsByUser(username);
@@ -27,7 +29,16 @@ public class UserServiceImp implements UserService {
         var entity = UserMapper.toEntity(request);
         entity.setPassword(BCrypt.hashpw(request.password(), BCrypt.gensalt()));
 
-        var accessToken = jtwUtils.generateToken(entity.getUser(), entity.getRole(), entity.getBase() != null ? entity.getBase() : "");
+        if (entity.getBaseId() != null){
+            var baseExists = baseServiceClient.existsById(entity.getBaseId());
+            if (!baseExists) {
+                throw new RuntimeException("Base ID does not exist");
+            }
+        }
+        if (userRepository.existsByUser(entity.getUser())) {
+            throw new RuntimeException("Username already exists");
+        }
+        var accessToken = jtwUtils.generateToken(entity.getUser(), entity.getRole(), String.valueOf(entity.getBaseId() != null ? entity.getBaseId() : ""));
 
         userRepository.save(entity);
 
@@ -39,7 +50,7 @@ public class UserServiceImp implements UserService {
         if (entity == null || !BCrypt.checkpw(request.password(), entity.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
-        return jtwUtils.generateToken(entity.getUser(), entity.getRole(), entity.getBase() != null ? entity.getBase() : "");
+        return jtwUtils.generateToken(entity.getUser(), entity.getRole(), String.valueOf(entity.getBaseId() != null ? entity.getBaseId() : ""));
     }
 
 

@@ -2,7 +2,6 @@ package com.checklistitemservice.entity;
 
 import com.checklistitemservice.entity.enums.Criticidade;
 import com.checklistitemservice.entity.enums.TipoConformidade;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

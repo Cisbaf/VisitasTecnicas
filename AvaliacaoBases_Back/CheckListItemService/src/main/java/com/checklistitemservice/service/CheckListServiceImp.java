@@ -77,7 +77,14 @@ public class CheckListServiceImp implements CheckListService {
 
     @Override
     public List<CheckListResponse> getByVisitaId(Long visitaId) {
-        var checkList = repository.findAllByVisitaId(visitaId).stream().map(mapper::toResponse).toList();
+        var checkList = descRepository.findAllByVisitaId(visitaId).stream()
+                .filter(desc -> desc.getChecklist() != null)
+                .map(desc -> repository.findById(desc.getChecklist().getId())
+                        .map(mapper::toResponse)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
         if (checkList.isEmpty()) {
             return new ArrayList<>();
         }

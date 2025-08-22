@@ -16,8 +16,7 @@ public class CheckListEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String categoria;
-    @OneToMany(cascade =  CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "description_id")
+
+    @OneToMany(mappedBy = "checklist", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CheckDescription> descricao;
-    private Long visitaId;
 }

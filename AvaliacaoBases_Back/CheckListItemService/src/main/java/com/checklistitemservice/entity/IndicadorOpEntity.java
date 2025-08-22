@@ -21,8 +21,9 @@ public class IndicadorOpEntity {
     private Long TIHs;
     @ElementCollection(fetch = FetchType.EAGER)
     Map<String, Integer> atendimentos;
+
+
     @Column(columnDefinition = "JSON")
     @Convert(converter = RankingBasesConverter.class)
-
     private List<BaseRankingDTO> rankingBases;
 }

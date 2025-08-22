@@ -1,23 +1,53 @@
 package com.checklistitemservice.service;
 
+import com.checklistitemservice.entity.CheckDescription;
 import com.checklistitemservice.entity.CheckListEntity;
+import com.checklistitemservice.entity.dto.CheckDescriptionResponse;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.entity.enums.TipoConformidade;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 class CheckListMapper {
 
-    CheckListResponse toResponse(CheckListEntity entity) {
+    public CheckListResponse toResponse(CheckListEntity entity) {
         if (entity == null) {
             return null;
         }
         return CheckListResponse.builder()
                 .id(entity.getId())
                 .categoria(entity.getCategoria())
+                .descricao(toDescriptionResponseList(entity.getDescricao()))
+                .build();
+    }
+
+    public List<CheckDescriptionResponse> toDescriptionResponseList(List<CheckDescription> entities) {
+        if (entities == null) {
+            return new ArrayList<>();
+        }
+        return entities.stream()
+                .map(this::toDescriptionResponse)
+                .collect(Collectors.toList());
+    }
+
+    private CheckDescriptionResponse toDescriptionResponse(CheckDescription entity) {
+        if (entity == null) {
+            return null;
+        }
+        return CheckDescriptionResponse.builder()
+                .id(entity.getId())
                 .descricao(entity.getDescricao())
-                .visitaId(entity.getVisitaId())
+                .conformidadePercent(entity.getConformidadePercent())
+                .observacao(entity.getObservacao())
+                .visitaId(entity.getVisitaId() != null ? entity.getVisitaId() : null)
+                .tipoConformidade(entity.getTipoConformidade())
+                .criticidade(entity.getCriticidade())
+                .checklistId(entity.getChecklist() != null ? entity.getChecklist().getId() : null)
                 .build();
     }
 
@@ -26,26 +56,34 @@ class CheckListMapper {
             return null;
         }
 
-        var entity = CheckListEntity.builder()
+        CheckListEntity parentEntity = CheckListEntity.builder()
                 .categoria(request.categoria())
-                .visitaId(request.visitaId())
                 .build();
 
-        var descricao = request.descricao();
-        for (var desc : descricao) {
-            desc.setId(null);
-            if (desc.getConformidadePercent() <= 44) {
-                desc.setTipoConformidade(TipoConformidade.NAO_CONFORME);
-            } else if (desc.getConformidadePercent() >= 70) {
-                desc.setTipoConformidade(TipoConformidade.CONFORME);
-            } else {
-                desc.setTipoConformidade(TipoConformidade.PARCIAL);
-            }
-        }
+        List<CheckDescription> childEntities = request.descricao().stream()
+                .map(descRequest -> {
+                    CheckDescription childEntity = CheckDescription.builder()
+                            .descricao(descRequest.getDescricao())
+                            .conformidadePercent(descRequest.getConformidadePercent())
+                            .observacao(descRequest.getObservacao())
+                            .criticidade(descRequest.getCriticidade())
+                            .build();
 
-        entity.setDescricao(descricao);
+                    // Lógica para definir TipoConformidade
+                    if (childEntity.getConformidadePercent() <= 44) {
+                        childEntity.setTipoConformidade(TipoConformidade.NAO_CONFORME);
+                    } else if (childEntity.getConformidadePercent() >= 70) {
+                        childEntity.setTipoConformidade(TipoConformidade.CONFORME);
+                    } else {
+                        childEntity.setTipoConformidade(TipoConformidade.PARCIAL);
+                    }
 
+                    childEntity.setChecklist(parentEntity);
+                    return childEntity;
+                })
+                .collect(Collectors.toList());
 
-        return entity;
+        parentEntity.setDescricao(childEntities);
+        return parentEntity;
     }
 }

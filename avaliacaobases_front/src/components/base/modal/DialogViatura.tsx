@@ -1,4 +1,3 @@
-// components/ViaturaDialog.tsx
 "use client";
 import React from "react";
 import {
@@ -19,6 +18,7 @@ import {
     Button,
     Box,
     Typography,
+    Collapse,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -52,10 +52,18 @@ export default function ViaturaDialog({
         itens: [{ nome: "", conformidade: 100 }],
     });
 
+    const [showCustomType, setShowCustomType] = React.useState(false);
+
     // Atualizar o formulário quando a prop viatura mudar
     React.useEffect(() => {
         if (viatura) {
             setForm(viatura);
+            // Verificar se o tipo de viatura é um valor personalizado (não está nas opções padrão)
+            if (viatura.tipoViatura !== "USA" && viatura.tipoViatura !== "USB") {
+                setShowCustomType(true);
+            } else {
+                setShowCustomType(false);
+            }
         } else {
             setForm({
                 placa: "",
@@ -66,6 +74,7 @@ export default function ViaturaDialog({
                 idBase: baseId ?? null,
                 itens: [{ nome: "", conformidade: 100 }],
             });
+            setShowCustomType(false);
         }
     }, [viatura, baseId]);
 
@@ -86,6 +95,16 @@ export default function ViaturaDialog({
 
     const removeItem = (index: number) => {
         setForm(prev => ({ ...prev, itens: prev.itens.filter((_, i) => i !== index) }));
+    };
+
+    const handleTipoViaturaChange = (value: string) => {
+        if (value === "Outro") {
+            setShowCustomType(true);
+            updateForm("tipoViatura", "");
+        } else {
+            setShowCustomType(false);
+            updateForm("tipoViatura", value);
+        }
     };
 
     const handleSave = () => {
@@ -130,12 +149,11 @@ export default function ViaturaDialog({
                             <Select
                                 labelId="tipo-label"
                                 label="Tipo Viatura"
-                                value={form.tipoViatura}
-                                onChange={e => updateForm("tipoViatura", e.target.value as string)}
+                                value={showCustomType ? "Outro" : form.tipoViatura}
+                                onChange={e => handleTipoViaturaChange(e.target.value as string)}
                             >
                                 <MenuItem value="USA">USA</MenuItem>
                                 <MenuItem value="USB">USB</MenuItem>
-                                <MenuItem value="Ambulância">Ambulância</MenuItem>
                                 <MenuItem value="Outro">Outro</MenuItem>
                             </Select>
                         </FormControl>
@@ -154,6 +172,16 @@ export default function ViaturaDialog({
                             </Select>
                         </FormControl>
                     </Stack>
+
+                    {/* Campo para tipo de viatura personalizado */}
+                    <Collapse in={showCustomType}>
+                        <TextField
+                            label="Digite o tipo de viatura"
+                            value={form.tipoViatura}
+                            onChange={e => updateForm("tipoViatura", e.target.value)}
+                            fullWidth
+                        />
+                    </Collapse>
 
                     <TextField
                         label="ID da Base"

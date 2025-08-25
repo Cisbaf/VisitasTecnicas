@@ -47,6 +47,16 @@ public class AvaliacaoController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/viatura/{idViatura}")
+    @Operation(summary = "Get Avaliacao by Viatura ID", description = "Retrieve an avaliacao by its associated viatura ID.")
+    public ResponseEntity<List<AvaliacaoEntity>> findByIdViatura(@PathVariable Long idViatura) {
+        var avaliacao = avaliacaoService.findByIdViatura(idViatura);
+        if (avaliacao != null) {
+            return ResponseEntity.ok(avaliacao);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     @PostMapping
     @Operation(summary = "Create Avaliacao", description = "Create a new avaliacao with the provided details.")

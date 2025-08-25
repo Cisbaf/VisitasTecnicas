@@ -41,6 +41,17 @@ public class AvaliacaoService {
             throw new RuntimeException("Erro ao verificar a existência da visita: " + e.getMessage());
         }
     }
+    public List<AvaliacaoEntity> findByIdViatura(Long idViatura) {
+        try {
+            if (!viaturaExists.existsViaturaById(idViatura)) {
+                throw new IllegalArgumentException("Viatura não encontrada com o id: " + idViatura);
+            }
+            return avaliacaoRepository.findByIdViatura(idViatura);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao verificar a existência da viatura: " + e.getMessage());
+        }
+    }
 
     public AvaliacaoEntity createAvaliacao(AvaliacaoRequest avaliacao) {
         if (avaliacao == null) {

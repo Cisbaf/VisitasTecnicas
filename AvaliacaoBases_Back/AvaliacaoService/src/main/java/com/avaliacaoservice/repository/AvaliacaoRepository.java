@@ -9,4 +9,6 @@ public interface AvaliacaoRepository extends JpaRepository<AvaliacaoEntity, Long
     List<AvaliacaoEntity> findByIdVisita(Long idVisita);
 
     boolean existsByIdVisitaAndIdCheckListAndIdViatura(Long idVisita, Long idCheckList, Long idViatura);
+
+    List<AvaliacaoEntity> findByIdViatura(Long idViatura);
 }

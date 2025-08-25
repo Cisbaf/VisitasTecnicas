@@ -12,7 +12,7 @@ public class RelatorioConsolidadoResponse {
     private LocalDate dataFim;
     private int totalVisitas;
     private List<String> pontosFortes;
-    private List<String> pontosCriticosRecorrentes;
+    private List<PontoCriticoDTO> pontosCriticosGerais;
     private Map<String, Double> mediasConformidade;  // Categoria → Média percentual
     private List<ViaturaDTO> viaturasCriticas;
     private List<BaseRankingDTO> rankingBases;

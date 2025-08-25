@@ -17,5 +17,6 @@ public record RelatoResponse(
         String tema,
         String gestorResponsavel,
         Date data,
-        Boolean resolvido, VisitaEntity visitas
+        Boolean resolvido,
+        VisitaEntity visitas
 ) implements Serializable {}

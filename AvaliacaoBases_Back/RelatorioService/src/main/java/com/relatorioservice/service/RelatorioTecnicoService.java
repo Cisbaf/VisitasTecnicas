@@ -174,13 +174,12 @@ public class RelatorioTecnicoService {
                         Collectors.counting()
                 ));
 
-        consolidado.setPontosCriticosRecorrentes(
+        consolidado.setPontosCriticosGerais(
                 contagemCriticos.entrySet().stream()
-                        .filter(entry -> entry.getValue() > 1)
-                        .map(Map.Entry::getKey)
+                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // ordena por frequência
+                        .map(entry -> new PontoCriticoDTO(entry.getKey(), entry.getValue()))
                         .collect(Collectors.toList())
         );
-
         Map<String, DoubleSummaryStatistics> statsPorCategoria = relatorios.stream()
                 .flatMap(r -> r.getConformidades().entrySet().stream())
                 .collect(Collectors.groupingBy(
@@ -195,10 +194,17 @@ public class RelatorioTecnicoService {
 
         consolidado.setMediasConformidade(mediasConformidade);
 
-        consolidado.setViaturasCriticas(relatorios.stream()
+        // CORREÇÃO: Agrupar viaturas por placa para remover duplicatas
+        Map<String, ViaturaDTO> viaturasUnicas = relatorios.stream()
                 .flatMap(r -> r.getViaturas().stream())
                 .filter(v -> !v.getItensCriticos().isEmpty())
-                .collect(Collectors.toList()));
+                .collect(Collectors.toMap(
+                        ViaturaDTO::getPlaca,  // Usar a placa como chave
+                        v -> v,
+                        (v1, v2) -> v1         // Em caso de duplicata, manter a primeira
+                ));
+
+        consolidado.setViaturasCriticas(new ArrayList<>(viaturasUnicas.values()));
 
         consolidado.setRankingBases(getRankingBasesPeriodoAtual(dataInicio, dataFim));
         return consolidado;

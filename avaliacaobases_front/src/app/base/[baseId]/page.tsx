@@ -22,12 +22,5 @@ export default async function BasePage({ params }: Props) {
         redirect('/login');
     }
 
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
-    const r = await fetch(`${backendUrl}/relatorio/relatorios/consolidado/${baseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store'
-    });
-    const data = r.ok ? await r.json() : null;
-
     return <BasesDashboard />
 }

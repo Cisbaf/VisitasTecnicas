@@ -1,45 +1,183 @@
 "use client";
-import React from "react";
-import { Box, Paper, Typography, Chip, Avatar, AvatarGroup, LinearProgress, List, ListItem, ListItemText } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+    Box, Paper, Typography, Chip, Avatar, AvatarGroup, LinearProgress,
+    List, ListItem, ListItemText, Alert, CircularProgress
+} from "@mui/material";
+import { useParams } from "next/navigation";
+import {
+    DashboardData
+} from "@/components/types";
 
 export default function DashboardPage() {
-    // MOCKS - substitua pelos seus endpoints
-    const kpis = {
-        indiceSaude: "78/100",
-        conformidade: "92%",
-        viaturas: 3,
-        profissionais: 15,
+    const params = useParams();
+    const baseId = Number(params.baseId);
+    const [data, setData] = useState<DashboardData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+
+                // Buscar dados de diferentes endpoints
+                const [
+                    viaturasRes,
+                    visitasRes,
+                    relatoriosRes,
+                    checklistsRes,
+                    relatosRes,
+                    equipeRes,
+                    indicadoresRes
+                ] = await Promise.all([
+                    fetch(`/api/viatura?baseId=${baseId}`),
+                    fetch(`/api/visita/base/${baseId}`),
+                    fetch(`/api/relatorios/consolidado/${baseId}?inicio=${getDate30DaysAgo()}&fim=${getCurrentDate()}`),
+                    fetch(`/api/checklist`),
+                    fetch(`/api/visita/relatos/base/${baseId}`),
+                    fetch(`/api/equipe/base/${baseId}`),
+                    fetch(`/api/indicadores/base/${baseId}`)
+                ]);
+
+                // Função auxiliar para processar respostas
+                const processResponse = async (response: Response) => {
+                    if (!response.ok) {
+                        return null;
+                    }
+                    const text = await response.text();
+                    return text ? JSON.parse(text) : null;
+                };
+
+                const [viaturas, visitas, relatorios, checklists, relatos, equipe, indicadores] = await Promise.all([
+                    processResponse(viaturasRes),
+                    processResponse(visitasRes),
+                    processResponse(relatoriosRes),
+                    processResponse(checklistsRes),
+                    processResponse(relatosRes),
+                    processResponse(equipeRes),
+                    processResponse(indicadoresRes)
+                ]);
+
+                setData({
+                    viaturas: viaturas || [],
+                    visitas: visitas || [],
+                    relatorios: relatorios || [],
+                    checklists: checklists || [],
+                    relatos: relatos || [],
+                    equipe: equipe || [],
+                    indicadores: indicadores || {
+                        indiceSaude: 0,
+                        conformidadeGeral: 0,
+                        viaturasOperacionais: 0,
+                        profissionaisAtivos: 0,
+                        tempoRespostaMedio: 0,
+                        adesaoCodigoJ4: 0
+                    }
+                });
+
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (baseId) {
+            fetchDashboardData();
+        }
+    }, [baseId]);
+
+    const getDate30DaysAgo = () => {
+        const date = new Date();
+        date.setDate(date.getDate() - 9000); // Corrigido para 30 dias
+        return date.toISOString().split('T')[0];
     };
+
+    const getCurrentDate = () => {
+        return new Date().toISOString().split('T')[0];
+    };
+
+    const getPrioridadeColor = (prioridade: string) => {
+        switch (prioridade) {
+            case 'alta': return '#ff7043';
+            case 'media': return '#ffd54f';
+            case 'baixa': return '#66bb6a';
+            default: return '#e0e0e0';
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
+    }
+
+    if (!data) {
+        return <Alert severity="info" sx={{ m: 2 }}>Nenhum dado encontrado para esta base.</Alert>;
+    }
+
+    const { viaturas, visitas, relatorios, checklists, relatos, equipe, indicadores } = data;
+
+    // Calcular estatísticas
+    const viaturasOperacionais = viaturas.filter(v => v.statusOperacional === 'Em operação').length;
+    const viaturasCriticas = viaturas.filter(v =>
+        v.itens && v.itens.some(item => item.conformidade < 80)
+    ).length;
 
     return (
         <div>
-            {/* Container principal substituindo Grid container */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, p: 0 }}>
                 {/* Linha superior (grande gráfico + card de viaturas) */}
                 <Box sx={{ width: { xs: '100%', md: 'calc(70% - 12px)' } }}>
                     <Paper sx={{ p: 2, borderRadius: 2, minHeight: 320 }}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>Evolução de Indicadores</Typography>
-                            <Chip label="+5% no último mês" color="success" size="small" />
+                            <Chip
+                                label={`${indicadores.conformidadeGeral > 0 ? '+5%' : 'Sem dados'} no último mês`}
+                                color={indicadores.conformidadeGeral > 0 ? "success" : "default"}
+                                size="small"
+                            />
                         </Box>
 
                         {/* Placeholder de gráfico */}
                         <Box sx={{ height: 180, borderRadius: 1, bgcolor: "#f3f7fb", display: "flex", alignItems: "center", justifyContent: "center", mb: 2 }}>
-                            <Typography color="text.secondary">[Gráfico de linhas - substituir por chart]</Typography>
+                            <Typography color="text.secondary">
+                                {relatorios.length > 0 ? 'Gráfico de evolução de conformidade' : 'Sem dados de relatórios'}
+                            </Typography>
                         </Box>
 
                         <Box sx={{ mt: 1 }}>
-                            <Typography variant="body2">Tempo de Resposta</Typography>
+                            <Typography variant="body2">Tempo de Resposta Médio</Typography>
                             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                <LinearProgress variant="determinate" value={60} sx={{ flex: 1, height: 10, borderRadius: 5 }} />
-                                <Typography variant="caption">12min (meta: 10min)</Typography>
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={Math.min((indicadores.tempoRespostaMedio / 10) * 100, 100)}
+                                    sx={{ flex: 1, height: 10, borderRadius: 5 }}
+                                />
+                                <Typography variant="caption">
+                                    {indicadores.tempoRespostaMedio > 0 ? `${indicadores.tempoRespostaMedio}min (meta: 10min)` : 'Sem dados'}
+                                </Typography>
                             </Box>
 
                             <Box sx={{ mt: 1 }}>
                                 <Typography variant="body2">Adesão Código J4</Typography>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                    <LinearProgress variant="determinate" value={70} color="error" sx={{ flex: 1, height: 10, borderRadius: 5 }} />
-                                    <Typography variant="caption">70% (meta: 90%)</Typography>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={indicadores.adesaoCodigoJ4}
+                                        color={indicadores.adesaoCodigoJ4 >= 90 ? "success" : "error"}
+                                        sx={{ flex: 1, height: 10, borderRadius: 5 }}
+                                    />
+                                    <Typography variant="caption">
+                                        {indicadores.adesaoCodigoJ4 > 0 ? `${indicadores.adesaoCodigoJ4}% (meta: 90%)` : 'Sem dados'}
+                                    </Typography>
                                 </Box>
                             </Box>
                         </Box>
@@ -50,32 +188,32 @@ export default function DashboardPage() {
                     <Paper sx={{ p: 2, borderRadius: 2, minHeight: 320 }}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>Viaturas e Equipamentos</Typography>
-                            <Chip label="1 item crítico" color="warning" size="small" />
+                            <Chip
+                                label={`${viaturasCriticas} item${viaturasCriticas !== 1 ? 's' : ''} crítico${viaturasCriticas !== 1 ? 's' : ''}`}
+                                color={viaturasCriticas > 0 ? "warning" : "success"}
+                                size="small"
+                            />
                         </Box>
 
-                        {/* Substituindo o Grid container interno por Box com flex */}
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            <Box sx={{ width: { xs: 'calc(50% - 4px)', sm: 'calc(50% - 4px)', md: '100%' } }}>
-                                <Paper sx={{ p: 1.5, borderRadius: 2, textAlign: "center" }}>
-                                    <LocalVehicleIcon />
-                                    <Typography variant="caption" display="block">Viatura USA-01</Typography>
-                                    <Chip label="Conforme" size="small" sx={{ mt: 1 }} />
-                                </Paper>
-                            </Box>
-
-                            <Box sx={{ width: { xs: 'calc(50% - 4px)', sm: 'calc(50% - 4px)', md: '100%' } }}>
-                                <Paper sx={{ p: 1.5, borderRadius: 2, textAlign: "center" }}>
-                                    <LocalVehicleIcon />
-                                    <Typography variant="caption" display="block">Viatura USB-02</Typography>
-                                    <Chip label="Parcial" size="small" sx={{ mt: 1 }} />
-                                </Paper>
-                            </Box>
-
-                            <Box sx={{ width: '100%', mt: 2 }}>
-                                <Box sx={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#fff6f4", borderRadius: 2 }}>
-                                    <Typography color="text.secondary">[Donut Chart - substituir]</Typography>
+                            {viaturas.map((viatura) => (
+                                <Box key={viatura.placa} sx={{ width: { xs: 'calc(50% - 4px)', sm: 'calc(50% - 4px)', md: '100%' } }}>
+                                    <Paper sx={{ p: 1.5, borderRadius: 2, textAlign: "center" }}>
+                                        <LocalVehicleIcon />
+                                        <Typography variant="caption" display="block">
+                                            {viatura.modelo} - {viatura.placa}
+                                        </Typography>
+                                        <Chip
+                                            label={viatura.statusOperacional}
+                                            size="small"
+                                            sx={{ mt: 1 }}
+                                            color={viatura.statusOperacional === 'Em operação' ? 'success' : 'warning'}
+                                        />
+                                    </Paper>
                                 </Box>
-                            </Box>
+                            ))}
+
+
                         </Box>
                     </Paper>
                 </Box>
@@ -85,17 +223,29 @@ export default function DashboardPage() {
                     <Paper sx={{ p: 2, borderRadius: 2, minHeight: 260 }}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>Checklist Digital</Typography>
-                            <Chip label="Em uso" color="success" size="small" />
+                            <Chip
+                                label={checklists.length > 0 ? "Em uso" : "Não utilizado"}
+                                color={checklists.length > 0 ? "success" : "default"}
+                                size="small"
+                            />
                         </Box>
 
                         <Typography variant="body2">Taxa de Adesão</Typography>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                            <LinearProgress variant="determinate" value={70} sx={{ flex: 1, height: 10, borderRadius: 5 }} />
-                            <Typography variant="caption">70%</Typography>
+                            <LinearProgress
+                                variant="determinate"
+                                value={indicadores.conformidadeGeral}
+                                sx={{ flex: 1, height: 10, borderRadius: 5 }}
+                            />
+                            <Typography variant="caption">
+                                {indicadores.conformidadeGeral > 0 ? `${indicadores.conformidadeGeral}%` : 'Sem dados'}
+                            </Typography>
                         </Box>
 
                         <Box sx={{ height: 140, mt: 2, bgcolor: "#f7fbff", borderRadius: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <Typography color="text.secondary">[Gráfico de barras - substituir]</Typography>
+                            <Typography color="text.secondary">
+                                {checklists.length > 0 ? 'Gráfico de conformidade' : 'Sem checklists'}
+                            </Typography>
                         </Box>
 
                         <Box sx={{ mt: 2 }}>
@@ -113,27 +263,34 @@ export default function DashboardPage() {
                     <Paper sx={{ p: 2, borderRadius: 2, minHeight: 260 }}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>Relatos da Equipe</Typography>
-                            <Chip label="2 pendentes" color="warning" size="small" />
+                            <Chip
+                                label={`${relatos.filter(r => !r.resolvido).length} pendentes`}
+                                color={relatos.filter(r => !r.resolvido).length > 0 ? "warning" : "success"}
+                                size="small"
+                            />
                         </Box>
 
                         <Box>
-                            <Paper sx={{ p: 1.5, mb: 1, borderRadius: 2, borderLeft: "4px solid #ff7043" }}>
-                                <Typography variant="subtitle2">Hostilidade em Hospitais</Typography>
-                                <Typography variant="caption" display="block">Profissionais cobram acesso venoso em casos não indicados</Typography>
-                                <Typography variant="caption" display="block">Enf. Carlos Silva • 26/06/2025</Typography>
-                            </Paper>
-
-                            <Paper sx={{ p: 1.5, mb: 1, borderRadius: 2, borderLeft: "4px solid #ffd54f" }}>
-                                <Typography variant="subtitle2">Falta de Insumos</Typography>
-                                <Typography variant="caption" display="block">Reposição irregular de materiais básicos</Typography>
-                                <Typography variant="caption" display="block">Tec. Ana Oliveira • 20/06/2025</Typography>
-                            </Paper>
-
-                            <Paper sx={{ p: 1.5, mb: 1, borderRadius: 2, borderLeft: "4px solid #66bb6a" }}>
-                                <Typography variant="subtitle2">Dificuldade com Código J4</Typography>
-                                <Typography variant="caption" display="block">Adaptação em alguns plantões ainda desafiadora</Typography>
-                                <Typography variant="caption" display="block">Dr. Roberto Almeida • 15/06/2025</Typography>
-                            </Paper>
+                            {relatos.slice(0, 3).map((relato) => (
+                                <Paper
+                                    key={relato.id}
+                                    sx={{
+                                        p: 1.5,
+                                        mb: 1,
+                                        borderRadius: 2,
+                                        borderLeft: `4px solid ${getPrioridadeColor(relato.prioridade)}`
+                                    }}
+                                >
+                                    <Typography variant="subtitle2">{relato.titulo}</Typography>
+                                    <Typography variant="caption" display="block">{relato.mensagem}</Typography>
+                                    <Typography variant="caption" display="block">{relato.autor} • {new Date(relato.data).toLocaleDateString('pt-BR')}</Typography>
+                                </Paper>
+                            ))}
+                            {relatos.length === 0 && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Nenhum relato registrado
+                                </Typography>
+                            )}
                         </Box>
                     </Paper>
                 </Box>
@@ -144,64 +301,34 @@ export default function DashboardPage() {
                         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Histórico de Visitas</Typography>
                         <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                             <Box sx={{ flex: 1 }}>
-                                <Paper sx={{ p: 2, mb: 1, borderRadius: 2 }}>
-                                    <Typography variant="subtitle2">26/06/2025 - Visita Completa</Typography>
-                                    <Typography variant="caption">Checklist: 92% | 3 itens críticos</Typography>
-                                </Paper>
-
-                                <Paper sx={{ p: 2, mb: 1, borderRadius: 2 }}>
-                                    <Typography variant="subtitle2">15/05/2025 - Visita Parcial</Typography>
-                                    <Typography variant="caption">Foco em padronização viaturas e uso códigos J</Typography>
-                                </Paper>
-
-                                <Paper sx={{ p: 2, mb: 1, borderRadius: 2 }}>
-                                    <Typography variant="subtitle2">10/04/2025 - Visita Completa</Typography>
-                                    <Typography variant="caption">Checklist: 85% | 5 itens críticos</Typography>
-                                </Paper>
+                                {visitas.slice(0, 3).map((visita) => (
+                                    <Paper key={visita.id} sx={{ p: 2, mb: 1, borderRadius: 2 }}>
+                                        <Typography variant="subtitle2">
+                                            {new Date(visita.dataVisita).toLocaleDateString('pt-BR')} - Visita
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            {visita.membros.length} profissional{visita.membros.length !== 1 ? 'eis' : ''}
+                                        </Typography>
+                                    </Paper>
+                                ))}
+                                {visitas.length === 0 && (
+                                    <Typography variant="body2" color="text.secondary">
+                                        Nenhuma visita registrada
+                                    </Typography>
+                                )}
                             </Box>
 
-                            <Box sx={{ width: { xs: '100%', sm: 220 }, bgcolor: "#f7fbff", borderRadius: 2, p: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <Typography color="text.secondary">[Radar Chart - substituir]</Typography>
-                            </Box>
                         </Box>
                     </Paper>
                 </Box>
 
-                <Box sx={{ width: { xs: '100%', md: 'calc(30% - 12px)' } }}>
-                    <Paper sx={{ p: 2, borderRadius: 2, minHeight: 320 }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700 }}>Equipe e Treinamentos</Typography>
-                            <Chip label="2 pendentes" color="warning" size="small" />
-                        </Box>
 
-                        <AvatarGroup max={4} sx={{ mb: 1 }}>
-                            <Avatar>JS</Avatar>
-                            <Avatar>MC</Avatar>
-                            <Avatar>AS</Avatar>
-                            <Avatar>RO</Avatar>
-                        </AvatarGroup>
-
-                        <Typography variant="caption" display="block">Códigos de Deslocamento</Typography>
-                        <LinearProgress variant="determinate" value={60} sx={{ height: 10, borderRadius: 5, mb: 1 }} />
-                        <Typography variant="caption" display="block">Novo Checklist Digital</Typography>
-                        <LinearProgress variant="determinate" value={30} sx={{ height: 10, borderRadius: 5 }} />
-
-                        <Box sx={{ mt: 2 }}>
-                            <Typography variant="subtitle2">Próximos Eventos</Typography>
-                            <List dense>
-                                <ListItem><ListItemText primary="Atualização Protocolos Emergenciais - 10/07/2025" /></ListItem>
-                                <ListItem><ListItemText primary="Workshop Humanização - 25/07/2025" /></ListItem>
-                                <ListItem><ListItemText primary="Treinamento Suporte Avançado - 05/08/2025" /></ListItem>
-                            </List>
-                        </Box>
-                    </Paper>
-                </Box>
             </Box>
         </div>
     );
 }
 
-/** Pequeno ícone local para viaturas (substituir quando quiser) */
+/** Pequeno ícone local para viaturas */
 function LocalVehicleIcon() {
     return (
         <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: "#e3f2fd", display: "inline-flex", alignItems: "center", justifyContent: "center", mb: 1 }}>

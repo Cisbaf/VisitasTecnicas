@@ -1,5 +1,6 @@
-type Item = { nome: string; conformidade: number };
-type ViaturaRequest = {
+export type Item = { nome: string; conformidade: number };
+
+export type ViaturaRequest = {
     placa: string;
     modelo: string;
     ano: string;
@@ -8,4 +9,121 @@ type ViaturaRequest = {
     idBase: number | null;
     itens: Item[];
 };
-type Viatura = ViaturaRequest & { id?: number };
+export type Viatura = ViaturaRequest & { id: number };
+
+export interface VisitaResponse {
+    id: number;
+    dataVisita: string;
+    idBase: number;
+    membros: any[];
+}
+
+export interface CheckListResponse {
+    id: number;
+    categoria: string;
+    descricao: CheckDescription[];
+}
+
+export interface CheckDescription {
+    id: number;
+    descricao: string;
+    conformidadePercent: number;
+    observacao: string;
+    tipoConformidade: string;
+    criticidade: string;
+    visitaId: number;
+    viaturaId: number;
+
+}
+
+export interface CheckListRequest {
+    categoria: string;
+    descricao: CheckDescription[];
+    visitaId: number;
+}
+
+export interface RelatorioConsolidadoResponse {
+    dataInicio: string;
+    dataFim: string;
+    totalVisitas: number;
+    pontosFortes: string[];
+    pontosCriticosGerais: PontoCriticoDTO[];
+    mediasConformidade: { [categoria: string]: number };
+    viaturasCriticas: ViaturaDTO[];
+    rankingBases: BaseRankingDTO[];
+}
+export interface PontoCriticoDTO {
+    descricao: string;
+    ocorrencias: number;
+}
+
+export interface ViaturaDTO {
+    placa: string;
+    modelo: string;
+    status: string;
+    itensCriticos: ItemViaturaDTO[];
+}
+
+export interface ItemViaturaDTO {
+    nome: string;
+    conformidade: number;
+}
+
+export interface BaseRankingDTO {
+    nomeBase: string;
+    id: number;
+    mediaConformidade: number;
+    dataUltimaVisita: string;
+    posicaoRanking: number;
+}
+export interface RelatoResponse {
+    id: number;
+    autor: string;
+    mensagem: string;
+    tema: string;
+    gestorResponsavel: string;
+    data: Date;
+    resolvido: boolean;
+    baseId: number;
+}
+export interface BaseResponse {
+    id: number;
+    nome: string;
+    endereco: string;
+    tipoBase: string;
+}
+export interface Avaliacao {
+    id: number;
+    idVisita: number;
+    idViatura: number;
+    idCheckList: number;
+}
+
+export interface DashboardData {
+    viaturas: Viatura[];
+    visitas: VisitaResponse[];
+    relatorios: RelatorioConsolidadoResponse[];
+    checklists: CheckListResponse[];
+    relatos: RelatoDTO[];
+    equipe: any[];
+    indicadores: IndicadoresDTO;
+}
+
+export interface IndicadoresDTO {
+    indiceSaude: number;
+    conformidadeGeral: number;
+    viaturasOperacionais: number;
+    profissionaisAtivos: number;
+    tempoRespostaMedio: number;
+    adesaoCodigoJ4: number;
+}
+
+export interface RelatoDTO {
+    id: number;
+    titulo: string;
+    mensagem: string;
+    autor: string;
+    data: string;
+    resolvido: boolean;
+    prioridade: 'alta' | 'media' | 'baixa';
+}

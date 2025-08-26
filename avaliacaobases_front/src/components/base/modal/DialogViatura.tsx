@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { Item, ViaturaRequest } from "@/components/types";
 
 interface ViaturaDialogProps {
     open: boolean;

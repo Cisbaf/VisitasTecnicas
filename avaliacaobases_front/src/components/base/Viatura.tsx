@@ -3,8 +3,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Box, Paper, Typography, Button, Stack, Chip, CircularProgress, Snackbar, Alert, IconButton } from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
+import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
 import ViaturaDialog from "./modal/DialogViatura";
+import { Viatura, ViaturaRequest } from '@/components/types';
+import ViaturaChecklistsModal from "./modal/ViaturaChecklistsModal";
 
 export default function Viaturas({ baseId }: { baseId?: number }) {
     const params = useParams();
@@ -18,6 +20,8 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
     const [selectedViatura, setSelectedViatura] = useState<Viatura | null>(null);
+    const [checklistsModalOpen, setChecklistsModalOpen] = useState(false);
+    const [selectedidViatura, setSelectedidViatura] = useState<number | null>(null);
 
     const fetchViaturas = async () => {
         setLoading(true);
@@ -37,7 +41,19 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
         }
     };
 
-    useEffect(() => { fetchViaturas(); }, [resolvedBaseId]);
+    useEffect(() => {
+        fetchViaturas();
+    }, [resolvedBaseId]);
+
+    const openChecklistsModal = (idViatura: number) => {
+        const id = Number(idViatura);
+        if (!id || isNaN(id)) {
+            setErrorMsg("ID da viatura inválido");
+            return;
+        }
+        setSelectedidViatura(id);
+        setChecklistsModalOpen(true);
+    };
 
     const handleSave = async (viaturaData: ViaturaRequest) => {
         setSaving(true);
@@ -98,6 +114,19 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
 
     const viaturaActions = (v: Viatura) => (
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
+            {v.id && !isNaN(v.id) && (
+                <IconButton
+                    size="small"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        openChecklistsModal(v.id!);
+                    }}
+                    title="Ver checklists"
+                >
+                    <Visibility fontSize="small" color="info" />
+                </IconButton>
+            )}
+
             <IconButton size="small" onClick={() => openEditModal(v)}>
                 <Edit fontSize="small" color="info" />
             </IconButton>
@@ -110,6 +139,7 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
             </IconButton>
         </Box>
     );
+
 
     const openCreateModal = () => {
         setDialogMode("create");
@@ -126,7 +156,12 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
     return (
         <Box>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h6">Viaturas {resolvedBaseId ? `(Base ${resolvedBaseId})` : ""}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+                    <Typography variant="h4" fontWeight="600">
+                        Viaturas
+                    </Typography>
+                </Box>
+
                 <Button startIcon={<Add />} variant="contained" onClick={openCreateModal}>
                     Nova Viatura
                 </Button>
@@ -206,21 +241,16 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
             <ViaturaDialog
                 open={dialogOpen}
                 mode={dialogMode}
-                viatura={selectedViatura ? {
-                    placa: selectedViatura.placa || "",
-                    modelo: selectedViatura.modelo || "",
-                    ano: selectedViatura.ano || "",
-                    tipoViatura: selectedViatura.tipoViatura || "USA",
-                    statusOperacional: selectedViatura.statusOperacional || "Conforme",
-                    idBase: selectedViatura.idBase ?? resolvedBaseId,
-                    itens: selectedViatura.itens?.length ? selectedViatura.itens.map(item =>
-                        ({ nome: item.nome || "", conformidade: item.conformidade ?? 100 }))
-                        : [{ nome: "", conformidade: 100 }]
-                } : null}
+                viatura={selectedViatura}
                 onClose={() => setDialogOpen(false)}
                 onSave={handleSave}
                 loading={saving}
                 baseId={resolvedBaseId}
+            />
+            <ViaturaChecklistsModal
+                open={checklistsModalOpen}
+                onClose={() => setChecklistsModalOpen(false)}
+                idViatura={selectedidViatura}
             />
 
             <Snackbar open={!!successMsg} autoHideDuration={4000} onClose={() => setSuccessMsg(null)}>

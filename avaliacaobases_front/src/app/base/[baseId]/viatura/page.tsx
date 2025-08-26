@@ -1,4 +1,3 @@
-// app/base/[baseId]/viatura/page.tsx
 import React from "react";
 import Viaturas from "@/components/base/Viatura";
 

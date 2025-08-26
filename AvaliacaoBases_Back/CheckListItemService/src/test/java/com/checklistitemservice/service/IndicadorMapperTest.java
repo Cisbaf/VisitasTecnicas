@@ -1,10 +1,8 @@
 package com.checklistitemservice.service;
 
 import com.checklistitemservice.entity.IndicadorOpEntity;
-import com.checklistitemservice.entity.dto.BaseRankingDTO;
 import com.checklistitemservice.entity.dto.IndicadorRequest;
 import com.checklistitemservice.entity.dto.IndicadorResponse;
-import com.checklistitemservice.service.capsule.RelatorioServiceClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

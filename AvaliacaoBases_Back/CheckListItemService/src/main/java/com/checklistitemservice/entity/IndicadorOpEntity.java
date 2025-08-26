@@ -1,11 +1,8 @@
 package com.checklistitemservice.entity;
 
-import com.checklistitemservice.config.RankingBasesConverter;
-import com.checklistitemservice.entity.dto.BaseRankingDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -22,8 +19,4 @@ public class IndicadorOpEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     Map<String, Integer> atendimentos;
 
-
-    @Column(columnDefinition = "JSON")
-    @Convert(converter = RankingBasesConverter.class)
-    private List<BaseRankingDTO> rankingBases;
 }

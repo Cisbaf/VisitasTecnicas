@@ -14,7 +14,6 @@ import java.util.Map;
 public record IndicadorResponse(
         Long id,
         Long TIHs,
-        Map<String, Integer> atendimentos,
-        List<BaseRankingDTO> rankingBases
+        Map<String, Integer> atendimentos
 ) implements Serializable {
 }

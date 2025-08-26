@@ -1,6 +1,6 @@
 // components/Sidebar.tsx
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Drawer,
     Toolbar,
@@ -12,6 +12,7 @@ import {
     Divider,
     Paper,
     Typography,
+    CircularProgress,
 } from "@mui/material";
 import {
     Home,
@@ -23,6 +24,17 @@ import {
 } from "@mui/icons-material";
 import { useParams, usePathname } from "next/navigation";
 
+interface VisitaResponse {
+    id: number;
+    dataVisita: string;
+    idBase: number;
+    membros: Array<{
+        id: number;
+        nome: string;
+        especialidade: string;
+    }>;
+}
+
 const drawerWidth = 280;
 
 export default function Sidebar() {
@@ -30,14 +42,62 @@ export default function Sidebar() {
     const pathname = usePathname();
     const baseId = params.baseId as string;
 
+    const [ultimaVisita, setUltimaVisita] = useState<VisitaResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchUltimaVisita() {
+            try {
+                setLoading(true);
+
+                // Buscar visitas da base
+                const visitasRes = await fetch(`/api/visita/base/${baseId}`);
+
+                if (!visitasRes.ok) {
+                    if (visitasRes.status === 404) {
+                        setUltimaVisita(null);
+                        return;
+                    }
+                    throw new Error("Falha ao carregar visitas");
+                }
+
+                const visitasText = await visitasRes.text();
+                const visitasData: VisitaResponse[] = visitasText ? JSON.parse(visitasText) : [];
+
+                // Ordenar visitas por data (mais recente primeiro)
+                visitasData.sort((a, b) =>
+                    new Date(b.dataVisita).getTime() - new Date(a.dataVisita).getTime()
+                );
+
+                // Pegar a visita mais recente
+                const visitaRecente = visitasData.length > 0 ? visitasData[0] : null;
+                setUltimaVisita(visitaRecente);
+
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        if (baseId) {
+            fetchUltimaVisita();
+        }
+    }, [baseId]);
+
     const menuItems = [
         { label: "Visão Geral", icon: <Home />, href: `/base/${baseId}` },
-        { label: "Checklists", icon: <CheckBox />, href: `/base/${baseId}/checklists` },
+        { label: "Inspeção", icon: <CheckBox />, href: `/base/${baseId}/checklists` },
         { label: "Viaturas", icon: <LocalShipping />, href: `/base/${baseId}/viatura` },
         { label: "Indicadores", icon: <Assessment />, href: `/base/${baseId}/indicadores` },
         { label: "Relatórios", icon: <InsertDriveFile />, href: `/base/${baseId}/relatorios` },
         { label: "Histórico", icon: <History />, href: `/base/${baseId}/historico` },
     ];
+
+    const formatarData = (dataString: string) => {
+        return new Date(dataString).toLocaleDateString('pt-BR');
+    };
 
     return (
         <Drawer
@@ -59,8 +119,8 @@ export default function Sidebar() {
                     {menuItems.map((item) => {
                         const isSelected =
                             item.href === `/base/${baseId}`
-                                ? pathname === `/base/${baseId}` // Visão Geral só marca se for exatamente a home
-                                : pathname.startsWith(item.href); // os outros marcam se começar com o caminho
+                                ? pathname === `/base/${baseId}`
+                                : pathname.startsWith(item.href);
 
                         return (
                             <ListItemButton
@@ -82,18 +142,30 @@ export default function Sidebar() {
                     <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
                         Última Visita Técnica
                     </Typography>
-                    <Typography variant="caption" display="block">
-                        Data: 26/06/2025
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                        Equipe: João Paulo, Maria Silva
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                        Status: <strong>Concluída</strong>
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                        Conformidade: 92%
-                    </Typography>
+
+                    {loading ? (
+                        <Box display="flex" justifyContent="center" py={2}>
+                            <CircularProgress size={24} />
+                        </Box>
+                    ) : error ? (
+                        <Typography variant="caption" color="error">
+                            Erro ao carregar dados
+                        </Typography>
+                    ) : !ultimaVisita ? (
+                        <Typography variant="caption">
+                            Nenhuma visita realizada
+                        </Typography>
+                    ) : (
+                        <>
+                            <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+                                Data: {formatarData(ultimaVisita.dataVisita)}
+                            </Typography>
+                            <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+                                Equipe: {ultimaVisita.membros.map(m => m.nome).join(", ")}
+                            </Typography>
+
+                        </>
+                    )}
                 </Paper>
             </Box>
         </Drawer>

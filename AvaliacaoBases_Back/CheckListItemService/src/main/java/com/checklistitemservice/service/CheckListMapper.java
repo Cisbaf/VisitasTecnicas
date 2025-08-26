@@ -45,6 +45,7 @@ class CheckListMapper {
                 .conformidadePercent(entity.getConformidadePercent())
                 .observacao(entity.getObservacao())
                 .visitaId(entity.getVisitaId() != null ? entity.getVisitaId() : null)
+                .viaturaId(entity.getViaturaId() != null ? entity.getViaturaId() : null)
                 .tipoConformidade(entity.getTipoConformidade())
                 .criticidade(entity.getCriticidade())
                 .checklistId(entity.getChecklist() != null ? entity.getChecklist().getId() : null)
@@ -65,6 +66,8 @@ class CheckListMapper {
                     CheckDescription childEntity = CheckDescription.builder()
                             .descricao(descRequest.getDescricao())
                             .conformidadePercent(descRequest.getConformidadePercent())
+                            .visitaId(descRequest.getVisitaId())
+                            .viaturaId(descRequest.getViaturaId())
                             .observacao(descRequest.getObservacao())
                             .criticidade(descRequest.getCriticidade())
                             .build();

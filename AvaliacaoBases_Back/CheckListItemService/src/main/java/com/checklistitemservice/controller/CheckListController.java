@@ -43,6 +43,16 @@ public class CheckListController {
             return ResponseEntity.noContent().build();
         }
     }
+    @GetMapping("/viatura/{viaturaId}")
+    @Operation(summary = "Get CheckLists by Viatura ID", description = "Retrieve a list of checklists associated with a specific viatura ID.")
+    public ResponseEntity<List<CheckListResponse>> findByViaturaId(@PathVariable Long viaturaId) {
+        List<CheckListResponse> checkLists = service.getByViaturaId(viaturaId);
+        if (checkLists != null && !checkLists.isEmpty()) {
+            return ResponseEntity.ok(checkLists);
+        } else {
+            return ResponseEntity.noContent().build();
+        }
+    }
 
     @PostMapping("/save")
     @Operation(summary = "Create a new CheckList", description = "Create a new checklist with the provided details.")

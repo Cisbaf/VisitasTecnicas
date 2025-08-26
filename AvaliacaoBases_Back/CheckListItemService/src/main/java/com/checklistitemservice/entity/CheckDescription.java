@@ -3,7 +3,6 @@ package com.checklistitemservice.entity;
 import com.checklistitemservice.entity.enums.Criticidade;
 import com.checklistitemservice.entity.enums.TipoConformidade;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -19,9 +18,8 @@ public class CheckDescription {
     private String descricao;
     private int conformidadePercent; // Ex: 100% / 50% / 0%
     private String observacao;
-    @NotNull
     private Long visitaId;
-
+    private Long viaturaId;
     @Enumerated(EnumType.ORDINAL)
     private TipoConformidade tipoConformidade; //  Conforme 1 / Parcial 2 / Não Conforme 0
     @Enumerated(EnumType.ORDINAL)
@@ -30,6 +28,4 @@ public class CheckDescription {
     @ManyToOne
     @JoinColumn(name = "checklist_id")
     private CheckListEntity checklist;
-
-
 }

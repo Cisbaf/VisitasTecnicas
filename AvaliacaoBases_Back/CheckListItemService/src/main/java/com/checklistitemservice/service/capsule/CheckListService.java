@@ -15,8 +15,10 @@ public interface CheckListService {
     List<CheckListResponse> getAll();
 
     List<CheckListResponse> getByVisitaId(Long visitaId);
+    List<CheckListResponse> getByViaturaId(Long viaturaId) ;
 
-    CheckListResponse update(Long id, CheckListRequest request);
+
+        CheckListResponse update(Long id, CheckListRequest request);
 
     void deleteCheckList(Long id);
 

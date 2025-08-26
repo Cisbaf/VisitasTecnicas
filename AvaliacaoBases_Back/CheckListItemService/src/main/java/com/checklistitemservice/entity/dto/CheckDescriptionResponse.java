@@ -13,6 +13,7 @@ public record CheckDescriptionResponse(
         int conformidadePercent,
         String observacao,
         Long visitaId,
+        Long viaturaId,
         TipoConformidade tipoConformidade,
         Criticidade criticidade,
         Long checklistId

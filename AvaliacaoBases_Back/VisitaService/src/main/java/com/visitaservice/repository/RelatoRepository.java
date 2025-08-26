@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface RelatoRepository  extends JpaRepository<RelatoEntity, Long> {
     List<RelatoEntity> findAllByVisitas(VisitaEntity visitas);
+    List<RelatoEntity> findAllByBaseId(Long baseId);
 }

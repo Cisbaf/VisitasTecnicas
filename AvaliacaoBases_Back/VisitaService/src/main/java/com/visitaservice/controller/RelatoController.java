@@ -41,6 +41,15 @@ public class RelatoController {
         }
         return ResponseEntity.ok(relatos);
     }
+    @GetMapping("/base/{baseId}")
+    @Operation(summary = "Get Relatos by Base ID", description = "Retrieve all relatos associated with a specific base ID.")
+    public ResponseEntity<List<RelatoResponse>> getByBaseId(@PathVariable Long baseId) {
+        List<RelatoResponse> relatos = service.getAllByBaseId(baseId);
+        if (relatos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(relatos);
+    }
 
     @PostMapping
     @Operation(summary = "Create a new Relato", description = "Create a new relato with the provided details.")

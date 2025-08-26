@@ -24,6 +24,7 @@ public class RelatoServiceImp implements RelatoService {
 
     public RelatoResponse createRelato(RelatoRequest request) {
         RelatoEntity entity = mapper.toEntity(request);
+        entity.setBaseId(entity.getVisitas().getIdBase());
         RelatoEntity savedEntity = repository.save(entity);
         return toResponse(savedEntity);
     }
@@ -42,6 +43,14 @@ public class RelatoServiceImp implements RelatoService {
         var visista = visitaRepository.findById(visitasId).orElseThrow(() -> new IllegalArgumentException(RELATO_NOT_FOUND + visitasId));
 
         return repository.findAllByVisitas(visista).stream()
+                .map(RelatoMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<RelatoResponse> getAllByBaseId(Long baseId) {
+
+        return repository.findAllByBaseId(baseId).stream()
                 .map(RelatoMapper::toResponse)
                 .toList();
     }

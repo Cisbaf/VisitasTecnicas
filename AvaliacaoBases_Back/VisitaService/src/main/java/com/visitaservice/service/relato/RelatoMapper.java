@@ -35,6 +35,7 @@ public class RelatoMapper {
                 .data(relato.getData())
                 .resolvido(relato.getResolvido())
                 .visitas(relato.getVisitas())
+                .baseId(relato.getVisitas().getIdBase())
                 .id(relato.getId())
                 .build();
     }

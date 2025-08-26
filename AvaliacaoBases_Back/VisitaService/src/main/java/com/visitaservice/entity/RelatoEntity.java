@@ -25,5 +25,6 @@ public class RelatoEntity {
     @ManyToOne
     @JoinColumn(name = "visita_id")
     private VisitaEntity visitas;
+    private Long baseId;
 
 }

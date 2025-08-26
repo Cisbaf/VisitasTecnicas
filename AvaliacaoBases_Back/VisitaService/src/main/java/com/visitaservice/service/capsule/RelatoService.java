@@ -14,6 +14,8 @@ public interface RelatoService {
     List<RelatoResponse> getAll();
 
     List<RelatoResponse> getAllByVisitaId(Long visitasId);
+    List<RelatoResponse> getAllByBaseId(Long baseId);
+
 
 
 

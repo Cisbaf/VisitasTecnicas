@@ -1,5 +1,6 @@
 package com.checklistitemservice.controller;
 
+import com.checklistitemservice.entity.CheckDescription;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.service.capsule.CheckListService;
@@ -89,6 +90,16 @@ public class CheckListController {
             return ResponseEntity.badRequest().build();
         }
         CheckListResponse updatedCheckList = service.update(id, request);
+        return ResponseEntity.ok(updatedCheckList);
+    }
+
+    @PutMapping("/description/{checkListId}")
+    @Operation(summary = "Add Description to CheckList", description = "Add a description to an existing checklist by its ID.")
+    public ResponseEntity<CheckListResponse> addDescriptionToCheckList(@PathVariable Long checkListId, @RequestBody @Valid CheckDescription description) {
+        if (checkListId == null || description == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        CheckListResponse updatedCheckList = service.addDescriptionToCheckList(checkListId, description);
         return ResponseEntity.ok(updatedCheckList);
     }
 

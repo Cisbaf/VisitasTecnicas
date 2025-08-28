@@ -1,5 +1,7 @@
 package com.checklistitemservice.service;
 
+import com.checklistitemservice.entity.CheckDescription;
+import com.checklistitemservice.entity.CheckListEntity;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 import com.checklistitemservice.respository.CheckDescRepository;
@@ -107,6 +109,17 @@ public class CheckListServiceImp implements CheckListService {
             return new ArrayList<>();
         }
         return checkList;
+    }
+
+    public CheckListResponse addDescriptionToCheckList(Long checkListId, CheckDescription description) {
+        if (checkListId == null || description == null) {
+            throw new IllegalArgumentException("ID do CheckList e Descrição não podem ser nulos");
+        }
+        CheckListEntity checkListEntity = repository.findById(checkListId).orElseThrow(() -> new IllegalArgumentException("CheckList não encontrado com ID: " + checkListId));
+        var descriptions = checkListEntity.getDescricao();
+        descriptions.add(description);
+        checkListEntity.setDescricao(descriptions);
+        return mapper.toResponse(repository.save(checkListEntity));
     }
 
     @Override

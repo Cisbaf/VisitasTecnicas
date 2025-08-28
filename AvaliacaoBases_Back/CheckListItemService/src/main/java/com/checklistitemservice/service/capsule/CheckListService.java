@@ -1,5 +1,6 @@
 package com.checklistitemservice.service.capsule;
 
+import com.checklistitemservice.entity.CheckDescription;
 import com.checklistitemservice.entity.dto.CheckListRequest;
 import com.checklistitemservice.entity.dto.CheckListResponse;
 
@@ -17,8 +18,9 @@ public interface CheckListService {
     List<CheckListResponse> getByVisitaId(Long visitaId);
     List<CheckListResponse> getByViaturaId(Long viaturaId) ;
 
+    CheckListResponse addDescriptionToCheckList(Long checkListId, CheckDescription description);
 
-        CheckListResponse update(Long id, CheckListRequest request);
+    CheckListResponse update(Long id, CheckListRequest request);
 
     void deleteCheckList(Long id);
 

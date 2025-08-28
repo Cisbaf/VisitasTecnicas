@@ -71,7 +71,7 @@ export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, b
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{ ml: 2 }}
+                    sx={{ ml: 2, borderRadius: 20, bgcolor: '#3e281e' }}
                     onClick={handleOpenModal}
                 >
                     Novo Checklist
@@ -86,7 +86,7 @@ export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, b
                 <Alert severity="info">Nenhum checklist encontrado para esta visita.</Alert>
             ) : (
                 categoriasAgrupadas.map(categoria => (
-                    <Accordion key={categoria.categoria} sx={{ mb: 2 }}>
+                    <Accordion key={categoria.categoriaId} sx={{ mb: 2 }}>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             <Box sx={{
                                 display: 'flex',
@@ -113,7 +113,7 @@ export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, b
                                         </Typography>
                                         <Grid container spacing={2}>
                                             {visita.descricoes.map((descricao) => (
-                                                <Paper variant="outlined" sx={{ p: 2 }}>
+                                                <Paper variant="outlined" sx={{ p: 2 }} key={descricao.id}>
                                                     <Typography variant="subtitle2" gutterBottom>
                                                         {descricao.descricao}
                                                     </Typography>
@@ -153,7 +153,6 @@ export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, b
             <ChecklistModal
                 open={modalOpen}
                 onClose={handleCloseModal}
-                categorias={categoriasAgrupadas}
                 baseId={baseId}
                 visitaId={visitaId}
                 onSave={handleChecklistAdded}

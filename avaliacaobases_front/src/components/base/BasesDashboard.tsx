@@ -1,13 +1,19 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
-    Box, Paper, Typography, Chip, Avatar, AvatarGroup, LinearProgress,
-    List, ListItem, ListItemText, Alert, CircularProgress
+    Alert,
+    Box,
+    Chip,
+    CircularProgress,
+    LinearProgress,
+    List,
+    ListItem,
+    ListItemText,
+    Paper,
+    Typography
 } from "@mui/material";
-import { useParams } from "next/navigation";
-import {
-    DashboardData
-} from "@/components/types";
+import {useParams} from "next/navigation";
+import {DashboardData} from "@/components/types";
 
 export default function DashboardPage() {
     const params = useParams();
@@ -281,7 +287,7 @@ export default function DashboardPage() {
                                         borderLeft: `4px solid ${getPrioridadeColor(relato.prioridade)}`
                                     }}
                                 >
-                                    <Typography variant="subtitle2">{relato.titulo}</Typography>
+                                    <Typography variant="subtitle2">{relato.tema}</Typography>
                                     <Typography variant="caption" display="block">{relato.mensagem}</Typography>
                                     <Typography variant="caption" display="block">{relato.autor} • {new Date(relato.data).toLocaleDateString('pt-BR')}</Typography>
                                 </Paper>

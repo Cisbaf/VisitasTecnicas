@@ -1,15 +1,4 @@
-import { CheckListResponse, VisitaResponse, CheckDescription } from "@/components/types";
-
-
-export interface CategoriaAgrupada {
-    categoria: string;
-    ultimaVisita: string;
-    visitas: {
-        visitaId: number;
-        dataVisita: string;
-        descricoes: CheckDescription[];
-    }[];
-}
+import { CheckListResponse, VisitaResponse, CategoriaAgrupada } from "@/components/types";
 
 export default class ChecklistService {
     private static async fetchJson<T>(url: string): Promise<T> {
@@ -58,6 +47,7 @@ export default class ChecklistService {
                 // se ainda não existe essa categoria, cria
                 if (!categoriasMap.has(categoriaKey)) {
                     categoriasMap.set(categoriaKey, {
+                        categoriaId: checklist.id,
                         categoria: categoriaKey,
                         ultimaVisita: visita.dataVisita,
                         visitas: [{

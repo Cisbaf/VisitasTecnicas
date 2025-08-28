@@ -15,7 +15,12 @@ export interface VisitaResponse {
     id: number;
     dataVisita: string;
     idBase: number;
-    membros: any[];
+    membros: EquipeTecnica[];
+}
+
+export interface EquipeTecnica {
+    nome: string;
+    cargo?: string;
 }
 
 export interface CheckListResponse {
@@ -33,7 +38,6 @@ export interface CheckDescription {
     criticidade: string;
     visitaId: number;
     viaturaId: number;
-
 }
 
 export interface CheckListRequest {
@@ -52,6 +56,7 @@ export interface RelatorioConsolidadoResponse {
     viaturasCriticas: ViaturaDTO[];
     rankingBases: BaseRankingDTO[];
 }
+
 export interface PontoCriticoDTO {
     descricao: string;
     ocorrencias: number;
@@ -76,6 +81,7 @@ export interface BaseRankingDTO {
     dataUltimaVisita: string;
     posicaoRanking: number;
 }
+
 export interface RelatoResponse {
     id: number;
     autor: string;
@@ -86,12 +92,14 @@ export interface RelatoResponse {
     resolvido: boolean;
     baseId: number;
 }
+
 export interface BaseResponse {
     id: number;
     nome: string;
     endereco: string;
     tipoBase: string;
 }
+
 export interface Avaliacao {
     id: number;
     idVisita: number;
@@ -120,10 +128,31 @@ export interface IndicadoresDTO {
 
 export interface RelatoDTO {
     id: number;
-    titulo: string;
+    tema: string;
     mensagem: string;
     autor: string;
     data: string;
     resolvido: boolean;
     prioridade: 'alta' | 'media' | 'baixa';
+    gestorResponsavel?: string;
+    baseId: number;
+    visitas: number;
+}
+
+export interface VisitaDetails {
+    id: number;
+    dataVisita: string; // YYYY-MM-DD
+    membros: EquipeTecnica[];
+    observacoes?: string;
+}
+
+export interface CategoriaAgrupada {
+    categoriaId: number;
+    categoria: string;
+    ultimaVisita: string;
+    visitas: {
+        visitaId: number;
+        dataVisita: string;
+        descricoes: CheckDescription[];
+    }[];
 }

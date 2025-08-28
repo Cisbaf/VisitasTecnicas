@@ -1,5 +1,5 @@
 // components/ChecklistsTab.tsx
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
     Accordion,
     AccordionDetails,
@@ -15,8 +15,8 @@ import {
     Paper,
     Typography,
 } from "@mui/material";
-import {Add as AddIcon, ExpandMore as ExpandMoreIcon} from "@mui/icons-material";
-import {CategoriaAgrupada} from "@/components/types";
+import { Add as AddIcon, ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
+import { CategoriaAgrupada } from "@/components/types";
 import ChecklistModal from "./modal/ChecklistModal";
 
 interface ChecklistsTabProps {
@@ -27,13 +27,7 @@ interface ChecklistsTabProps {
     onChecklistAdded: () => void;
 }
 
-export default function ChecklistsTab({
-                                          categoriasAgrupadas,
-                                          checklistLoading,
-                                          baseId,
-                                          visitaId,
-                                          onChecklistAdded
-                                      }: ChecklistsTabProps) {
+export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, baseId, visitaId, onChecklistAdded }: ChecklistsTabProps) {
     const [modalOpen, setModalOpen] = useState(false);
 
     const getConformidadeColor = (percent: number) => {
@@ -70,14 +64,14 @@ export default function ChecklistsTab({
 
     return (
         <>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                 <Typography variant="h4" fontWeight="600">
                     CheckList de Inspeção
                 </Typography>
                 <Button
                     variant="contained"
-                    startIcon={<AddIcon/>}
-                    sx={{ml: 2}}
+                    startIcon={<AddIcon />}
+                    sx={{ ml: 2 }}
                     onClick={handleOpenModal}
                 >
                     Novo Checklist
@@ -86,14 +80,14 @@ export default function ChecklistsTab({
 
             {checklistLoading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                    <CircularProgress/>
+                    <CircularProgress />
                 </Box>
             ) : categoriasAgrupadas.length === 0 ? (
                 <Alert severity="info">Nenhum checklist encontrado para esta visita.</Alert>
             ) : (
                 categoriasAgrupadas.map(categoria => (
-                    <Accordion key={categoria.categoria} sx={{mb: 2}}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                    <Accordion key={categoria.categoria} sx={{ mb: 2 }}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             <Box sx={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -103,7 +97,7 @@ export default function ChecklistsTab({
                                 <Typography variant="h6">
                                     {categoria.categoria}
                                 </Typography>
-                                <Typography variant="body2" sx={{color: 'text.secondary', mr: 2}}>
+                                <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
                                     Última
                                     visita: {categoria.ultimaVisita ? new Date(categoria.ultimaVisita).toLocaleDateString('pt-BR') : "—"}
                                 </Typography>
@@ -111,7 +105,7 @@ export default function ChecklistsTab({
                         </AccordionSummary>
                         <AccordionDetails>
                             {categoria.visitas.map(visita => (
-                                <Card key={visita.visitaId} sx={{marginBottom: 2}}>
+                                <Card key={visita.visitaId} sx={{ marginBottom: 2 }}>
                                     <CardContent>
                                         <Typography variant="subtitle1" gutterBottom color="primary">
                                             Visita
@@ -119,11 +113,11 @@ export default function ChecklistsTab({
                                         </Typography>
                                         <Grid container spacing={2}>
                                             {visita.descricoes.map((descricao) => (
-                                                <Paper variant="outlined" sx={{p: 2}}>
+                                                <Paper variant="outlined" sx={{ p: 2 }}>
                                                     <Typography variant="subtitle2" gutterBottom>
                                                         {descricao.descricao}
                                                     </Typography>
-                                                    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1}}>
+                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                                                         <Chip
                                                             label={`Conformidade: ${descricao.conformidadePercent}%`}
                                                             color={getConformidadeColor(descricao.conformidadePercent)}
@@ -141,7 +135,7 @@ export default function ChecklistsTab({
                                                         />
                                                     </Box>
                                                     {descricao.observacao && (
-                                                        <Typography variant="body2" sx={{mt: 1}}>
+                                                        <Typography variant="body2" sx={{ mt: 1 }}>
                                                             <strong>Observação:</strong> {descricao.observacao}
                                                         </Typography>
                                                     )}

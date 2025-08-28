@@ -84,7 +84,6 @@ public class VisitaServiceImp implements VisitaService {
                     .orElseThrow(() -> new IllegalArgumentException(visitNotFoundMessage + id));
             existingVisit.setIdBase(request.getIdBase());
             existingVisit.setDataVisita(request.getDataVisita());
-            existingVisit.setMembros(request.getMembros());
             var updatedVisit = visitaRepository.save(existingVisit);
             return toResponse(updatedVisit);
         }

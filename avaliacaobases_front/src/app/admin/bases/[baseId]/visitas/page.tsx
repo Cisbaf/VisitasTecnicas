@@ -5,10 +5,8 @@ import {
     Typography,
     Button,
     Alert,
-    CircularProgress,
     IconButton,
 } from "@mui/material";
-import Grid from "@mui/material/GridLegacy";
 import {
     Add as AddIcon,
     ArrowBack as BackIcon,
@@ -18,7 +16,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 import { VisitaDetails, RelatoDTO } from "@/components/types";
-import NewVisitaDialog from "@/components/admin/visita/NewVisitaDialog";
+import VisitaDialog from "@/components/admin/visita/VisitaDialog"; // Renomeado e modificado
 import VisitaList from "@/components/admin/visita/VisitaList";
 
 export default function BaseVisitasPage() {
@@ -29,11 +27,12 @@ export default function BaseVisitasPage() {
     const [visitas, setVisitas] = useState<VisitaDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [openNewDialog, setOpenNewDialog] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
     const [openDetail, setOpenDetail] = useState(false);
     const [current, setCurrent] = useState<VisitaDetails | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [relatos, setRelato] = useState<RelatoDTO[]>([]);
+    const [editingVisita, setEditingVisita] = useState<VisitaDetails | null>(null);
 
     useEffect(() => {
         fetchVisitas();
@@ -95,7 +94,30 @@ export default function BaseVisitasPage() {
             });
             if (!res.ok) throw new Error("Falha ao criar visita");
             await fetchVisitas();
-            setOpenNewDialog(false);
+            setOpenDialog(false);
+        } catch (err: any) {
+            setError(String(err?.message ?? err));
+        }
+    }
+
+    async function handleUpdateVisita(date: Date | null, obs: string) {
+        if (!editingVisita) return;
+
+        try {
+            const payload = {
+                dataVisita: date ? date.toISOString().split("T")[0] : null,
+                observacoes: obs,
+                idBase: baseId,
+            };
+            const res = await fetch(`/api/visita/${editingVisita.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error("Falha ao atualizar visita");
+            await fetchVisitas();
+            setOpenDialog(false);
+            setEditingVisita(null);
         } catch (err: any) {
             setError(String(err?.message ?? err));
         }
@@ -116,6 +138,18 @@ export default function BaseVisitasPage() {
         }
     }
 
+    const handleEditVisita = (id: number) => {
+        const visita = visitas.find(v => v.id === id);
+        if (visita) {
+            setEditingVisita(visita);
+            setOpenDialog(true);
+        }
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setEditingVisita(null);
+    };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -135,7 +169,7 @@ export default function BaseVisitasPage() {
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                     <Typography variant="h6">{visitas.length} visita(s)</Typography>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenNewDialog(true)}>
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenDialog(true)}>
                         Nova Visita
                     </Button>
                 </Box>
@@ -145,13 +179,17 @@ export default function BaseVisitasPage() {
                     visitas={visitas}
                     loading={loading}
                     openVisitDetail={openVisitDetail}
+                    handleEditVisita={handleEditVisita}
                     handleDeleteVisita={handleDeleteVisita}
                 />
 
-                <NewVisitaDialog
-                    open={openNewDialog}
-                    onClose={() => setOpenNewDialog(false)}
-                    onCreate={handleCreateVisita}
+                <VisitaDialog
+                    open={openDialog}
+                    onClose={handleCloseDialog}
+                    onCreate={editingVisita ? handleUpdateVisita : handleCreateVisita}
+                    isEditing={!!editingVisita}
+                    initialDate={editingVisita ? new Date(editingVisita.dataVisita) : new Date()}
+                    initialObs={editingVisita ? editingVisita.observacoes : ""}
                 />
 
             </Box>

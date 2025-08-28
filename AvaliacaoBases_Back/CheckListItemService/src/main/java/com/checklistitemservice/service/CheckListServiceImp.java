@@ -117,6 +117,7 @@ public class CheckListServiceImp implements CheckListService {
         }
         CheckListEntity checkListEntity = repository.findById(checkListId).orElseThrow(() -> new IllegalArgumentException("CheckList não encontrado com ID: " + checkListId));
         var descriptions = checkListEntity.getDescricao();
+        description.setChecklist(checkListEntity);
         descriptions.add(description);
         checkListEntity.setDescricao(descriptions);
         return mapper.toResponse(repository.save(checkListEntity));

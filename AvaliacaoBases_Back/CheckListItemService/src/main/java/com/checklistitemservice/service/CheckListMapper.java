@@ -60,31 +60,36 @@ class CheckListMapper {
         CheckListEntity parentEntity = CheckListEntity.builder()
                 .categoria(request.categoria())
                 .build();
+        List<CheckDescription> childEntities;
+        if (request.descricao() != null) {
+            childEntities = request.descricao().stream()
+                    .map(descRequest -> {
+                        CheckDescription childEntity = CheckDescription.builder()
+                                .descricao(descRequest.getDescricao())
+                                .conformidadePercent(descRequest.getConformidadePercent())
+                                .visitaId(descRequest.getVisitaId())
+                                .viaturaId(descRequest.getViaturaId())
+                                .observacao(descRequest.getObservacao())
+                                .criticidade(descRequest.getCriticidade())
+                                .build();
 
-        List<CheckDescription> childEntities = request.descricao().stream()
-                .map(descRequest -> {
-                    CheckDescription childEntity = CheckDescription.builder()
-                            .descricao(descRequest.getDescricao())
-                            .conformidadePercent(descRequest.getConformidadePercent())
-                            .visitaId(descRequest.getVisitaId())
-                            .viaturaId(descRequest.getViaturaId())
-                            .observacao(descRequest.getObservacao())
-                            .criticidade(descRequest.getCriticidade())
-                            .build();
+                        // Lógica para definir TipoConformidade
+                        if (childEntity.getConformidadePercent() <= 44) {
+                            childEntity.setTipoConformidade(TipoConformidade.NAO_CONFORME);
+                        } else if (childEntity.getConformidadePercent() >= 70) {
+                            childEntity.setTipoConformidade(TipoConformidade.CONFORME);
+                        } else {
+                            childEntity.setTipoConformidade(TipoConformidade.PARCIAL);
+                        }
 
-                    // Lógica para definir TipoConformidade
-                    if (childEntity.getConformidadePercent() <= 44) {
-                        childEntity.setTipoConformidade(TipoConformidade.NAO_CONFORME);
-                    } else if (childEntity.getConformidadePercent() >= 70) {
-                        childEntity.setTipoConformidade(TipoConformidade.CONFORME);
-                    } else {
-                        childEntity.setTipoConformidade(TipoConformidade.PARCIAL);
-                    }
+                        childEntity.setChecklist(parentEntity);
+                        return childEntity;
+                    })
+                    .toList();
+        }else {
+             childEntities = new ArrayList<>();
+        }
 
-                    childEntity.setChecklist(parentEntity);
-                    return childEntity;
-                })
-                .collect(Collectors.toList());
 
         parentEntity.setDescricao(childEntities);
         return parentEntity;

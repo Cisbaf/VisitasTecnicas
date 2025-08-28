@@ -3,7 +3,6 @@ package com.checklistitemservice.entity.dto;
 import com.checklistitemservice.entity.CheckDescription;
 import com.checklistitemservice.entity.CheckListEntity;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.io.Serializable;
@@ -17,7 +16,6 @@ public record CheckListRequest(
 
         @NotBlank
         String categoria,
-        @NotNull(message = "Itens do checklist são requeridos")
         List<CheckDescription> descricao
 
-) implements Serializable { }
+) implements Serializable {}

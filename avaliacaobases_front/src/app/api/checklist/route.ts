@@ -22,7 +22,7 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;

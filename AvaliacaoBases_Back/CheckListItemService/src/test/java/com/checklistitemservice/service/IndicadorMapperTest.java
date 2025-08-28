@@ -58,10 +58,6 @@ class IndicadorMapperTest {
     void toEntity_WithoutDates_UsesDefaultDates() {
         // Arrange
         IndicadorRequest request = new IndicadorRequest(100L, Map.of(), null, null);
-        LocalDate expectedStart = LocalDate.now().withDayOfYear(1);
-        LocalDate expectedEnd = LocalDate.now();
-
-
         // Act
         IndicadorOpEntity entity = mapper.toEntity(request);
 

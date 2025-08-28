@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="DiscoveryService" />
+        <module name="GatewayService" />
+      </profile>
+      <profile name="Annotation profile for VisitaService" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="VisitaService" />
+        <module name="ArquivoMidia" />
+        <module name="CheckListItemService" />
+        <module name="AuthService" />
+        <module name="AvaliacaoService" />
+        <module name="RelatorioService" />
+        <module name="BaseService" />
+        <module name="ViaturaService" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="AvaliacaoBases_Back" target="1.5" />
+      <module name="projeto-unificado" target="1.5" />
+      <module name="ProjetoUnificado" target="21" />
+      <module name="VisitarTecnica" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ArquivoMidia" options="-parameters" />
+      <module name="AuthService" options="-parameters" />
+      <module name="AvaliacaoService" options="-parameters" />
+      <module name="BaseService" options="-parameters" />
+      <module name="CheckListItemService" options="-parameters" />
+      <module name="DiscoveryService" options="-parameters" />
+      <module name="GatewayService" options="-parameters" />
+      <module name="ProjetoUnificado" options="-parameters" />
+      <module name="RelatorioService" options="-parameters" />
+      <module name="ViaturaService" options="-parameters" />
+      <module name="VisitaService" options="-parameters" />
+      <module name="VisitarTecnica" options="-parameters" />
+    </option>
+  </component>
+</project>

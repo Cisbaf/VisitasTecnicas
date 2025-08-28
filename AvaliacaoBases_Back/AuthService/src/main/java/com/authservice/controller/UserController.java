@@ -67,6 +67,18 @@ public class UserController {
         }
     }
 
+    @GetMapping
+    @Operation(summary = "Get all users by Base ID")
+    @RequestMapping("/base/{idBase}")
+    public ResponseEntity<List<UserResponse>> findAllByBaseId(@PathVariable Long idBase) {
+        List<UserResponse> users = userService.findAllByBaseId(idBase);
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(users);
+        }
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user by ID")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {

@@ -19,6 +19,7 @@ public interface UserService {
     List<UserResponse> findAll();
 
     UserResponse findById(Long id);
+    List<UserResponse> findAllByBaseId(Long idBase);
 
     void deleteById(Long id);
 

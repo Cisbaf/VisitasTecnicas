@@ -75,6 +75,12 @@ public class UserServiceImp implements UserService {
                 .toList();
     }
 
+    public List<UserResponse> findAllByBaseId(Long idBase) {
+        return userRepository.findAllByBaseId(idBase).stream()
+                .map(UserMapper::toResponse)
+                .toList();
+    }
+
     public void deleteById(Long id) {
         userRepository.deleteById(id);
     }

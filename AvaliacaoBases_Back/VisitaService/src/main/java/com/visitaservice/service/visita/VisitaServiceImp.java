@@ -34,6 +34,21 @@ public class VisitaServiceImp implements VisitaService {
         throw new IllegalArgumentException("Base não existe: " + request.getIdBase());
     }
 
+    public VisitaResponse addMembroToVisita(Long visitaId, EquipeTecnica membro) {
+        var visita = visitaRepository.findById(visitaId)
+                .orElseThrow(() -> new IllegalArgumentException(visitNotFoundMessage + visitaId));
+        visita.getMembros().add(membro);
+        visitaRepository.save(visita);
+        return toResponse(visita);
+    }
+    public VisitaResponse removeMembroFromVisita(Long visitaId, EquipeTecnica membro) {
+        var visita = visitaRepository.findById(visitaId)
+                .orElseThrow(() -> new IllegalArgumentException(visitNotFoundMessage + visitaId));
+        visita.getMembros().removeIf(Oldmembro -> Oldmembro.equals(membro));
+        visitaRepository.save(visita);
+        return toResponse(visita);
+    }
+
     @Override
     public VisitaResponse getById(Long id) {
         var visit = visitaRepository.findById(id)

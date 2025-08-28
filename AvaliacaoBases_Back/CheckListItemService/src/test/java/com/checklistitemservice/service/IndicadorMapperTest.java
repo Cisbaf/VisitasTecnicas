@@ -6,21 +6,16 @@ import com.checklistitemservice.entity.dto.IndicadorResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 class IndicadorMapperTest {
-
-    @Mock
-    private RelatorioServiceClient client;
 
     @InjectMocks
     private IndicadorMapper mapper;
@@ -32,7 +27,6 @@ class IndicadorMapperTest {
                 .id(1L)
                 .TIHs(100L)
                 .atendimentos(Map.of("Tipo1", 50))
-                .rankingBases(List.of(new BaseRankingDTO("Base1", 1L,80.0, LocalDate.now(), 3)))
                 .build();
 
         // Act
@@ -42,7 +36,6 @@ class IndicadorMapperTest {
         assertNotNull(response);
         assertEquals(1L, response.id());
         assertEquals(100L, response.TIHs());
-        assertEquals(1, response.rankingBases().size());
     }
 
     @Test
@@ -52,8 +45,6 @@ class IndicadorMapperTest {
         LocalDate endDate = LocalDate.of(2023, 12, 31);
         IndicadorRequest request = new IndicadorRequest(100L, Map.of(), startDate, endDate);
 
-        when(client.getRankingVisitas(startDate, endDate))
-                .thenReturn(List.of(new BaseRankingDTO("Base1", 1L,80.0, LocalDate.now(), 3)));
 
         // Act
         IndicadorOpEntity entity = mapper.toEntity(request);
@@ -61,7 +52,6 @@ class IndicadorMapperTest {
         // Assert
         assertNotNull(entity);
         assertEquals(100L, entity.getTIHs());
-        verify(client).getRankingVisitas(startDate, endDate);
     }
 
     @Test
@@ -71,15 +61,12 @@ class IndicadorMapperTest {
         LocalDate expectedStart = LocalDate.now().withDayOfYear(1);
         LocalDate expectedEnd = LocalDate.now();
 
-        when(client.getRankingVisitas(expectedStart, expectedEnd))
-                .thenReturn(List.of(new BaseRankingDTO("Base1", 1L,80.0, LocalDate.now(), 3)));
 
         // Act
         IndicadorOpEntity entity = mapper.toEntity(request);
 
         // Assert
         assertNotNull(entity);
-        verify(client).getRankingVisitas(expectedStart, expectedEnd);
     }
 
 }

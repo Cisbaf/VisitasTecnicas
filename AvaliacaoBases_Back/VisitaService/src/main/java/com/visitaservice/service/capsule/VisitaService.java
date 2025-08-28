@@ -10,6 +10,8 @@ import java.util.List;
 public interface VisitaService {
     VisitaResponse createVisita(VisitaRequest request);
 
+    VisitaResponse addMembroToVisita(Long visitaId, EquipeTecnica membro);
+
     VisitaResponse getById(Long id);
 
     List<VisitaResponse> getAll();
@@ -22,6 +24,7 @@ public interface VisitaService {
     VisitaResponse updateVisita(Long id, VisitaRequest request);
 
     void delete(Long id);
+    VisitaResponse removeMembroFromVisita(Long visitaId, EquipeTecnica membro);
 
     Boolean existsVisitaById(Long id);
 

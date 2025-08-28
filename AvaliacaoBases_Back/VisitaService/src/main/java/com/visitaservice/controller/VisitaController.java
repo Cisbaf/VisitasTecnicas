@@ -61,6 +61,13 @@ public class VisitaController {
         return ResponseEntity.ok(service.createVisita(request));
     }
 
+    @PostMapping("/membro/{id}")
+    @Operation(summary = "Add a member to a Visita", description = "Add a team member to an existing visita by its ID.")
+    public ResponseEntity<VisitaResponse> addMembroToVisita(@PathVariable Long id, @RequestBody @Valid EquipeTecnica membro) {
+        return ResponseEntity.ok(service.addMembroToVisita(id, membro));
+    }
+
+
     @Operation(summary = "Update an existing Visita", description = "Update the details of an existing visita by its ID.")
     @PutMapping("/{id}")
     public ResponseEntity<VisitaResponse> updateVisita(@PathVariable Long id, @RequestBody @Valid VisitaRequest request) {
@@ -72,6 +79,11 @@ public class VisitaController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/membro/{visitaId}")
+    @Operation(summary = "Remove a member from a Visita", description = "Remove a team member from an existing visita by its ID.")
+    public ResponseEntity<VisitaResponse> removeMembroFromVisita(@PathVariable Long visitaId, @RequestBody @Valid EquipeTecnica membro) {
+        return ResponseEntity.ok(service.removeMembroFromVisita(visitaId, membro));
     }
 
 }

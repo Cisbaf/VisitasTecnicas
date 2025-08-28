@@ -22,6 +22,5 @@ public class VisitaRequest implements Serializable {
     @NotNull(message = "A base visitada é requerida")
     @Positive
     Long idBase;
-    @NotNull
     List<EquipeTecnica> membros;
 }

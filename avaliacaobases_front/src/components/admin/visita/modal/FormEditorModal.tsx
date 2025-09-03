@@ -46,7 +46,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
     const [campos, setCampos] = useState<FormField[]>(initialData?.campos || []);
     const [novoCampo, setNovoCampo] = useState<FormField>({
         titulo: '',
-        tipo: 'TEXTO'
+        tipo: 'CHECKBOX'
     });
     const [editandoCampoIndex, setEditandoCampoIndex] = useState<number | null>(null);
     const [erro, setErro] = useState('');
@@ -56,7 +56,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
             setId(initialData?.id || undefined);
             setCategoria(initialData?.categoria || '');
             setCampos(initialData?.campos || []);
-            setNovoCampo({ titulo: '', tipo: 'TEXTO' });
+            setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
             setEditandoCampoIndex(null);
             setErro('');
         }
@@ -175,11 +175,11 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
                                     label="Tipo"
                                     onChange={(e) => setNovoCampo({
                                         ...novoCampo,
-                                        tipo: e.target.value as 'TEXTO' | 'CHECKBOX'
+                                        tipo: e.target.value as 'CHECKBOX' | 'TEXTO'
                                     })}
                                 >
-                                    <MenuItem value="TEXTO">Texto</MenuItem>
                                     <MenuItem value="CHECKBOX">Checkbox</MenuItem>
+                                    <MenuItem value="TEXTO">Texto</MenuItem>
                                 </Select>
                             </FormControl>
 

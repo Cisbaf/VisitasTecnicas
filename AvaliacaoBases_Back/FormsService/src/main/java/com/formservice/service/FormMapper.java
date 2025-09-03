@@ -1,0 +1,84 @@
+package com.formservice.service;
+
+import com.formservice.entity.CamposFormEntity;
+import com.formservice.entity.FormEntity;
+import com.formservice.entity.Resposta;
+import com.formservice.entity.dto.campos.CamposFormRequest;
+import com.formservice.entity.dto.campos.CamposFormResponse;
+import com.formservice.entity.dto.forms.FormRequest;
+import com.formservice.entity.dto.forms.FormResponse;
+import com.formservice.entity.dto.resposta.RespostaRequest;
+import com.formservice.entity.dto.resposta.RespostaResponse;
+import com.formservice.entity.emuns.CheckBox;
+import com.formservice.entity.emuns.Tipo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+class FormMapper {
+
+    FormResponse toFromResponse(FormEntity formEntity) {
+        return new FormResponse(
+                formEntity.getId(),
+                formEntity.getCategoria(),
+                formEntity.getCampos()
+        );
+    }
+
+    FormEntity toFormEntity(FormRequest request) {
+        FormEntity form = FormEntity.builder()
+                .categoria(request.categoria())
+                .build();
+
+        List<CamposFormEntity> campos;
+        if(request.campos() != null) {
+             campos = request.campos().stream()
+                    .map(c -> toCampoEntity(c, form))
+                    .toList();
+        }else {
+             campos = List.of();
+        }
+        form.setCampos(campos);
+        return form;
+    }
+
+    CamposFormResponse toCampoResponse(CamposFormEntity camposFormEntity) {
+        return CamposFormResponse.builder()
+                .formId(camposFormEntity.getForm().getId())
+                .id(camposFormEntity.getId())
+                .tipo(camposFormEntity.getTipo())
+                .titulo(camposFormEntity.getTitulo())
+                .build();
+    }
+
+    CamposFormEntity toCampoEntity(CamposFormRequest request, FormEntity formEntity) {
+
+        return CamposFormEntity.builder()
+                .titulo(request.titulo())
+                .tipo(Tipo.valueOf(request.tipo()))
+                .form(formEntity)
+                .build();
+    }
+    RespostaResponse toRespostaResponse(Resposta entity) {
+        return RespostaResponse.builder()
+                .texto(entity.getTexto())
+                .visitaId(entity.getVisitaId())
+                .checkbox(entity.getCheckbox() != null ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
+                .texto(entity.getTexto() != null ? entity.getTexto() : "")
+                .id(entity.getId())
+                .campo(entity.getCampo().getId())
+                .build();
+    }
+    Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
+        return Resposta.builder()
+                .texto(request.texto())
+                .visitaId(request.visitaId())
+                .checkbox(request.checkbox() != null ? request.checkbox() : CheckBox.NOT_GIVEN)
+                .campo(campo)
+                .build();
+    }
+
+}

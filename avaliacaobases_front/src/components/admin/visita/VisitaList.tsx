@@ -27,7 +27,7 @@ export default function VisitaList({ baseId, visitas, loading, handleEditVisita,
     return (
         <Grid container spacing={2}>
             {visitas.sort((a, b) => new Date(b.dataVisita).getTime() - new Date(a.dataVisita).getTime()).map((v) => (
-                <Card sx={{ cursor: "pointer" }} onClick={() => router.push(`/admin/bases/${baseId}/visitas/${v.id}`)}>
+                <Card key={v.id} sx={{ cursor: "pointer" }} onClick={() => router.push(`/admin/bases/${baseId}/visitas/${v.id}`)}>
                     <CardContent>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <Box sx={{ display: "flex", alignItems: "center" }}>

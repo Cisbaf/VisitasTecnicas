@@ -36,7 +36,7 @@ import { FormField, FormCategory } from '@/components/types';
 interface FormEditorModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (formData: { id: number; categoria: string; campos: FormField[] }) => void;
+    onSave: (formData: { id?: number; categoria: string; campos: FormField[] }) => void;
     initialData?: FormCategory;
 }
 
@@ -102,7 +102,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
             setErro('Adicione pelo menos um campo ao formulário');
             return;
         }
-        if (id === undefined) {
+        if (id === undefined && editandoCampoIndex) {
             setErro('O id do formulário é obrigatório');
             return;
         }

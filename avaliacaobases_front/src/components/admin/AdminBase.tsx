@@ -9,15 +9,10 @@ import {
     CardContent,
     Chip,
     CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     Grid,
     IconButton,
     Paper,
-    Stack,
-    TextField,
+
     Typography,
 } from "@mui/material";
 import {
@@ -30,12 +25,10 @@ import {
     Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import { BaseResponse } from "../types";
+import BaseDialog from "./visita/modal/BaseDialog";
 
-interface Base {
-    id: number;
-    nome: string;
-    endereco: string;
-    tipoBase: string;
+interface Base extends BaseResponse {
     viaturasCount?: number;
     userCount?: number;
 }
@@ -48,12 +41,9 @@ export default function AdminBasesPage() {
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingBase, setEditingBase] = useState<Base | null>(null);
-    const [formData, setFormData] = useState({
-        id: 0,
-        nome: "",
-        endereco: "",
-        tipoBase: "",
-    });
+    const [formData, setFormData] = useState<BaseResponse>();
+    const [phoneError, setPhoneError] = useState<string | null>(null);
+    const [emailError, setEmailError] = useState<string | null>(null);
 
     // fetch seguro que trata 204 / body vazio
     async function fetchJsonSafe(url: string) {
@@ -190,6 +180,10 @@ export default function AdminBasesPage() {
                 nome: base.nome,
                 endereco: base.endereco,
                 tipoBase: base.tipoBase,
+                telefone: base.telefone,
+                email: base.email,
+                bairro: base.bairro,
+                municipio: base.municipio,
             });
         } else {
             setEditingBase(null);
@@ -198,8 +192,14 @@ export default function AdminBasesPage() {
                 nome: "",
                 endereco: "",
                 tipoBase: "",
+                telefone: "",
+                email: "",
+                bairro: "",
+                municipio: "",
             });
         }
+        setEmailError(null);
+        setPhoneError(null);
         setOpenDialog(true);
     };
 
@@ -210,6 +210,30 @@ export default function AdminBasesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        let hasError = false;
+        const phone = formData?.telefone || '';
+        const email = formData?.email || '';
+
+        // Regex para números de telefone brasileiros (fixo e celular) com DDD.
+        // Aceita formatos como (XX) XXXXX-XXXX, (XX) XXXX-XXXX, e variações.
+        const phoneRegex = /^\(?(?:[14689][1-9]|2[12478]|3[1234578]|5[1345]|7[134579])\)? ?(9\d{4}|\d{4})-?\d{4}$/;
+        if (!phone || !phoneRegex.test(phone)) {
+            setPhoneError("Formato de telefone inválido.");
+            hasError = true;
+        }
+
+        // Regex para validação de email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email || !emailRegex.test(email)) {
+            setEmailError("Formato de email inválido.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
         try {
             const url = editingBase ? `/api/base/${editingBase.id}` : "/api/base";
             const method = editingBase ? "PUT" : "POST";
@@ -235,6 +259,35 @@ export default function AdminBasesPage() {
             await fetchBases();
         } catch (err: any) {
             setError(err.message ?? String(err));
+        }
+    };
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const phone = e.target.value;
+        setFormData({ ...formData!, telefone: phone });
+
+        // Regex para números de telefone brasileiros (fixo e celular) com DDD.
+        // Aceita formatos como (XX) XXXXX-XXXX, (XX) XXXX-XXXX, e variações.
+        const regex = /^\(?(?:[14689][1-9]|2[12478]|3[1234578]|5[1345]|7[134579])\)? ?(9\d{4}|\d{4})-?\d{4}$/;
+
+        if (phone && !regex.test(phone)) {
+            setPhoneError("Formato de telefone inválido.");
+        } else {
+            setPhoneError(null);
+        }
+    };
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const email = e.target.value;
+        setFormData({ ...formData!, email: email });
+
+        // Regex para validação de email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (email && !emailRegex.test(email)) {
+            setEmailError("Formato de email inválido.");
+        } else {
+            setEmailError(null);
         }
     };
 
@@ -352,43 +405,19 @@ export default function AdminBasesPage() {
                 </Grid>
             </Paper>
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>{editingBase ? "Editar Base" : "Nova Base"}</DialogTitle>
-                <form onSubmit={handleSubmit}>
-                    <DialogContent>
-                        <Stack spacing={2} sx={{ mt: 1 }}>
-                            <TextField
-                                autoFocus
-                                label="Nome da Base"
-                                fullWidth
-                                required
-                                value={formData.nome}
-                                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                            />
-                            <TextField
-                                label="Endereço"
-                                fullWidth
-                                required
-                                value={formData.endereco}
-                                onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                            />
-                            <TextField
-                                label="Tipo da Base"
-                                fullWidth
-                                required
-                                value={formData.tipoBase}
-                                onChange={(e) => setFormData({ ...formData, tipoBase: e.target.value })}
-                            />
-                        </Stack>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDialog}>Cancelar</Button>
-                        <Button type="submit" variant="contained">
-                            {editingBase ? "Atualizar" : "Criar"}
-                        </Button>
-                    </DialogActions>
-                </form>
-            </Dialog>
+            <BaseDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                onSubmit={handleSubmit}
+                formData={formData!}
+                setFormData={setFormData.apply}
+                editingBase={!editingBase}
+                handlePhoneChange={handlePhoneChange}
+                handleEmailChange={handleEmailChange}
+                phoneError={phoneError}
+                emailError={emailError}
+            />
+
         </Box>
     );
 }

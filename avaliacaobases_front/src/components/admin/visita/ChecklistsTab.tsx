@@ -7,12 +7,13 @@ import {
     CircularProgress,
     Typography,
     Paper,
-    Accordion, // Importado
-    AccordionSummary, // Importado
-    AccordionDetails, // Importado
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    IconButton,
 } from "@mui/material";
-import { Add as AddIcon, Delete, Edit as EditIcon } from "@mui/icons-material"; // Importado EditIcon
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Importado
+import { Add as AddIcon, Delete, Edit as EditIcon } from "@mui/icons-material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DynamicForm from "./DynamicForm";
 import FormEditorModal from "./modal/FormEditorModal";
 
@@ -34,7 +35,6 @@ export default function ChecklistsTab({ baseId, visitaId, onChecklistAdded }: Ch
     const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingForm, setEditingForm] = useState<FormCategory | undefined>();
-    // Estado para controlar qual acordeão está expandido
     const [expanded, setExpanded] = useState<string | false>(false);
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export default function ChecklistsTab({ baseId, visitaId, onChecklistAdded }: Ch
         }
     };
 
-    const handleSaveForm = async (formData: { id: number; categoria: string; campos: any[] }) => {
+    const handleSaveForm = async (formData: { id?: number; categoria: string; campos: any[] }) => {
         console.log(formData);
         var uri = editingForm ? `/api/form/${formData.id}` : '/api/form/saveForm';
         var method = editingForm ? 'PUT' : 'POST';
@@ -127,86 +127,70 @@ export default function ChecklistsTab({ baseId, visitaId, onChecklistAdded }: Ch
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
                     {error}
                 </Alert>
-            )
-            }
+            )}
 
-            {
-                forms.length === 0 ? (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h6" color="textSecondary" gutterBottom>
-                            Nenhum formulário encontrado
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-                            Crie seu primeiro formulário para começar a coletar dados
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => setModalOpen(true)}
+            {forms.length === 0 ? (
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant="h6" color="textSecondary" gutterBottom>
+                        Nenhum formulário encontrado
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                        Crie seu primeiro formulário para começar a coletar dados
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setModalOpen(true)}
+                    >
+                        Criar Primeiro Formulário
+                    </Button>
+                </Paper>
+            ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {forms.map((form) => (
+                        <Accordion
+                            key={form.id || form.categoria}
+                            expanded={expanded === (form.id?.toString() || form.categoria)}
+                            onChange={handleChange(form.id?.toString() || form.categoria)}
+                            elevation={2}
                         >
-                            Criar Primeiro Formulário
-                        </Button>
-                    </Paper>
-                ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {forms.map((form) => (
-                            <Accordion
-                                key={form.id || form.categoria}
-                                expanded={expanded === (form.id?.toString() || form.categoria)}
-                                onChange={handleChange(form.id?.toString() || form.categoria)}
-                                elevation={2}
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls={`panel-${form.id || form.categoria}-content`}
+                                id={`panel-${form.id || form.categoria}-header`}
+                                sx={{
+                                    '&.Mui-expanded': {
+                                        backgroundColor: '#f7f7f7',
+                                    },
+                                }}
                             >
-                                <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls={`panel-${form.id || form.categoria}-content`}
-                                    id={`panel-${form.id || form.categoria}-header`}
-                                    sx={{
-                                        '&.Mui-expanded': {
-                                            backgroundColor: '#f7f7f7',
-                                        },
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                        <Typography variant="h6">{form.categoria}</Typography>
-                                        <div>
-                                            <Button
-                                                variant="text"
-                                                color="warning"
-                                                size="small"
-                                                startIcon={<EditIcon />}
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Impede que o clique no botão expanda o acordeão
-                                                    handleEditForm(form);
-                                                }}
-                                            >
-                                            </Button>
-                                            <Button
-                                                variant="text"
-                                                color="error"
-                                                size="small"
-                                                startIcon={<Delete />}
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Impede que o clique no botão expanda o acordeão
-                                                    handleDeleteForm(form.id!);
-                                                }}
-                                            >
-                                            </Button>
-                                        </div>
-                                    </Box>
-
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <DynamicForm
-                                        form={form}
-                                        visitaId={visitaId}
-                                        onSave={fetchForms}
-                                    />
-                                </AccordionDetails>
-                            </Accordion>
-                        ))}
-                    </Box>
-                )
-            }
+                                <Typography variant="h6">{form.categoria}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
+                                    <IconButton
+                                        color="warning"
+                                        onClick={() => handleEditForm(form)}
+                                    >
+                                        <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                        color="error"
+                                        onClick={() => handleDeleteForm(form.id!)}
+                                    >
+                                        <Delete />
+                                    </IconButton>
+                                </Box>
+                                <DynamicForm
+                                    form={form}
+                                    visitaId={visitaId}
+                                    onSave={fetchForms}
+                                />
+                            </AccordionDetails>
+                        </Accordion>
+                    ))}
+                </Box>
+            )}
 
             <FormEditorModal
                 open={modalOpen}

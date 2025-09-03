@@ -153,9 +153,6 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
 
     return (
         <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography variant="h5" gutterBottom>
-                {form.categoria}
-            </Typography>
 
             {error && <Alert severity="error">{error}</Alert>}
             {success && <Alert severity="success">{success}</Alert>}

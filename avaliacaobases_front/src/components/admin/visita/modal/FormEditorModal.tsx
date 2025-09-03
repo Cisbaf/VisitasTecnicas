@@ -17,10 +17,7 @@ import {
     List,
     ListItem,
     ListItemText,
-    ListItemSecondaryAction,
     Chip,
-    Switch,
-    FormControlLabel,
     Divider,
     Alert,
     Typography
@@ -79,7 +76,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
             // Adicionar novo campo
             setCampos([...campos, { ...novoCampo }]);
         }
-        setNovoCampo({ titulo: '', tipo: 'TEXTO' });
+        setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
     };
 
     const handleEditCampo = (index: number) => {
@@ -100,10 +97,6 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
         }
         if (campos.length === 0) {
             setErro('Adicione pelo menos um campo ao formulário');
-            return;
-        }
-        if (id === undefined && editandoCampoIndex) {
-            setErro('O id do formulário é obrigatório');
             return;
         }
 
@@ -198,6 +191,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
                             {campos.map((campo, index) => (
                                 <ListItem key={index} divider={index < campos.length - 1}>
                                     <ListItemText
+                                        sx={{ width: 200 }}
                                         primary={campo.titulo}
                                         secondary={
                                             <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
@@ -208,8 +202,9 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
                                                 />
                                             </Box>
                                         }
+                                        secondaryTypographyProps={{ component: 'div' }}
                                     />
-                                    <ListItemSecondaryAction>
+                                    <ListItem secondaryAction sx={{ justifyContent: 'flex-end' }}>
                                         <IconButton
                                             onClick={() => handleEditCampo(index)}
                                             sx={{ mr: 1 }}
@@ -219,7 +214,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
                                         <IconButton onClick={() => handleDeleteCampo(index)}>
                                             <DeleteIcon />
                                         </IconButton>
-                                    </ListItemSecondaryAction>
+                                    </ListItem>
                                 </ListItem>
                             ))}
                         </List>

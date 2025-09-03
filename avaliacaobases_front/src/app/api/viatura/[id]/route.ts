@@ -46,7 +46,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const id = params.id;
+        const id = await params.id;
         const bodyText = await req.text();
         return await proxyFetch(`/viatura/${encodeURIComponent(id)}`, {
             method: "PUT",

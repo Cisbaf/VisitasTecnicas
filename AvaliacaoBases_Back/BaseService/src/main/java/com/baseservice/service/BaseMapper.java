@@ -10,6 +10,10 @@ class BaseMapper {
         return BaseEntity.builder()
                 .nome(baseRequest.getNome())
                 .endereco(baseRequest.getEndereco())
+                .bairro(baseRequest.getBairro())
+                .municipio(baseRequest.getMunicipio())
+                .telefone(baseRequest.getTelefone())
+                .email(baseRequest.getEmail())
                 .tipoBase(baseRequest.getTipoBase())
                 .build();
     }
@@ -18,6 +22,10 @@ class BaseMapper {
                 .id(baseEntity.getId())
                 .nome(baseEntity.getNome())
                 .endereco(baseEntity.getEndereco())
+                .bairro(baseEntity.getBairro())
+                .municipio(baseEntity.getMunicipio())
+                .telefone(baseEntity.getTelefone())
+                .email(baseEntity.getEmail())
                 .tipoBase(baseEntity.getTipoBase())
                 .build();
     }

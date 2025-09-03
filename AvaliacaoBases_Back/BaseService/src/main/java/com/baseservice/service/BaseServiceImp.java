@@ -58,6 +58,10 @@ public class BaseServiceImp implements BaseService {
                 .map(existingEntity -> {
                     existingEntity.setNome(baseRequest.getNome());
                     existingEntity.setEndereco(baseRequest.getEndereco());
+                    existingEntity.setBairro(baseRequest.getBairro());
+                    existingEntity.setMunicipio(baseRequest.getMunicipio());
+                    existingEntity.setTelefone(baseRequest.getTelefone());
+                    existingEntity.setEmail(baseRequest.getEmail());
                     existingEntity.setTipoBase(baseRequest.getTipoBase());
 
                     var updatedEntity = baseRepository.save(existingEntity);

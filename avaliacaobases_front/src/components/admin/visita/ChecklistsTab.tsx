@@ -1,161 +1,218 @@
-// components/ChecklistsTab.tsx
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
     Alert,
     Box,
     Button,
-    Card,
-    CardContent,
-    Chip,
     CircularProgress,
-    Grid,
-    Paper,
     Typography,
+    Paper,
+    Accordion, // Importado
+    AccordionSummary, // Importado
+    AccordionDetails, // Importado
 } from "@mui/material";
-import { Add as AddIcon, ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
-import { CategoriaAgrupada } from "@/components/types";
-import ChecklistModal from "./modal/ChecklistModal";
+import { Add as AddIcon, Delete, Edit as EditIcon } from "@mui/icons-material"; // Importado EditIcon
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Importado
+import DynamicForm from "./DynamicForm";
+import FormEditorModal from "./modal/FormEditorModal";
+
+interface FormCategory {
+    id?: number;
+    categoria: string;
+    campos: any[];
+}
 
 interface ChecklistsTabProps {
-    categoriasAgrupadas: CategoriaAgrupada[];
-    checklistLoading: boolean;
     baseId: number;
     visitaId: number;
     onChecklistAdded: () => void;
 }
 
-export default function ChecklistsTab({ categoriasAgrupadas, checklistLoading, baseId, visitaId, onChecklistAdded }: ChecklistsTabProps) {
+export default function ChecklistsTab({ baseId, visitaId, onChecklistAdded }: ChecklistsTabProps) {
+    const [forms, setForms] = useState<FormCategory[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
+    const [editingForm, setEditingForm] = useState<FormCategory | undefined>();
+    // Estado para controlar qual acordeão está expandido
+    const [expanded, setExpanded] = useState<string | false>(false);
 
-    const getConformidadeColor = (percent: number) => {
-        if (percent >= 80) return "success";
-        if (percent >= 50) return "warning";
-        return "error";
-    };
+    useEffect(() => {
+        fetchForms();
+    }, []);
 
-    const getCriticidadeColor = (criticidade: string) => {
-        switch (criticidade) {
-            case "Alta":
-                return "error";
-            case "Média":
-                return "warning";
-            case "Baixa":
-                return "info";
-            default:
-                return "default";
+    const fetchForms = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/form');
+            if (!response.ok) throw new Error('Falha ao carregar formulários');
+            const data = await response.json();
+            setForms(data);
+        } catch (err) {
+            setError('Erro ao carregar formulários: ' + (err instanceof Error ? err.message : String(err)));
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleOpenModal = () => {
+    const handleSaveForm = async (formData: { id: number; categoria: string; campos: any[] }) => {
+        console.log(formData);
+        var uri = editingForm ? `/api/form/${formData.id}` : '/api/form/saveForm';
+        var method = editingForm ? 'PUT' : 'POST';
+        try {
+            const response = await fetch(uri, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            if (!response.ok) throw new Error('Falha ao salvar formulário');
+            fetchForms();
+            setModalOpen(false);
+            setEditingForm(undefined);
+            onChecklistAdded();
+        } catch (err) {
+            setError('Erro ao salvar formulário: ' + (err instanceof Error ? err.message : String(err)));
+        }
+    };
+
+    const handleDeleteForm = async (id: number) => {
+        try {
+            const response = await fetch(`/api/form/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Falha ao excluir formulário');
+            fetchForms();
+        } catch (err) {
+            setError('Erro ao excluir formulário: ' + (err instanceof Error ? err.message : String(err)));
+        }
+    };
+
+    const handleEditForm = (form: FormCategory) => {
+        setEditingForm(form);
         setModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setModalOpen(false);
+        setEditingForm(undefined);
     };
 
-    const handleChecklistAdded = () => {
-        onChecklistAdded();
-        handleCloseModal();
+    const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+        setExpanded(isExpanded ? panel : false);
     };
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
                 <Typography variant="h4" fontWeight="600">
-                    CheckList de Inspeção
+                    Formulários de Inspeção
                 </Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{ ml: 2, borderRadius: 20, bgcolor: '#3e281e' }}
-                    onClick={handleOpenModal}
+                    onClick={() => setModalOpen(true)}
+                    sx={{ bgcolor: '#5a3d30', '&:hover': { bgcolor: '#3d2514' } }}
                 >
-                    Novo Checklist
+                    Novo Formulário
                 </Button>
-            </Box>
+            </Box >
 
-            {checklistLoading ? (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                    <CircularProgress />
-                </Box>
-            ) : categoriasAgrupadas.length === 0 ? (
-                <Alert severity="info">Nenhum checklist encontrado para esta visita.</Alert>
-            ) : (
-                categoriasAgrupadas.map(categoria => (
-                    <Accordion key={categoria.categoriaId} sx={{ mb: 2 }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                width: '100%',
-                                alignItems: 'center'
-                            }}>
-                                <Typography variant="h6">
-                                    {categoria.categoria}
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
-                                    Última
-                                    visita: {categoria.ultimaVisita ? new Date(categoria.ultimaVisita).toLocaleDateString('pt-BR') : "—"}
-                                </Typography>
-                            </Box>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            {categoria.visitas.map(visita => (
-                                <Card key={visita.visitaId} sx={{ marginBottom: 2 }}>
-                                    <CardContent>
-                                        <Typography variant="subtitle1" gutterBottom color="primary">
-                                            Visita
-                                            de {visita.dataVisita ? new Date(visita.dataVisita).toLocaleDateString('pt-BR') : "—"}
-                                        </Typography>
-                                        <Grid container spacing={2}>
-                                            {visita.descricoes.map((descricao) => (
-                                                <Paper variant="outlined" sx={{ p: 2 }} key={descricao.id}>
-                                                    <Typography variant="subtitle2" gutterBottom>
-                                                        {descricao.descricao}
-                                                    </Typography>
-                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                                                        <Chip
-                                                            label={`Conformidade: ${descricao.conformidadePercent}%`}
-                                                            color={getConformidadeColor(descricao.conformidadePercent)}
-                                                            size="small"
-                                                        />
-                                                        <Chip
-                                                            label={`Tipo: ${descricao.tipoConformidade}`}
-                                                            variant="outlined"
-                                                            size="small"
-                                                        />
-                                                        <Chip
-                                                            label={`Criticidade: ${descricao.criticidade}`}
-                                                            color={getCriticidadeColor(descricao.criticidade)}
-                                                            size="small"
-                                                        />
-                                                    </Box>
-                                                    {descricao.observacao && (
-                                                        <Typography variant="body2" sx={{ mt: 1 }}>
-                                                            <strong>Observação:</strong> {descricao.observacao}
-                                                        </Typography>
-                                                    )}
-                                                </Paper>
-                                            ))}
-                                        </Grid>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </AccordionDetails>
-                    </Accordion>
-                ))
-            )}
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+                    {error}
+                </Alert>
+            )
+            }
 
-            <ChecklistModal
+            {
+                forms.length === 0 ? (
+                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                            Nenhum formulário encontrado
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                            Crie seu primeiro formulário para começar a coletar dados
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => setModalOpen(true)}
+                        >
+                            Criar Primeiro Formulário
+                        </Button>
+                    </Paper>
+                ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {forms.map((form) => (
+                            <Accordion
+                                key={form.id || form.categoria}
+                                expanded={expanded === (form.id?.toString() || form.categoria)}
+                                onChange={handleChange(form.id?.toString() || form.categoria)}
+                                elevation={2}
+                            >
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls={`panel-${form.id || form.categoria}-content`}
+                                    id={`panel-${form.id || form.categoria}-header`}
+                                    sx={{
+                                        '&.Mui-expanded': {
+                                            backgroundColor: '#f7f7f7',
+                                        },
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                        <Typography variant="h6">{form.categoria}</Typography>
+                                        <div>
+                                            <Button
+                                                variant="text"
+                                                color="warning"
+                                                size="small"
+                                                startIcon={<EditIcon />}
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Impede que o clique no botão expanda o acordeão
+                                                    handleEditForm(form);
+                                                }}
+                                            >
+                                            </Button>
+                                            <Button
+                                                variant="text"
+                                                color="error"
+                                                size="small"
+                                                startIcon={<Delete />}
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Impede que o clique no botão expanda o acordeão
+                                                    handleDeleteForm(form.id!);
+                                                }}
+                                            >
+                                            </Button>
+                                        </div>
+                                    </Box>
+
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <DynamicForm
+                                        form={form}
+                                        visitaId={visitaId}
+                                        onSave={fetchForms}
+                                    />
+                                </AccordionDetails>
+                            </Accordion>
+                        ))}
+                    </Box>
+                )
+            }
+
+            <FormEditorModal
                 open={modalOpen}
                 onClose={handleCloseModal}
-                baseId={baseId}
-                visitaId={visitaId}
-                onSave={handleChecklistAdded}
+                onSave={handleSaveForm}
+                initialData={editingForm}
             />
         </>
     );

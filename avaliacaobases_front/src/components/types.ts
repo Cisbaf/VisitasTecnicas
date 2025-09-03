@@ -55,6 +55,16 @@ export interface RelatorioConsolidadoResponse {
     mediasConformidade: { [categoria: string]: number };
     viaturasCriticas: ViaturaDTO[];
     rankingBases: BaseRankingDTO[];
+    conformidadeDetalhada: { [categoria: string]: CategoryConformanceDTO };
+    percentualItensForaConformidade: number;
+}
+
+export interface CategoryConformanceDTO {
+    categoria: string;
+    mediaPercentTrue: number;
+    mediaPercentFalse: number;
+    mediaPercentNotGiven: number;
+    percentualCamposForaConformidade: number;
 }
 
 export interface PontoCriticoDTO {
@@ -155,4 +165,37 @@ export interface CategoriaAgrupada {
         dataVisita: string;
         descricoes: CheckDescription[];
     }[];
+}
+
+export interface FormCategory {
+    id?: number;
+    categoria: string;
+    campos: FormField[];
+}
+
+export interface FormField {
+    id?: number;
+    titulo: string;
+    tipo: 'TEXTO' | 'CHECKBOX';
+    formId?: number;
+}
+
+export interface RespostaRequest {
+    texto: string;
+    checkbox: CheckBox;
+    visitaId: number;
+}
+
+export interface RespostaResponse {
+    id: number;
+    campoId: number;
+    texto: string;
+    checkbox: CheckBox;
+    visitaId: number;
+}
+
+enum CheckBox {
+    TRUE = 'TRUE',
+    FALSE = 'FALSE',
+    NOT_GIVEN = 'NOT_GIVEN'
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import Historico from "@/components/base/HistoricosPage";
+import Historico from "@/components/base/Historicos";
 
 export default async function ViaturaPage() {
 

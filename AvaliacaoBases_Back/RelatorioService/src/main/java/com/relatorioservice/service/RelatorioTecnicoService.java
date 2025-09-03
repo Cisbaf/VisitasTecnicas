@@ -5,11 +5,13 @@ import com.relatorioservice.entity.fora.Visita.EquipeTecnica;
 import com.relatorioservice.entity.fora.Visita.RelatoEntity;
 import com.relatorioservice.entity.fora.Visita.VisitaEntity;
 import com.relatorioservice.entity.fora.base.BaseEntity;
-import com.relatorioservice.entity.fora.checklist.AvaliacaoEntity;
-import com.relatorioservice.entity.fora.checklist.CheckDescription;
-import com.relatorioservice.entity.fora.checklist.CheckListEntity;
+import com.relatorioservice.entity.fora.forms.dto.FormResponse;
+import com.relatorioservice.entity.fora.forms.dto.RespostaResponse;
 import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
-import com.relatorioservice.service.client.*;
+import com.relatorioservice.service.client.BaseServiceClient;
+import com.relatorioservice.service.client.FormServiceClient;
+import com.relatorioservice.service.client.ViaturaServiceClient;
+import com.relatorioservice.service.client.VisitaServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,31 +21,26 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.relatorioservice.service.CalcularPontos.calcularPontosCriticos;
-import static com.relatorioservice.service.CalcularPontos.calcularPontosFortes;
-
 @Service
 @RequiredArgsConstructor
 public class RelatorioTecnicoService {
 
     private final BaseServiceClient baseService;
     private final VisitaServiceClient visitaService;
-    private final ChecklistServiceClient checklistService;
+    private final FormServiceClient formService;
     private final ViaturaServiceClient viaturaService;
-    private final AvaliacaoServiceClient avaliacaoService;
 
     public RelatorioTecnicoResponse gerarRelatorio(Long visitaId) {
         VisitaEntity visita = visitaService.getVisitaById(visitaId);
         BaseEntity base = baseService.getBaseById(visita.getIdBase());
-
         List<EquipeTecnica> equipe = visitaService.getAllMembrosByVisitaId(visitaId);
         List<RelatoEntity> relatos = visitaService.getRelatosByVisita(visitaId);
         List<ViaturaEntity> viaturas = viaturaService.getViaturasByBase(base.getId());
 
-        List<CheckListEntity> checklists = checklistService.findByVisitaId(visitaId);
-        List<AvaliacaoEntity> avaliacoes = avaliacaoService.getAvaliacoesByVisita(visitaId);
+        List<FormResponse> forms = Optional.ofNullable(formService.getAll()).orElse(List.of());
+        List<RespostaResponse> respostas = Optional.ofNullable(formService.getRespostasByVisitaId(visitaId)).orElse(List.of());
 
-        return processarRelatorio(visita, base, equipe, relatos, viaturas, checklists, avaliacoes);
+        return processarRelatorio(visita, base, equipe, relatos, viaturas, forms, respostas);
     }
 
     private RelatorioTecnicoResponse processarRelatorio(VisitaEntity visita,
@@ -51,8 +48,8 @@ public class RelatorioTecnicoService {
                                                         List<EquipeTecnica> equipe,
                                                         List<RelatoEntity> relatos,
                                                         List<ViaturaEntity> viaturas,
-                                                        List<CheckListEntity> checklists,
-                                                        List<AvaliacaoEntity> avaliacoes) {
+                                                        List<FormResponse> forms,
+                                                        List<RespostaResponse> respostas) {
 
         RelatorioTecnicoResponse relatorio = new RelatorioTecnicoResponse();
 
@@ -65,55 +62,24 @@ public class RelatorioTecnicoService {
                 .map(m -> new MembroDTO(m.getNome(), m.getCargo()))
                 .collect(Collectors.toList()));
 
-        relatorio.setPontosFortes(calcularPontosFortes(checklists, viaturas, relatos));
-        relatorio.setPontosCriticos(calcularPontosCriticos(checklists, relatos, viaturas));
-        relatorio.setConformidades(calcularConformidades(checklists, avaliacoes));
+        // Usa a nova classe CalcularPontos.
+        relatorio.setPontosFortes(CalcularPontos.calcularPontosFortes(forms, respostas, viaturas, relatos));
+        relatorio.setPontosCriticos(CalcularPontos.calcularPontosCriticos(forms, respostas, relatos, viaturas));
+
+        Map<String, CategoryConformanceDTO> confDetalhada = CalcularPontos.calcularConformidadesDetalhadas(forms, respostas);
+        relatorio.setConformidadeDetalhada(confDetalhada);
+
+        Map<String, Double> conformidadesSimples = confDetalhada.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getMediaPercentTrue()));
+        relatorio.setConformidades(conformidadesSimples);
+
+        double percentualFora = CalcularPontos.percentualItensForaConformidadeGlobal(forms, respostas);
+        relatorio.setPercentualItensForaConformidade(percentualFora);
 
         relatorio.setViaturas(processarViaturas(viaturas));
         relatorio.setRelatos(processarRelatos(relatos));
 
         return relatorio;
-    }
-
-    private Map<String, Double> calcularConformidades(List<CheckListEntity> checklists,
-                                                      List<AvaliacaoEntity> avaliacoes) {
-
-        Map<String, Double> conformidades = new HashMap<>();
-
-        if (checklists != null) {
-            checklists.forEach(cl -> {
-                double percentual = cl.getDescricao().stream()
-                        .mapToDouble(d -> {
-                            if (d.getTipoConformidade() == null) return 0.0;
-                            return switch (d.getTipoConformidade()) {
-                                case CONFORME -> 1.0;
-                                case PARCIAL -> 0.5;
-                                case NAO_CONFORME -> 0.0;
-                            };
-                        })
-                        .average()
-                        .orElse(0.0) * 100;
-
-                conformidades.put(cl.getCategoria(), percentual);
-            });
-        }
-
-        avaliacoes.stream()
-                .filter(a -> a.getIdViatura() != null)
-                .collect(Collectors.groupingBy(
-                        a -> viaturaService.getViaturaById(a.getIdViatura()).getPlaca(),
-                        Collectors.averagingDouble((a) -> {
-                            var check = checklistService.getCheckListById(a.getIdCheckList());
-                            return check.getDescricao().stream()
-                                    .mapToDouble(CheckDescription::getConformidadePercent)
-                                    .average()
-                                    .orElse(0.0);
-                        })
-                ))
-                .forEach((placa, percentual) ->
-                        conformidades.put("Viatura " + placa, percentual));
-
-        return conformidades;
     }
 
     private List<ViaturaDTO> processarViaturas(List<ViaturaEntity> viaturas) {
@@ -122,11 +88,10 @@ public class RelatorioTecnicoService {
             dto.setPlaca(v.getPlaca());
             dto.setModelo(v.getModelo());
             dto.setStatus(v.getStatusOperacional());
-            dto.setItensCriticos(v.getItens().stream()
+            dto.setItensCriticos(Optional.ofNullable(v.getItens()).orElse(List.of()).stream()
                     .filter(i -> i.getConformidade() < 80)
                     .map(i -> new ItemViaturaDTO(i.getNome(), i.getConformidade()))
                     .collect(Collectors.toList()));
-
             return dto;
         }).collect(Collectors.toList());
     }
@@ -176,10 +141,11 @@ public class RelatorioTecnicoService {
 
         consolidado.setPontosCriticosGerais(
                 contagemCriticos.entrySet().stream()
-                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // ordena por frequência
+                        .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                         .map(entry -> new PontoCriticoDTO(entry.getKey(), entry.getValue()))
                         .collect(Collectors.toList())
         );
+
         Map<String, DoubleSummaryStatistics> statsPorCategoria = relatorios.stream()
                 .flatMap(r -> r.getConformidades().entrySet().stream())
                 .collect(Collectors.groupingBy(
@@ -194,14 +160,14 @@ public class RelatorioTecnicoService {
 
         consolidado.setMediasConformidade(mediasConformidade);
 
-        // CORREÇÃO: Agrupar viaturas por placa para remover duplicatas
+        // Agrupar viaturas por placa para remover duplicatas
         Map<String, ViaturaDTO> viaturasUnicas = relatorios.stream()
                 .flatMap(r -> r.getViaturas().stream())
                 .filter(v -> !v.getItensCriticos().isEmpty())
                 .collect(Collectors.toMap(
-                        ViaturaDTO::getPlaca,  // Usar a placa como chave
+                        ViaturaDTO::getPlaca,
                         v -> v,
-                        (v1, v2) -> v1         // Em caso de duplicata, manter a primeira
+                        (v1, v2) -> v1
                 ));
 
         consolidado.setViaturasCriticas(new ArrayList<>(viaturasUnicas.values()));
@@ -211,51 +177,65 @@ public class RelatorioTecnicoService {
     }
 
     public List<BaseRankingDTO> getRankingBasesPeriodoAtual(LocalDate dataInicio, LocalDate dataFim) {
-        // Busca todas as bases
         List<BaseEntity> todasBases = baseService.getAllBases();
         List<BaseRankingDTO> ranking = new ArrayList<>();
 
         for (BaseEntity base : todasBases) {
             try {
-                // Busca visitas da base no período
                 List<VisitaEntity> visitas = visitaService.getAllByPeriod(
                         base.getId(),
                         dataInicio,
                         dataFim
                 );
 
-                if (visitas.isEmpty()) continue;
+                if (visitas.isEmpty()) {
+                    continue;
+                }
 
-                // Encontra a visita mais recente
+                // Calcular a média de conformidade de TODAS as visitas do período
+                double mediaConformidade = 0.0;
+                int totalVisitasComConformidade = 0;
+
+                for (VisitaEntity visita : visitas) {
+                    try {
+                        RelatorioTecnicoResponse relatorio = this.gerarRelatorio(visita.getId());
+
+                        if (relatorio.getConformidades() != null && !relatorio.getConformidades().isEmpty()) {
+                            double mediaVisita = relatorio.getConformidades().values().stream()
+                                    .mapToDouble(Double::doubleValue)
+                                    .average()
+                                    .orElse(0.0);
+
+                            mediaConformidade += mediaVisita;
+                            totalVisitasComConformidade++;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Erro ao processar visita " + visita.getId() + ": " + e.getMessage());
+                    }
+                }
+
+                if (totalVisitasComConformidade > 0) {
+                    mediaConformidade /= totalVisitasComConformidade;
+                }
+
                 VisitaEntity ultimaVisita = visitas.stream()
                         .max(Comparator.comparing(VisitaEntity::getDataVisita))
                         .orElse(null);
 
-                // Gera relatório da última visita
-                RelatorioTecnicoResponse relatorio = this.gerarRelatorio(ultimaVisita.getId());
-
-                // Calcula média geral de conformidades
-                double mediaGeral = relatorio.getConformidades().values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .average()
-                        .orElse(0.0);
-
                 ranking.add(new BaseRankingDTO(
                         base.getNome(),
                         base.getId(),
-                        mediaGeral,
-                        ultimaVisita.getDataVisita()
+                        mediaConformidade,
+                        ultimaVisita != null ? ultimaVisita.getDataVisita() : null
                 ));
             } catch (Exception e) {
-                // Log de erro para a base específica
                 System.err.println("Erro ao processar base " + base.getId() + ": " + e.getMessage());
             }
         }
 
-        // Ordena as bases pela média de conformidade
-        Collections.sort(ranking);
+        // Ordenar por média de conformidade (maior primeiro)
+        ranking.sort((b1, b2) -> Double.compare(b2.getMediaConformidade(), b1.getMediaConformidade()));
 
-        // Atribui posições no ranking
         for (int i = 0; i < ranking.size(); i++) {
             ranking.get(i).setPosicaoRanking(i + 1);
         }

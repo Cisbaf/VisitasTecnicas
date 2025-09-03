@@ -1,20 +1,25 @@
 package com.formservice.service;
 
 import com.formservice.entity.CamposFormEntity;
+import com.formservice.entity.FormEntity;
 import com.formservice.entity.dto.forms.FormRequest;
 import com.formservice.entity.dto.forms.FormResponse;
 import com.formservice.respository.FormRepository;
+import com.formservice.respository.RespostaRepository;
 import com.formservice.service.capsule.FormService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FormServiceImp implements FormService {
     private final FormMapper mapper;
     private final FormRepository formRepository;
+    private final RespostaRepository respostaRepository;
 
     private final String nullMessage = "Formulario não encontrado com ID: ";
 
@@ -32,6 +37,16 @@ public class FormServiceImp implements FormService {
     public FormResponse getById(Long id) {
         return formRepository.findById(id).map(mapper::toFromResponse)
                 .orElseThrow(() -> new IllegalArgumentException(nullMessage + id));
+    }
+
+    public ArrayList<FormEntity> getByVisitaId(Long visitaId) {
+        var respostas = respostaRepository.findAllByVisitaId(visitaId);
+
+        // Converte a lista de Respostas para uma lista de Forms, removendo duplicatas.
+        // 3. Coleta em uma nova lista
+        return respostas.stream()
+                .map(resposta -> resposta.getCampo().getForm()) // 1. Extrai cada FormEntity
+                .distinct().collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override

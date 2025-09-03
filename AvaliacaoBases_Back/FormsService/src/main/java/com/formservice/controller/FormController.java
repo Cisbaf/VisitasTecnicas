@@ -1,5 +1,6 @@
 package com.formservice.controller;
 
+import com.formservice.entity.FormEntity;
 import com.formservice.entity.dto.forms.FormRequest;
 import com.formservice.entity.dto.forms.FormResponse;
 import com.formservice.service.capsule.FormService;
@@ -27,6 +28,13 @@ public class FormController {
     @Operation(summary = "Get form by ID", description = "Retrieve a form by its ID")
     public ResponseEntity<FormResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.getById(id));
+    }
+
+    @GetMapping("/visita/{visitaId}")
+    @Operation(summary = "Get forms by Visita ID", description = "Retrieve a list of forms associated with a specific Visita ID")
+    public ResponseEntity<List<FormEntity>> findByVisitaId(@PathVariable Long visitaId) {
+        var forms = service.getByVisitaId(visitaId);
+        return ResponseEntity.ok().body(forms);
     }
 
     @PostMapping("/saveForm")

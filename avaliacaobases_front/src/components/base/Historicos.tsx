@@ -19,9 +19,9 @@ import { VisitaResponse, RelatoResponse } from "@/components/types";
 interface VisitaComRelatos extends VisitaResponse {
     relatos: RelatoResponse[];
 }
-export default function HistoricoPage() {
+export default function Historico({ baseId }: { baseId?: number }) {
     const params = useParams();
-    const baseId = Number(params.baseId);
+    if (!baseId) baseId = Number(params.baseId);
     const [visitas, setVisitas] = useState<VisitaComRelatos[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

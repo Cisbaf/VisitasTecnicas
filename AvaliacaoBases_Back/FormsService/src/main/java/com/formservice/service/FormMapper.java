@@ -14,6 +14,7 @@ import com.formservice.entity.emuns.Tipo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,13 +34,17 @@ class FormMapper {
                 .categoria(request.categoria())
                 .build();
 
+        if (form.getCampos() == null) {
+            form.setCampos(new ArrayList<>());
+        }
+
         List<CamposFormEntity> campos;
         if(request.campos() != null) {
-             campos = request.campos().stream()
+            campos = request.campos().stream()
                     .map(c -> toCampoEntity(c, form))
                     .toList();
-        }else {
-             campos = List.of();
+        } else {
+            campos = List.of();
         }
         form.setCampos(campos);
         return form;

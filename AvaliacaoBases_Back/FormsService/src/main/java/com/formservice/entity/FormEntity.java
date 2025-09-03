@@ -22,10 +22,10 @@ public class FormEntity {
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
+    @Builder.Default
     private List<CamposFormEntity> campos = new ArrayList<>();
 
     public void setCampos(List<CamposFormEntity> novosCampos) {
-        this.campos.clear();
         if (novosCampos != null) {
             novosCampos.forEach(this::addCampo);
         }

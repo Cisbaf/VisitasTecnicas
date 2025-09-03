@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +20,7 @@ public class FormServiceImp implements FormService {
 
     @Override
     public FormResponse createForm(FormRequest request) {
+        System.out.println(request);
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be null");
         }
@@ -46,13 +46,14 @@ public class FormServiceImp implements FormService {
         var form = formRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(nullMessage + id));
 
-        form.setCategoria(request.categoria());
 
         List<CamposFormEntity> campos = request.campos().stream()
                 .map(c -> mapper.toCampoEntity(c, form))
-                .collect(Collectors.toList());
-
+                .toList();
+        form.getCampos().clear();
         form.setCampos(campos);
+
+        form.setCategoria(request.categoria());
 
         return mapper.toFromResponse(formRepository.save(form));
     }

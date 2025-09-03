@@ -35,9 +35,4 @@ public class FormEntity {
         campo.setForm(this);
         this.campos.add(campo);
     }
-
-    public void removeCampo(CamposFormEntity campo) {
-        campo.setForm(null);
-        this.campos.remove(campo);
-    }
 }

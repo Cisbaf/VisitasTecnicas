@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import {AppBar, Box, Button, CssBaseline, Toolbar, Typography} from "@mui/material";
+import { AppBar, Box, Button, CssBaseline, Toolbar, Typography } from "@mui/material";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 
@@ -9,13 +9,13 @@ type Props = {
     drawerWidth?: number;
 };
 
-export default function Layout({children, drawerWidth = 280}: Props) {
+export default function Layout({ children, drawerWidth = 280 }: Props) {
 
     return (
-        <Box sx={{display: "flex", minHeight: "100vh", bgcolor: "#f4f8fb"}}>
-            <CssBaseline/>
+        <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f4f8fb" }}>
+            <CssBaseline />
 
-            <AdminSidebar/>
+            <AdminSidebar />
             <AppBar
                 position="fixed"
                 elevation={0}
@@ -27,9 +27,9 @@ export default function Layout({children, drawerWidth = 280}: Props) {
                     boxShadow: "0 5px 4px rgba(0, 0, 0, 0.3)",
                 }}
             >
-                <Toolbar sx={{justifyContent: "space-between"}}>
+                <Toolbar sx={{ justifyContent: "space-between" }}>
                     <Box>
-                        <Typography variant="h6" component="div" sx={{fontWeight: 700}}>
+                        <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             Administração - Sistema SAMU
                         </Typography>
                     </Box>
@@ -40,7 +40,7 @@ export default function Layout({children, drawerWidth = 280}: Props) {
                             sx={{
                                 textTransform: 'none',
                                 bgcolor: '#5a3d30',
-                                '&:hover': {bgcolor: '#3e281e'},
+                                '&:hover': { bgcolor: '#3e281e' },
                                 boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
                                 borderRadius: 5
                             }}
@@ -53,7 +53,7 @@ export default function Layout({children, drawerWidth = 280}: Props) {
 
             <Box
                 component="main"
-                sx={{flexGrow: 1, p: 3, mt: 10, width: `calc(100% - ${drawerWidth}px)`}}
+                sx={{ flexGrow: 1, p: 3, mt: 10, width: `calc(100% - ${drawerWidth}px)` }}
             >
                 {children}
             </Box>

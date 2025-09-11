@@ -18,8 +18,10 @@ public class MidiasEntity {
     private Long id;
     @Enumerated(EnumType.STRING)
     private TipoMidia tipoArquivo;
-    private String url;
+    private String caminhoArquivo;
     private LocalDate dataUpload;
     private Long idVisita;
-    private Long idInconformidade;
+    private Long idCategoria;
+    private String flag;
+
 }

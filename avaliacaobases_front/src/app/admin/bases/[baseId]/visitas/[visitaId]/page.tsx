@@ -9,7 +9,8 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { CategoriaAgrupada, RelatoDTO, VisitaDetails } from "@/components/types";
 import ChecklistService from "@/components/base/service/ChecklistService";
 import DetalhesVisitaTab from "@/components/admin/visita/DetalhesVisitaTab";
-import ChecklistsTab from "@/components/admin/visita/ChecklistsTab";
+import ChecklistsTab from "@/components/admin/visita/form/ChecklistsTab";
+import PadronizacaoVizualTab from "@/components/admin/visita/form/PadronizacaoVizualTab";
 
 
 interface TabPanelProps {
@@ -231,7 +232,8 @@ export default function VisitaDetailPage() {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} aria-label="abas de detalhes da visita">
                         <Tab label="Detalhes" {...a11yProps(0)} />
-                        <Tab label="Checklists" {...a11yProps(1)} />
+                        <Tab label="Padronização Vizual" {...a11yProps(1)} />
+                        <Tab label="Checklists" {...a11yProps(2)} />
                     </Tabs>
                 </Box>
 
@@ -248,10 +250,11 @@ export default function VisitaDetailPage() {
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={1}>
+                    <PadronizacaoVizualTab visitaId={visitaId} onChecklistAdded={fetchChecklists} />
+                </TabPanel>
+
+                <TabPanel value={tabValue} index={2}>
                     <ChecklistsTab
-                        categoriasAgrupadas={categoriasAgrupadas}
-                        checklistLoading={checklistLoading}
-                        baseId={baseId}
                         visitaId={visitaId}
                         onChecklistAdded={fetchChecklists} // Para recarregar os checklists após adicionar um novo
                     />

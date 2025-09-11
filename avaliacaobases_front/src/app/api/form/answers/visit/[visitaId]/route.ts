@@ -1,5 +1,4 @@
-// app/api/forms/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -12,7 +11,17 @@ async function proxyFetch(path: string, init?: RequestInit) {
 
         if (status === 204) return new NextResponse(null, { status });
 
+        const contentLength = res.headers.get("content-length");
+        if (contentLength === "0") {
+            return new NextResponse(null, { status });
+        }
+
         const bodyText = await res.text();
+
+        if (!bodyText.trim()) {
+            return new NextResponse(null, { status });
+        }
+
         return new NextResponse(bodyText, {
             status,
             headers: { "content-type": contentType },
@@ -23,31 +32,23 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(req: Request, { params }: { params: Promise<{ visitaId: string }> }) {
+
     try {
+        const { visitaId } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
+
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const { searchParams } = new URL(request.url);
-        const campoId = searchParams.get('campoId');
-        const visitaId = searchParams.get('visitaId');
-
-        if (!campoId || !visitaId) {
-            return NextResponse.json({ message: "campoId and visitaId are required" }, { status: 400 });
-        }
-
-        // Construa a URL do backend com os parâmetros
-        const backendUrl = `/form/answers?campoId=${campoId}&visitId=${visitaId}`;
+        const backendUrl = `/form/answers/visit/${visitaId}`;
 
         return await proxyFetch(backendUrl, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/form/answers GET proxy error:", err);
-        return NextResponse.json({ message: "Internal error", detail: String(err) }, { status: 500 });
+        console.error("api/form/answers/visit/[visitaId] GET proxy error:", err);
+        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
-
-

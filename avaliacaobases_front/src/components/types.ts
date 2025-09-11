@@ -102,12 +102,23 @@ export interface RelatoResponse {
     resolvido: boolean;
     baseId: number;
 }
+export interface ConformidadeSelect {
+    [campoId: string]: {
+        nomeCampo: string;
+        percentualConformidade: number;
+        totalRespostas: number;
+    };
+}
 
 export interface BaseResponse {
     id: number;
     nome: string;
     endereco: string;
     tipoBase: string;
+    telefone: string;
+    email: string;
+    bairro: string;
+    municipio: string;
 }
 
 export interface Avaliacao {
@@ -171,18 +182,20 @@ export interface FormCategory {
     id?: number;
     categoria: string;
     campos: FormField[];
+    tipoForm: string;
 }
 
 export interface FormField {
     id?: number;
     titulo: string;
-    tipo: 'TEXTO' | 'CHECKBOX';
+    tipo: 'TEXTO' | 'CHECKBOX' | 'SELECT';
     formId?: number;
 }
 
 export interface RespostaRequest {
     texto: string;
     checkbox: CheckBox;
+    select: Select;
     visitaId: number;
 }
 
@@ -191,6 +204,7 @@ export interface RespostaResponse {
     campoId: number;
     texto: string;
     checkbox: CheckBox;
+    select: Select;
     visitaId: number;
 }
 
@@ -198,4 +212,23 @@ enum CheckBox {
     TRUE = 'TRUE',
     FALSE = 'FALSE',
     NOT_GIVEN = 'NOT_GIVEN'
+}
+
+export enum Select {
+    CONFORME = 'CONFORME',
+    PARCIAL = 'PARCIAL',
+    NAO_CONFORME = 'NAO_CONFORME',
+    NAO_AVALIADO = 'NAO_AVALIADO',
+}
+
+export type Flag = "GREEN" | "YELLOW" | "RED" | null;
+
+export interface Midia {
+    id: number;
+    tipoArquivo: string;
+    base64DataUrl: string | null;
+    dataUpload: string;
+    idVisita: number | null;
+    idCategoria: number | null;
+    flag?: Flag;
 }

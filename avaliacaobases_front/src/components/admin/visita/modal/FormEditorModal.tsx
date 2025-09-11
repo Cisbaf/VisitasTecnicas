@@ -33,17 +33,18 @@ import { FormField, FormCategory } from '@/components/types';
 interface FormEditorModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (formData: { id?: number; categoria: string; campos: FormField[] }) => void;
+    onSave: (formData: { id?: number; categoria: string; campos: FormField[]; tipoForm: string }) => void;
     initialData?: FormCategory;
+    tipoForm: string;
 }
 
-export default function FormEditorModal({ open, onClose, onSave, initialData }: FormEditorModalProps) {
+export default function FormEditorModal({ open, onClose, onSave, initialData, tipoForm }: FormEditorModalProps) {
     const [id, setId] = useState(initialData?.id || undefined);
     const [categoria, setCategoria] = useState(initialData?.categoria || '');
     const [campos, setCampos] = useState<FormField[]>(initialData?.campos || []);
     const [novoCampo, setNovoCampo] = useState<FormField>({
         titulo: '',
-        tipo: 'CHECKBOX'
+        tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
     });
     const [editandoCampoIndex, setEditandoCampoIndex] = useState<number | null>(null);
     const [erro, setErro] = useState('');
@@ -53,11 +54,14 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
             setId(initialData?.id || undefined);
             setCategoria(initialData?.categoria || '');
             setCampos(initialData?.campos || []);
-            setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
+            setNovoCampo({
+                titulo: '',
+                tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
+            });
             setEditandoCampoIndex(null);
             setErro('');
         }
-    }, [open, initialData]);
+    }, [open, initialData, tipoForm]);
 
     const handleAddCampo = () => {
         if (!novoCampo.titulo.trim()) {
@@ -67,16 +71,17 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
 
         setErro('');
         if (editandoCampoIndex !== null) {
-            // Editar campo existente
             const novosCampos = [...campos];
             novosCampos[editandoCampoIndex] = { ...novoCampo };
             setCampos(novosCampos);
             setEditandoCampoIndex(null);
         } else {
-            // Adicionar novo campo
             setCampos([...campos, { ...novoCampo }]);
         }
-        setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
+        setNovoCampo({
+            titulo: '',
+            tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
+        });
     };
 
     const handleEditCampo = (index: number) => {
@@ -101,7 +106,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
         }
 
         setErro('');
-        onSave({ id, categoria, campos });
+        onSave({ id, categoria, campos, tipoForm });
     };
 
     return (
@@ -168,11 +173,28 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
                                     label="Tipo"
                                     onChange={(e) => setNovoCampo({
                                         ...novoCampo,
-                                        tipo: e.target.value as 'CHECKBOX' | 'TEXTO'
+                                        tipo: e.target.value as 'CHECKBOX' | 'TEXTO' | 'SELECT'
                                     })}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            sx: { zIndex: 1301 },
+                                        },
+                                    }}
                                 >
-                                    <MenuItem value="CHECKBOX">Checkbox</MenuItem>
-                                    <MenuItem value="TEXTO">Texto</MenuItem>
+                                    {tipoForm === 'PADRONIZACAO' && (
+                                        <MenuItem value="SELECT">Select</MenuItem>
+
+                                    )}
+                                    {tipoForm !== 'PADRONIZACAO' && (
+                                        <MenuItem value="CHECKBOX">Checkbox</MenuItem>
+
+                                    )}
+                                    {tipoForm !== 'PADRONIZACAO' && (
+                                        <MenuItem value="TEXTO">Texto</MenuItem>
+
+                                    )}
+
+
                                 </Select>
                             </FormControl>
 

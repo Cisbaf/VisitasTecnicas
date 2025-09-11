@@ -4,6 +4,7 @@ import com.formservice.entity.CamposFormEntity;
 import com.formservice.entity.FormEntity;
 import com.formservice.entity.dto.forms.FormRequest;
 import com.formservice.entity.dto.forms.FormResponse;
+import com.formservice.entity.emuns.TipoForm;
 import com.formservice.respository.FormRepository;
 import com.formservice.respository.RespostaRepository;
 import com.formservice.service.capsule.FormService;
@@ -41,17 +42,21 @@ public class FormServiceImp implements FormService {
 
     public ArrayList<FormEntity> getByVisitaId(Long visitaId) {
         var respostas = respostaRepository.findAllByVisitaId(visitaId);
-
-        // Converte a lista de Respostas para uma lista de Forms, removendo duplicatas.
-        // 3. Coleta em uma nova lista
         return respostas.stream()
-                .map(resposta -> resposta.getCampo().getForm()) // 1. Extrai cada FormEntity
+                .map(resposta -> resposta.getCampo().getForm())
                 .distinct().collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
     public List<FormResponse> getAll() {
         return formRepository.findAll().stream()
+                .map(mapper::toFromResponse)
+                .toList();
+    }
+    @Override
+    public List<FormResponse> getAllByTipo(TipoForm tipoForm) {
+        var tipo = TipoForm.valueOf(String.valueOf(tipoForm));
+        return formRepository.findByTipoForm(tipo).stream()
                 .map(mapper::toFromResponse)
                 .toList();
     }

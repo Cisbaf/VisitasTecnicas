@@ -1,6 +1,7 @@
 package com.formservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.formservice.entity.emuns.TipoForm;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,9 @@ public class FormEntity {
     @JsonManagedReference
     @Builder.Default
     private List<CamposFormEntity> campos = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private TipoForm tipoForm;
 
     public void setCampos(List<CamposFormEntity> novosCampos) {
         if (novosCampos != null) {

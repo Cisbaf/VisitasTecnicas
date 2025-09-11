@@ -4,6 +4,7 @@ package com.formservice.service.capsule;
 import com.formservice.entity.FormEntity;
 import com.formservice.entity.dto.forms.FormRequest;
 import com.formservice.entity.dto.forms.FormResponse;
+import com.formservice.entity.emuns.TipoForm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,5 +20,7 @@ public interface FormService {
 
     void deleteForm(Long id);
     ArrayList<FormEntity> getByVisitaId(Long visitaId);
+
+    List<FormResponse> getAllByTipo(TipoForm tipoForm);
 
 }

@@ -10,7 +10,9 @@ import com.formservice.entity.dto.forms.FormResponse;
 import com.formservice.entity.dto.resposta.RespostaRequest;
 import com.formservice.entity.dto.resposta.RespostaResponse;
 import com.formservice.entity.emuns.CheckBox;
+import com.formservice.entity.emuns.Select;
 import com.formservice.entity.emuns.Tipo;
+import com.formservice.entity.emuns.TipoForm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +27,15 @@ class FormMapper {
         return new FormResponse(
                 formEntity.getId(),
                 formEntity.getCategoria(),
-                formEntity.getCampos()
+                formEntity.getCampos(),
+                formEntity.getTipoForm()
         );
     }
 
     FormEntity toFormEntity(FormRequest request) {
         FormEntity form = FormEntity.builder()
                 .categoria(request.categoria())
+                .tipoForm(TipoForm.valueOf(request.tipoForm()))
                 .build();
 
         if (form.getCampos() == null) {
@@ -69,19 +73,21 @@ class FormMapper {
     }
     RespostaResponse toRespostaResponse(Resposta entity) {
         return RespostaResponse.builder()
-                .texto(entity.getTexto())
+                .texto(entity.getTexto() != null ? entity.getTexto() : "")
+                .select(entity.getSelect() != null ? entity.getSelect() : Select.NAO_AVALIADO)
                 .visitaId(entity.getVisitaId())
                 .checkbox(entity.getCheckbox() != null ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
                 .texto(entity.getTexto() != null ? entity.getTexto() : "")
                 .id(entity.getId())
-                .campo(entity.getCampo().getId())
+                .campoId(entity.getCampo().getId())
                 .build();
     }
     Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
         return Resposta.builder()
-                .texto(request.texto())
+                .texto(request.texto() != null ? request.texto() : "")
                 .visitaId(request.visitaId())
                 .checkbox(request.checkbox() != null ? request.checkbox() : CheckBox.NOT_GIVEN)
+                .select(request.select() != null ? request.select() : Select.NAO_AVALIADO)
                 .campo(campo)
                 .build();
     }

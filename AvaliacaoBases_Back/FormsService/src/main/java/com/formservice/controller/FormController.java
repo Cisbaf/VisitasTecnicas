@@ -24,6 +24,16 @@ public class FormController {
         return ResponseEntity.ok().body(service.getAll());
     }
 
+    @GetMapping("/type/{tipoForm}")
+    @Operation(summary = "Get forms by type", description = "Retrieve a list of forms filtered by type")
+    public ResponseEntity<List<FormResponse>> findAllByTipo(@PathVariable String tipoForm) {
+        try {
+            return ResponseEntity.ok().body(service.getAllByTipo(Enum.valueOf(com.formservice.entity.emuns.TipoForm.class, tipoForm.toUpperCase())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get form by ID", description = "Retrieve a form by its ID")
     public ResponseEntity<FormResponse> findById(@PathVariable Long id) {

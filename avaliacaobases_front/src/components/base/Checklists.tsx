@@ -15,6 +15,7 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
+    Chip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useParams } from "next/navigation";
@@ -30,14 +31,18 @@ interface FormCategory {
     }[];
 }
 
+interface FormCategoryWithVisita extends FormCategory {
+    visitaId: number;
+    dataVisita: string;
+}
+
 export default function ChecklistPage() {
     const params = useParams();
     const rawBaseId = params?.baseId as string | undefined;
     const parsed = rawBaseId ? Number(rawBaseId) : NaN;
     const baseId = Number.isNaN(parsed) ? undefined : parsed;
 
-
-    const [forms, setForms] = useState<FormCategory[]>([]);
+    const [forms, setForms] = useState<FormCategoryWithVisita[]>([]);
     const [formData, setFormData] = useState<{ [key: string]: { [key: string]: string } }>({});
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -64,7 +69,7 @@ export default function ChecklistPage() {
                 throw new Error("Falha ao carregar visitas");
             }
 
-            const visitasData = await visitasRes.json();
+            const visitasData: VisitaResponse[] = await visitasRes.json();
             setVisitas(visitasData);
 
             if (visitasData.length === 0) {
@@ -72,16 +77,47 @@ export default function ChecklistPage() {
                 return;
             }
 
-            // 2. Buscar formulários da última visita
-            const ultimaVisita = visitasData[visitasData.length - 1];
-            const response = await fetch(`/api/form/visita/${ultimaVisita.id}`);
-            if (!response.ok) throw new Error('Falha ao carregar formulários');
+            // Ordenar visitas por data (da mais recente para a mais antiga)
+            visitasData.sort((a, b) => new Date(b.dataVisita).getTime() - new Date(a.dataVisita).getTime());
 
-            const formsData = await response.json();
-            setForms(formsData);
+            // Para cada visita, buscar seus formulários
+            const allForms: FormCategoryWithVisita[] = [];
+            const allFormData: { [key: string]: { [key: string]: string } } = {};
 
-            // 3. Buscar respostas para os formulários
-            await fetchAnswersForAllForms(formsData, ultimaVisita.id);
+            for (const visita of visitasData) {
+                try {
+                    const response = await fetch(`/api/form/visita/${visita.id}`);
+                    if (!response.ok) continue;
+
+                    const formsData: FormCategory[] = await response.json();
+
+                    for (const form of formsData) {
+                        const formKey = form.id?.toString() || form.categoria;
+
+                        // Se já processamos este formulário de uma visita mais recente, pular
+                        if (allForms.some(f => (f.id?.toString() || f.categoria) === formKey)) continue;
+
+                        const formDataForVisita = await fetchAnswersForForm(form, visita.id);
+
+                        // Verificar se o formulário tem dados
+                        const hasData = Object.values(formDataForVisita).some(value => value !== '');
+
+                        if (hasData) {
+                            allForms.push({
+                                ...form,
+                                visitaId: visita.id,
+                                dataVisita: visita.dataVisita
+                            });
+                            allFormData[formKey] = formDataForVisita;
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Erro ao processar visita ${visita.id}:`, err);
+                }
+            }
+
+            setForms(allForms);
+            setFormData(allFormData);
 
         } catch (err: any) {
             setError(err?.message ?? "Erro ao carregar formulários");
@@ -90,54 +126,50 @@ export default function ChecklistPage() {
         }
     };
 
-    const fetchAnswersForAllForms = async (formsData: FormCategory[], visitaId: number) => {
-        const allFormData: { [key: string]: { [key: string]: string } } = {};
+    const fetchAnswersForForm = async (form: FormCategory, visitaId: number) => {
+        const formData: { [key: string]: string } = {};
+        const formKey = form.id?.toString() || form.categoria;
 
-        for (const form of formsData) {
-            const formKey = form.id?.toString() || form.categoria;
-            allFormData[formKey] = {};
+        for (const field of form.campos) {
+            const fieldId = field.id ? field.id.toString() : field.titulo;
 
-            for (const field of form.campos) {
-                const fieldId = field.id ? field.id.toString() : field.titulo;
+            if (field.id) {
+                try {
+                    const response = await fetch(
+                        `/api/form/answers?campoId=${field.id}&visitaId=${visitaId}`
+                    );
 
-                if (field.id) {
-                    try {
-                        const response = await fetch(
-                            `/api/form/answers?campoId=${field.id}&visitaId=${visitaId}`
-                        );
-
-                        if (response.ok) {
-                            const answers: RespostaResponse[] = await response.json();
-                            if (answers.length > 0) {
-                                const answer = answers[0];
-                                if (field.tipo === 'TEXTO') {
-                                    allFormData[formKey][fieldId] = answer.texto || '';
-                                } else if (field.tipo === 'CHECKBOX') {
-                                    if (answer.checkbox === 'TRUE') {
-                                        allFormData[formKey][fieldId] = 'sim';
-                                    } else if (answer.checkbox === 'FALSE') {
-                                        allFormData[formKey][fieldId] = 'nao';
-                                    } else {
-                                        allFormData[formKey][fieldId] = '';
-                                    }
+                    if (response.ok) {
+                        const answers: RespostaResponse[] = await response.json();
+                        if (answers.length > 0) {
+                            const answer = answers[0];
+                            if (field.tipo === 'TEXTO') {
+                                formData[fieldId] = answer.texto || '';
+                            } else if (field.tipo === 'CHECKBOX') {
+                                if (answer.checkbox === 'TRUE') {
+                                    formData[fieldId] = 'sim';
+                                } else if (answer.checkbox === 'FALSE') {
+                                    formData[fieldId] = 'nao';
+                                } else {
+                                    formData[fieldId] = '';
                                 }
-                            } else {
-                                allFormData[formKey][fieldId] = '';
                             }
                         } else {
-                            allFormData[formKey][fieldId] = '';
+                            formData[fieldId] = '';
                         }
-                    } catch (err) {
-                        console.error(`Erro ao buscar resposta para campo ${field.id}:`, err);
-                        allFormData[formKey][fieldId] = '';
+                    } else {
+                        formData[fieldId] = '';
                     }
-                } else {
-                    allFormData[formKey][fieldId] = '';
+                } catch (err) {
+                    console.error(`Erro ao buscar resposta para campo ${field.id}:`, err);
+                    formData[fieldId] = '';
                 }
+            } else {
+                formData[fieldId] = '';
             }
         }
 
-        setFormData(allFormData);
+        return formData;
     };
 
     const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -176,7 +208,7 @@ export default function ChecklistPage() {
                         Nenhum formulário encontrado
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
-                        Não há formulários disponíveis no momento.
+                        Não há formulários disponíveis para nenhuma visita.
                     </Typography>
                 </Paper>
             ) : (
@@ -203,7 +235,12 @@ export default function ChecklistPage() {
                                     }}
                                 >
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                        <Typography variant="h6">{form.categoria}</Typography>
+                                        <Box>
+                                            <Typography variant="h6">{form.categoria}</Typography>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                Data da visita: {new Date(form.dataVisita).toLocaleDateString('pt-BR')}
+                                            </Typography>
+                                        </Box>
                                         <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
                                             {form.campos.length} campo{form.campos.length !== 1 ? 's' : ''}
                                         </Typography>
@@ -211,8 +248,6 @@ export default function ChecklistPage() {
                                 </AccordionSummary>
                                 <AccordionDetails>
                                     <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-
-
                                         {form.campos.map((field) => {
                                             const fieldId = field.id ? field.id.toString() : field.titulo;
                                             const fieldValue = currentFormData[fieldId] || '';

@@ -28,19 +28,21 @@ public class CalcularPontos {
                                                     List<RelatoEntity> relatos) {
         List<String> pontos = new ArrayList<>();
         if (forms == null || respostas == null) {
-            pontos.add("Dados insuficientes para identificar pontos fortes");
             return pontos;
         }
 
         Map<Long, CamposFormResponse> camposById = getCamposById(forms);
-
         Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas);
+
         confDetalhada.entrySet().stream()
                 .filter(e -> e.getValue().getMediaPercentTrue() > 0.0)
                 .max(Comparator.comparingDouble(e -> e.getValue().getMediaPercentTrue()))
-                .ifPresent(e -> pontos.add(String.format("Melhor categoria: %s (%.1f%% conformidade)",
-                        e.getKey(),
-                        e.getValue().getMediaPercentTrue())));
+                .ifPresent(e -> {
+                    double percentual = e.getValue().getMediaPercentTrue();
+                    pontos.add(String.format("Melhor categoria: %s (%.1f%% conformidade)",
+                            e.getKey(),
+                            percentual));
+                });
 
         GenericPercentResult gen = calcularPercentuaisGenericosPorCampo(forms, respostas);
         Map<Long, Double> percentTruePorCampo = gen.percentTrueByCampo;
@@ -86,21 +88,29 @@ public class CalcularPontos {
 
         melhorViatura.ifPresent(v -> {
             double media = v.getItens().stream().mapToDouble(Itens::getConformidade).average().orElse(0.0);
-            pontos.add(String.format("Melhor viatura: %s (%.1f%%)", v.getPlaca(), media));
+            if(media > 0.0) {
+                pontos.add(String.format("Melhor viatura: %s (%.1f%%)", v.getPlaca(), media));
+            }
         });
 
         Optional<Itens> melhorEquipamento = Optional.ofNullable(viaturas).orElse(List.of()).stream()
                 .flatMap(v -> Optional.ofNullable(v.getItens()).orElse(List.of()).stream())
                 .max(Comparator.comparingInt(Itens::getConformidade));
 
-        melhorEquipamento.ifPresent(item -> pontos.add(String.format("Melhor equipamento: %s (%d%%)", item.getNome(), item.getConformidade())));
+        melhorEquipamento.ifPresent(item -> {
+            if(item.getConformidade() > 0) {
+                pontos.add(String.format("Melhor equipamento: %s (%d%%)", item.getNome(), item.getConformidade()));
+            }
+        });
 
-        long relatosResolvidos = Optional.ofNullable(relatos).orElse(List.of()).stream().filter(RelatoEntity::getResolvido).count();
+        long relatosResolvidos = Optional.ofNullable(relatos).orElse(List.of()).stream()
+                .filter(RelatoEntity::getResolvido).count();
+
         if (relatosResolvidos > 0) {
             pontos.add(relatosResolvidos + " relatos resolvidos");
         }
 
-        return pontos.isEmpty() ? List.of("Nenhum destaque identificado") : pontos;
+        return pontos; // Retorna vazio se não houver pontos fortes
     }
 
     public static List<String> calcularPontosCriticos(List<FormResponse> forms,

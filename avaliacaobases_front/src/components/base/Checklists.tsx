@@ -16,6 +16,11 @@ import {
     FormControlLabel,
     Radio,
     Chip,
+    Tabs,
+    Tab,
+    InputLabel,
+    Select,
+    MenuItem,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useParams } from "next/navigation";
@@ -24,6 +29,7 @@ import { RespostaResponse, VisitaResponse } from "../types";
 interface FormCategory {
     id?: number;
     categoria: string;
+    tipoForm: string;
     campos: {
         id?: number;
         titulo: string;
@@ -34,6 +40,28 @@ interface FormCategory {
 interface FormCategoryWithVisita extends FormCategory {
     visitaId: number;
     dataVisita: string;
+}
+
+interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`form-tabpanel-${index}`}
+            aria-labelledby={`form-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+        </div>
+    );
 }
 
 export default function ChecklistPage() {
@@ -48,6 +76,7 @@ export default function ChecklistPage() {
     const [error, setError] = useState<string | null>(null);
     const [expanded, setExpanded] = useState<string | false>(false);
     const [visitas, setVisitas] = useState<VisitaResponse[]>([]);
+    const [tabValue, setTabValue] = useState(0);
 
     useEffect(() => {
         fetchForms();
@@ -58,7 +87,6 @@ export default function ChecklistPage() {
             setLoading(true);
             setError(null);
 
-            // 1. Buscar visitas primeiro
             const visitasRes = await fetch(`/api/visita/base/${baseId}`);
             if (!visitasRes.ok) {
                 if (visitasRes.status === 404) {
@@ -77,10 +105,8 @@ export default function ChecklistPage() {
                 return;
             }
 
-            // Ordenar visitas por data (da mais recente para a mais antiga)
             visitasData.sort((a, b) => new Date(b.dataVisita).getTime() - new Date(a.dataVisita).getTime());
 
-            // Para cada visita, buscar seus formulários
             const allForms: FormCategoryWithVisita[] = [];
             const allFormData: { [key: string]: { [key: string]: string } } = {};
 
@@ -90,16 +116,15 @@ export default function ChecklistPage() {
                     if (!response.ok) continue;
 
                     const formsData: FormCategory[] = await response.json();
+                    console.log('Formulários para visita', visita.id, formsData);
 
                     for (const form of formsData) {
-                        const formKey = form.id?.toString() || form.categoria;
+                        const formKey = `${form.tipoForm}-${form.id?.toString() || form.categoria}`;
 
-                        // Se já processamos este formulário de uma visita mais recente, pular
-                        if (allForms.some(f => (f.id?.toString() || f.categoria) === formKey)) continue;
+                        if (allForms.some(f => `${f.tipoForm}-${f.id?.toString() || f.categoria}` === formKey)) continue;
 
                         const formDataForVisita = await fetchAnswersForForm(form, visita.id);
 
-                        // Verificar se o formulário tem dados
                         const hasData = Object.values(formDataForVisita).some(value => value !== '');
 
                         if (hasData) {
@@ -128,7 +153,7 @@ export default function ChecklistPage() {
 
     const fetchAnswersForForm = async (form: FormCategory, visitaId: number) => {
         const formData: { [key: string]: string } = {};
-        const formKey = form.id?.toString() || form.categoria;
+        const formKey = `${form.tipoForm}-${form.id?.toString() || form.categoria}`;
 
         for (const field of form.campos) {
             const fieldId = field.id ? field.id.toString() : field.titulo;
@@ -153,6 +178,14 @@ export default function ChecklistPage() {
                                 } else {
                                     formData[fieldId] = '';
                                 }
+                            } else {
+                                if (answer.select === 'CONFORME') {
+                                    formData[fieldId] = 'conforme';
+                                } else if (answer.select === 'PARCIAL') {
+                                    formData[fieldId] = 'parcial';
+                                } else if (answer.select === 'NAO_CONFORME') {
+                                    formData[fieldId] = 'não conforme';
+                                }
                             }
                         } else {
                             formData[fieldId] = '';
@@ -172,7 +205,11 @@ export default function ChecklistPage() {
         return formData;
     };
 
-    const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue);
+    };
+
+    const handleChangeAccordion = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded ? panel : false);
     };
 
@@ -184,15 +221,15 @@ export default function ChecklistPage() {
         );
     }
 
-    if (error) {
-        return <Alert severity="error">{error}</Alert>;
-    }
+    const filteredForms = forms.filter(form =>
+        tabValue === 0 ? form.tipoForm === "INSPECAO" : form.tipoForm === "PADRONIZACAO"
+    );
 
     return (
         <Box sx={{ padding: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                 <Typography variant="h4" fontWeight="600">
-                    Formulários de Inspeção - Visualização
+                    Formulários - Visualização
                 </Typography>
             </Box>
 
@@ -202,121 +239,267 @@ export default function ChecklistPage() {
                 </Alert>
             )}
 
-            {forms.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h6" color="textSecondary" gutterBottom>
-                        Nenhum formulário encontrado
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        Não há formulários disponíveis para nenhuma visita.
-                    </Typography>
-                </Paper>
-            ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {forms.map((form) => {
-                        const formKey = form.id?.toString() || form.categoria;
-                        const currentFormData = formData[formKey] || {};
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={tabValue} onChange={handleChangeTab}>
+                    <Tab label="Inspeção" />
+                    <Tab label="Padronização" />
+                </Tabs>
+            </Box>
 
-                        return (
-                            <Accordion
-                                key={formKey}
-                                expanded={expanded === formKey}
-                                onChange={handleChange(formKey)}
-                                elevation={2}
-                            >
-                                <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls={`panel-${formKey}-content`}
-                                    id={`panel-${formKey}-header`}
-                                    sx={{
-                                        '&.Mui-expanded': {
-                                            backgroundColor: '#f7f7f7',
-                                        },
-                                    }}
+            <TabPanel value={tabValue} index={0}>
+                {filteredForms.length === 0 ? (
+                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                            Nenhum formulário de inspeção encontrado
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            Não há formulários de inspeção disponíveis para nenhuma visita.
+                        </Typography>
+                    </Paper>
+                ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {filteredForms.map((form) => {
+                            const formKey = `${form.tipoForm}-${form.id?.toString() || form.categoria}`;
+                            const currentFormData = formData[formKey] || {};
+
+                            return (
+                                <Accordion
+                                    key={formKey}
+                                    expanded={expanded === formKey}
+                                    onChange={handleChangeAccordion(formKey)}
+                                    elevation={2}
                                 >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                        <Box>
-                                            <Typography variant="h6">{form.categoria}</Typography>
-                                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                Data da visita: {new Date(form.dataVisita).toLocaleDateString('pt-BR')}
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls={`panel-${formKey}-content`}
+                                        id={`panel-${formKey}-header`}
+                                        sx={{
+                                            '&.Mui-expanded': {
+                                                backgroundColor: '#f7f7f7',
+                                            },
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                            <Box>
+                                                <Typography variant="h6">{form.categoria}</Typography>
+                                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                    Data da visita: {new Date(form.dataVisita).toLocaleDateString('pt-BR')}
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
+                                                {form.campos.length} campo{form.campos.length !== 1 ? 's' : ''}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
-                                            {form.campos.length} campo{form.campos.length !== 1 ? 's' : ''}
-                                        </Typography>
-                                    </Box>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                        {form.campos.map((field) => {
-                                            const fieldId = field.id ? field.id.toString() : field.titulo;
-                                            const fieldValue = currentFormData[fieldId] || '';
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                            {form.campos.map((field) => {
+                                                const fieldId = field.id ? field.id.toString() : field.titulo;
+                                                const fieldValue = currentFormData[fieldId] || '';
 
-                                            return (
-                                                <Paper
-                                                    key={fieldId}
-                                                    elevation={1}
-                                                    sx={{
-                                                        p: 2.5,
-                                                        borderLeft: '6px solid',
-                                                        borderColor: 'primary.main',
-                                                    }}
-                                                >
-                                                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2 }}>
-                                                        {field.titulo}
-                                                    </Typography>
+                                                return (
+                                                    <Paper
+                                                        key={fieldId}
+                                                        elevation={1}
+                                                        sx={{
+                                                            p: 2.5,
+                                                            borderLeft: '6px solid',
+                                                            borderColor: 'primary.main',
+                                                        }}
+                                                    >
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2 }}>
+                                                            {field.titulo}
+                                                        </Typography>
 
-                                                    {field.tipo === 'TEXTO' ? (
-                                                        <TextField
-                                                            fullWidth
-                                                            variant="outlined"
-                                                            placeholder="Nenhuma resposta registrada"
-                                                            value={fieldValue}
-                                                            InputProps={{
-                                                                readOnly: true,
-                                                            }}
-                                                            multiline
-                                                            rows={1}
-                                                            sx={{
-                                                                '& .MuiInputBase-input': {
-                                                                    color: fieldValue ? 'text.primary' : 'text.secondary'
-                                                                }
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <FormControl component="fieldset">
-                                                            <RadioGroup
-                                                                row
+                                                        {field.tipo === 'TEXTO' ? (
+                                                            <TextField
+                                                                fullWidth
+                                                                variant="outlined"
+                                                                placeholder="Nenhuma resposta registrada"
                                                                 value={fieldValue}
-                                                            >
-                                                                <FormControlLabel
-                                                                    value="sim"
-                                                                    control={<Radio disabled />}
-                                                                    label="Sim"
-                                                                />
-                                                                <FormControlLabel
-                                                                    value="nao"
-                                                                    control={<Radio disabled />}
-                                                                    label="Não"
-                                                                />
-                                                            </RadioGroup>
-                                                            {!fieldValue && (
-                                                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-                                                                    Nenhuma resposta selecionada
-                                                                </Typography>
-                                                            )}
-                                                        </FormControl>
-                                                    )}
-                                                </Paper>
-                                            );
-                                        })}
-                                    </Box>
-                                </AccordionDetails>
-                            </Accordion>
-                        );
-                    })}
-                </Box>
-            )}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                multiline
+                                                                rows={1}
+                                                                sx={{
+                                                                    '& .MuiInputBase-input': {
+                                                                        color: fieldValue ? 'text.primary' : 'text.secondary'
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <FormControl component="fieldset">
+                                                                <RadioGroup
+                                                                    row
+                                                                    value={fieldValue}
+                                                                >
+                                                                    <FormControlLabel
+                                                                        value="sim"
+                                                                        control={<Radio disabled />}
+                                                                        label="Sim"
+                                                                    />
+                                                                    <FormControlLabel
+                                                                        value="nao"
+                                                                        control={<Radio disabled />}
+                                                                        label="Não"
+                                                                    />
+                                                                </RadioGroup>
+                                                                {!fieldValue && (
+                                                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                                                                        Nenhuma resposta selecionada
+                                                                    </Typography>
+                                                                )}
+                                                            </FormControl>
+                                                        )}
+                                                    </Paper>
+                                                );
+                                            })}
+                                        </Box>
+                                    </AccordionDetails>
+                                </Accordion>
+                            );
+                        })}
+                    </Box>
+                )}
+            </TabPanel>
+
+            <TabPanel value={tabValue} index={1}>
+                {filteredForms.length === 0 ? (
+                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                            Nenhum formulário de padronização encontrado
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            Não há formulários de padronização disponíveis para nenhuma visita.
+                        </Typography>
+                    </Paper>
+                ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {filteredForms.map((form) => {
+                            const formKey = `${form.tipoForm}-${form.id?.toString() || form.categoria}`;
+                            const currentFormData = formData[formKey] || {};
+
+                            return (
+                                <Accordion
+                                    key={formKey}
+                                    expanded={expanded === formKey}
+                                    onChange={handleChangeAccordion(formKey)}
+                                    elevation={2}
+                                >
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls={`panel-${formKey}-content`}
+                                        id={`panel-${formKey}-header`}
+                                        sx={{
+                                            '&.Mui-expanded': {
+                                                backgroundColor: '#f7f7f7',
+                                            },
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                            <Box>
+                                                <Typography variant="h6">{form.categoria}</Typography>
+                                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                    Data da visita: {new Date(form.dataVisita).toLocaleDateString('pt-BR')}
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
+                                                {form.campos.length} campo{form.campos.length !== 1 ? 's' : ''}
+                                            </Typography>
+                                        </Box>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                            {form.campos.map((field) => {
+                                                const fieldId = field.id ? field.id.toString() : field.titulo;
+                                                const fieldValue = currentFormData[fieldId] || '';
+
+                                                return (
+                                                    <Paper
+                                                        key={fieldId}
+                                                        elevation={1}
+                                                        sx={{
+                                                            p: 2.5,
+                                                            borderLeft: '6px solid',
+                                                            borderColor: 'primary.main',
+                                                        }}
+                                                    >
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2 }}>
+                                                            {field.titulo}
+                                                        </Typography>
+
+                                                        {field.tipo === 'TEXTO' ? (
+                                                            <TextField
+                                                                fullWidth
+                                                                variant="outlined"
+                                                                placeholder="Nenhuma resposta registrada"
+                                                                value={fieldValue}
+                                                                InputProps={{
+                                                                    readOnly: true,
+                                                                }}
+                                                                multiline
+                                                                rows={1}
+                                                                sx={{
+                                                                    '& .MuiInputBase-input': {
+                                                                        color: fieldValue ? 'text.primary' : 'text.secondary'
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : field.tipo === 'CHECKBOX' ? (
+                                                            <FormControl component="fieldset">
+                                                                <RadioGroup row value={fieldValue}>
+                                                                    <FormControlLabel
+                                                                        value="sim"
+                                                                        control={<Radio disabled />}
+                                                                        label="Sim"
+                                                                    />
+                                                                    <FormControlLabel
+                                                                        value="nao"
+                                                                        control={<Radio disabled />}
+                                                                        label="Não"
+                                                                    />
+                                                                </RadioGroup>
+                                                                {!fieldValue && (
+                                                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                                                                        Nenhuma resposta selecionada
+                                                                    </Typography>
+                                                                )}
+                                                            </FormControl>
+                                                        ) : (
+                                                            // Renderização para campos SELECT (padronização)
+                                                            <FormControl fullWidth>
+                                                                <InputLabel>Seleção</InputLabel>
+                                                                <Select
+                                                                    value={fieldValue}
+                                                                    label="Seleção"
+                                                                    disabled
+                                                                    displayEmpty
+                                                                    renderValue={(value) => {
+                                                                        if (!value) return "Nenhuma resposta selecionada";
+                                                                        if (value === "conforme") return "Conforme";
+                                                                        if (value === "parcial") return "Parcial";
+                                                                        if (value === "não conforme") return "Não Conforme";
+                                                                        return value;
+                                                                    }}
+                                                                >
+                                                                    <MenuItem value="conforme">Conforme</MenuItem>
+                                                                    <MenuItem value="parcial">Parcial</MenuItem>
+                                                                    <MenuItem value="não conforme">Não Conforme</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                        )}
+                                                    </Paper>
+                                                );
+                                            })}
+                                        </Box>
+                                    </AccordionDetails>
+                                </Accordion>
+                            );
+                        })}
+                    </Box>
+                )}
+            </TabPanel>
         </Box>
     );
 }

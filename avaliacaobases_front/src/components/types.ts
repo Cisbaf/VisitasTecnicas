@@ -120,6 +120,17 @@ export interface BaseResponse {
     bairro: string;
     municipio: string;
 }
+export type BaseRequest = {
+    id?: number;
+    nome?: string;
+    bairro?: string;
+    municipio?: string;
+    endereco?: string;
+    telefone?: string;
+    email?: string;
+    tipoBase?: string;
+};
+
 
 export interface Avaliacao {
     id: number;
@@ -157,7 +168,7 @@ export interface RelatoDTO {
     prioridade: 'alta' | 'media' | 'baixa';
     gestorResponsavel?: string;
     baseId: number;
-    visitas: number;
+    id_visita: number;
 }
 
 export interface VisitaDetails {
@@ -231,4 +242,16 @@ export interface Midia {
     idVisita: number | null;
     idCategoria: number | null;
     flag?: Flag;
+}
+
+export interface RelatoDTO {
+    id: number;
+    tema: string;
+    mensagem: string;
+    autor: string;
+    data: string;
+    resolvido: boolean;
+    gestorResponsavel?: string;
+    baseId: number;
+    visitas: number;
 }

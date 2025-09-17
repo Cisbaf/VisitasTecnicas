@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -9,23 +9,16 @@ import {
     TextField,
     Stack,
 } from "@mui/material";
+import { BaseRequest, BaseResponse } from "@/components/types";
 
-type BaseFormData = {
-    nome?: string;
-    bairro?: string;
-    municipio?: string;
-    endereco?: string;
-    telefone?: string;
-    email?: string;
-    tipoBase?: string;
-};
+
 
 interface BaseDialogProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    formData: BaseFormData;
-    setFormData: React.Dispatch<React.SetStateAction<BaseFormData>>;
+    formData: BaseRequest;
+    setFormData: Dispatch<SetStateAction<BaseRequest | undefined>>;
     editingBase?: boolean;
     handlePhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

@@ -51,13 +51,13 @@ export default function MidiaGallery({
     onUploadMidia,
 }: MidiaGalleryProps) {
     const [open, setOpen] = useState(false);
-    const [currentImage, setCurrentImage] = useState<{ url: string; alt?: string } | null>(null);
+    const [currentImage, setCurrentImage] = useState<{ url: string; id?: string } | null>(null);
 
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
-    const handleOpenImage = (url: string, alt?: string) => {
-        setCurrentImage({ url, alt });
+    const handleOpenImage = (url: string, id?: string) => {
+        setCurrentImage({ url, id: id });
         setOpen(true);
     };
 
@@ -212,7 +212,6 @@ export default function MidiaGallery({
                 fullWidth
                 maxWidth="lg"
                 fullScreen={fullScreen}
-                aria-label="Visualizador da imagem"
             >
                 <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "#f5f5f5" }}>
                     <IconButton onClick={handleClose} size="small" aria-label="Fechar" sx={{ color: "black" }}>
@@ -234,7 +233,7 @@ export default function MidiaGallery({
                     {currentImage ? (
                         <img
                             src={currentImage.url}
-                            alt={currentImage.alt}
+                            alt={currentImage.id}
                             style={{
                                 maxWidth: "100%",
                                 maxHeight: fullScreen ? "100vh" : "80vh",

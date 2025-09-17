@@ -25,7 +25,7 @@ import {
     Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import { BaseResponse } from "../types";
+import { BaseRequest, BaseResponse } from "../types";
 import BaseDialog from "./visita/modal/BaseDialog";
 
 interface Base extends BaseResponse {
@@ -41,7 +41,7 @@ export default function AdminBasesPage() {
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingBase, setEditingBase] = useState<Base | null>(null);
-    const [formData, setFormData] = useState<BaseResponse>();
+    const [formData, setFormData] = useState<BaseRequest>();
     const [phoneError, setPhoneError] = useState<string | null>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
 
@@ -348,16 +348,34 @@ export default function AdminBasesPage() {
                                     </Typography>
                                 </Box>
 
+
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    {base.bairro} - {base.municipio}
+                                </Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                     {base.endereco}
                                 </Typography>
 
-                                <Chip
-                                    label={base.tipoBase}
-                                    color={base.tipoBase === "Principal" ? "primary" : "default"}
-                                    size="small"
-                                    sx={{ mb: 2 }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    <Chip
+                                        label={base.tipoBase}
+                                        color={base.tipoBase === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Chip
+                                        label={base.telefone}
+                                        color={base.telefone === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Chip
+                                        label={base.email}
+                                        color={base.email === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                </div>
 
                                 <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                                     <Chip
@@ -410,8 +428,8 @@ export default function AdminBasesPage() {
                 onClose={handleCloseDialog}
                 onSubmit={handleSubmit}
                 formData={formData!}
-                setFormData={setFormData.apply}
-                editingBase={!editingBase}
+                setFormData={setFormData}
+                editingBase={!!editingBase}
                 handlePhoneChange={handlePhoneChange}
                 handleEmailChange={handleEmailChange}
                 phoneError={phoneError}

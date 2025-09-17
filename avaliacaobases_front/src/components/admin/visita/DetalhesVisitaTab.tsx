@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Chip, Divider, IconButton, Paper, Typography, } from "@mui/material";
 import { Delete as DeleteIcon, Edit as EditIcon, Person as PersonIcon, Save as SaveIcon } from "@mui/icons-material";
 import { RelatoDTO, VisitaDetails } from "@/components/types";
@@ -14,6 +14,7 @@ interface DetalhesVisitaTabProps {
     onAddRelato: (payload: any) => void;
     onUpdateRelato: (relatoId: number, updates: Partial<RelatoDTO>) => void;
     onDeleteRelato: (relatoId: number) => void;
+    fetchRelatos: () => Promise<void>;
 }
 
 export default function DetalhesVisitaTab({
@@ -24,7 +25,54 @@ export default function DetalhesVisitaTab({
     onAddRelato,
     onUpdateRelato,
     onDeleteRelato,
+    fetchRelatos
 }: DetalhesVisitaTabProps) {
+    const [editandoRelatoId, setEditandoRelatoId] = useState<number | null>(null);
+    const [relatoEditando, setRelatoEditando] = useState<RelatoDTO | null>(null);
+
+    const iniciarEdicao = (relato: RelatoDTO) => {
+        setEditandoRelatoId(relato.id);
+        setRelatoEditando(relato);
+    };
+
+    const cancelarEdicao = () => {
+        setEditandoRelatoId(null);
+        setRelatoEditando(null);
+    };
+
+    const handleUpdateRelato = async (relatoId: number, updates: Partial<RelatoDTO>) => {
+        try {
+            // Encontrar o relato atual pelo ID
+            const relatoAtual = relatos.find(r => r.id === relatoId);
+            if (relatoAtual) {
+                relatoAtual.id_visita = visita.id;
+            }
+
+            if (!relatoAtual) {
+                console.error('Relato não encontrado');
+                return;
+            }
+
+            // Mesclar as atualizações com o relato atual
+            const relatoAtualizado = { ...relatoAtual, ...updates };
+
+            // Fazer a requisição PUT com o objeto completo
+            const response = await fetch(`/api/visita/relatos/${relatoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(relatoAtualizado),
+            });
+
+            if (response.ok) {
+                cancelarEdicao();
+                await fetchRelatos();
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar relato:', error);
+        }
+    };
     return (
         <>
 
@@ -50,36 +98,52 @@ export default function DetalhesVisitaTab({
                 <Typography variant="subtitle1" gutterBottom>Relatos</Typography>
 
                 {relatos.slice(0, 3).map((relato) => (
-                    <Paper
-                        key={relato.id}
-                        sx={{
-                            p: 1.5,
-                            mb: 1,
-                            borderRadius: 2,
-                            borderLeft: relato.resolvido ? "6px solid green" : "6px solid red",
-                        }}
-                    >
-                        <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                            <Box>
-                                <Typography variant="subtitle2">{relato.tema ?? "Sem tema"}</Typography>
-                                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>{relato.mensagem}</Typography>
-                                <Typography variant="caption" display="block" color="text.secondary">
-                                    {relato.autor} • {relato.data ? new Date(relato.data).toLocaleDateString('pt-BR') : ""}
-                                </Typography>
+                    editandoRelatoId === relato.id ? (
+                        <Paper key={relato.id} sx={{ p: 2, mb: 2 }}>
+                            <AddRelatoInline
+                                members={visita.membros}
+                                onAdd={(payload) => handleUpdateRelato(payload.id, payload)}
+                                onCancel={cancelarEdicao}
+                                initialData={{
+                                    id: relato.id,
+                                    autor: relato.autor,
+                                    mensagem: relato.mensagem,
+                                    tema: relato.tema || '',
+                                    gestorResponsavel: relato.gestorResponsavel || '',
+                                    resolvido: relato.resolvido || false
+                                }}
+                                isEditing={true}
+                            />
+                        </Paper>
+                    ) : (
+                        <Paper
+                            key={relato.id}
+                            sx={{
+                                p: 1.5,
+                                mb: 1,
+                                borderRadius: 2,
+                                borderLeft: relato.resolvido ? "6px solid green" : "6px solid red",
+                            }}
+                        >
+                            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                                <Box>
+                                    <Typography variant="subtitle2">{relato.tema ?? "Sem tema"}</Typography>
+                                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>{relato.mensagem}</Typography>
+                                    <Typography variant="caption" display="block" color="text.secondary">
+                                        {relato.autor} • {relato.data ? new Date(relato.data).toLocaleDateString('pt-BR') : ""}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                    <IconButton size="small" onClick={() => iniciarEdicao(relato)}>
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton size="small" onClick={() => onDeleteRelato(relato.id)}>
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
                             </Box>
-                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                <IconButton size="small" onClick={() => {
-                                    const novo = prompt("Editar relato", relato.mensagem);
-                                    if (novo !== null) onUpdateRelato(relato.id, { mensagem: novo });
-                                }}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton size="small" onClick={() => onDeleteRelato(relato.id)}>
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                            </Box>
-                        </Box>
-                    </Paper>
+                        </Paper>
+                    )
                 ))}
 
                 {relatos.length === 0 && (

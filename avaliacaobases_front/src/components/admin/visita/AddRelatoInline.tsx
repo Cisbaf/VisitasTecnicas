@@ -1,55 +1,81 @@
-import React, {useEffect, useState} from "react";
-import {Box, Button, FormControl, InputLabel, MenuItem, Select, TextField,} from "@mui/material";
-import {EquipeTecnica} from "@/components/types";
+import React, { useEffect, useState } from "react";
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, TextField, } from "@mui/material";
+import { EquipeTecnica } from "@/components/types";
 
 interface AddRelatoInlineProps {
     members: EquipeTecnica[];
     onAdd: (p: {
+        id: number;
         autor: string;
         mensagem: string;
         tema?: string;
         gestorResponsavel: string;
-        resolvido: boolean
+        resolvido: boolean;
+        visitaId?: number;
     }) => void;
+    onCancel?: () => void;
+    initialData?: {
+        id: number;
+        autor: string;
+        mensagem: string;
+        tema?: string;
+        gestorResponsavel: string;
+        resolvido: boolean;
+    };
+    isEditing?: boolean;
 }
 
-export default function AddRelatoInline({members, onAdd}: AddRelatoInlineProps) {
-    const [autor, setAutor] = useState(members[0]?.nome ?? "");
-    const [mensagem, setMensagem] = useState("");
-    const [tema, setTema] = useState("");
-    const [gestorResponsavel, setGestorResponsavel] = useState("");
-    const [resolvido, setResolvido] = useState(false);
+export default function AddRelatoInline({
+    members,
+    onAdd,
+    onCancel,
+    initialData,
+    isEditing = false
+}: AddRelatoInlineProps) {
+    const [autor, setAutor] = useState(initialData?.autor || members[0]?.nome || "");
+    const [mensagem, setMensagem] = useState(initialData?.mensagem || "");
+    const [tema, setTema] = useState(initialData?.tema || "");
+    const [gestorResponsavel, setGestorResponsavel] = useState(initialData?.gestorResponsavel || "");
+    const [resolvido, setResolvido] = useState(initialData?.resolvido || false);
 
     useEffect(() => {
-        if (members.length && !autor) {
-            setAutor(members[0].nome);
+        if (initialData) {
+            setAutor(initialData.autor);
+            setMensagem(initialData.mensagem);
+            setTema(initialData.tema || "");
+            setGestorResponsavel(initialData.gestorResponsavel);
+            setResolvido(initialData.resolvido);
         }
-    }, [members, autor]);
+    }, [initialData]);
 
     const handleSubmit = () => {
         if (!mensagem.trim()) return;
         onAdd({
+            id: initialData?.id || 0,
             autor,
             mensagem,
             tema: tema.trim() || undefined,
             gestorResponsavel,
             resolvido
         });
-        setMensagem("");
-        setTema("");
-        setGestorResponsavel("");
-        setResolvido(false);
+
+        if (!isEditing) {
+            setMensagem("");
+            setTema("");
+            setGestorResponsavel("");
+            setResolvido(false);
+        }
     };
 
     return (
-        <Box sx={{display: "flex", flexDirection: "column", gap: 2, mt: 1}}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <FormControl size="small">
                 <InputLabel>Autor</InputLabel>
                 <Select
                     value={autor}
                     label="Autor"
                     onChange={(e) => setAutor(e.target.value)}
-                    sx={{minWidth: 200}}
+                    sx={{ minWidth: 200 }}
                 >
                     {members.map((m, idx) => (
                         <MenuItem key={idx} value={m.nome}>
@@ -64,14 +90,12 @@ export default function AddRelatoInline({members, onAdd}: AddRelatoInlineProps) 
                 size="small"
                 value={gestorResponsavel}
                 onChange={(e) => setGestorResponsavel(e.target.value)}
-                required
             />
             <TextField
                 label="Tema"
                 size="small"
                 value={tema}
                 onChange={(e) => setTema(e.target.value)}
-                required
             />
             <FormControl size="small">
                 <InputLabel>Resolvido</InputLabel>
@@ -92,14 +116,19 @@ export default function AddRelatoInline({members, onAdd}: AddRelatoInlineProps) 
                 value={mensagem}
                 onChange={(e) => setMensagem(e.target.value)}
             />
-            <Box sx={{display: "flex", gap: 1}}>
+            <Box sx={{ display: "flex", gap: 1 }}>
                 <Button
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={!mensagem.trim()}
                 >
-                    Adicionar Relato
+                    {isEditing ? "Atualizar Relato" : "Adicionar Relato"}
                 </Button>
+                {isEditing && onCancel && (
+                    <Button variant="outlined" onClick={onCancel}>
+                        Cancelar
+                    </Button>
+                )}
             </Box>
         </Box>
     );

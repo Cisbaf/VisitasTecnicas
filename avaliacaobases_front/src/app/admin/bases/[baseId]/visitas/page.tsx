@@ -16,7 +16,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 import { VisitaDetails, RelatoDTO } from "@/components/types";
-import VisitaDialog from "@/components/admin/visita/VisitaDialog"; // Renomeado e modificado
+import VisitaDialog from "@/components/admin/visita/modal/VisitaDialog"; // Renomeado e modificado
 import VisitaList from "@/components/admin/visita/VisitaList";
 
 export default function BaseVisitasPage() {

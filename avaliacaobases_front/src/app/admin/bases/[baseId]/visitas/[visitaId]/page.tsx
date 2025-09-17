@@ -246,6 +246,7 @@ export default function VisitaDetailPage() {
                         onAddRelato={addRelatoToVisit}
                         onUpdateRelato={updateRelato}
                         onDeleteRelato={deleteRelato}
+                        fetchRelatos={fetchRelatos}
                     />
                 </TabPanel>
 

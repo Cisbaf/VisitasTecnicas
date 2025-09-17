@@ -67,6 +67,9 @@ public class RelatorioTecnicoService {
         relatorio.setPontosCriticos(CalcularPontos.calcularPontosCriticos(forms, respostas, relatos, viaturas));
 
         Map<String, CategoryConformanceDTO> confDetalhada = CalcularPontos.calcularConformidadesDetalhadas(forms, respostas);
+
+
+
         relatorio.setConformidadeDetalhada(confDetalhada);
 
         Map<String, Double> conformidadesSimples = confDetalhada.entrySet().stream()

@@ -7,6 +7,7 @@ import com.relatorioservice.entity.fora.forms.dto.FormResponse;
 import com.relatorioservice.entity.fora.forms.dto.RespostaResponse;
 import com.relatorioservice.entity.fora.forms.enums.CheckBox;
 import com.relatorioservice.entity.fora.forms.enums.Select;
+import com.relatorioservice.entity.fora.forms.enums.Tipo;
 import com.relatorioservice.entity.fora.viatura.Itens;
 import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
 
@@ -18,6 +19,8 @@ public class CalcularPontos {
 
     private static final double THRESHOLD_FORTES = 80.0;
     private static final double THRESHOLD_CRITICOS = 20.0;
+    private static final double NAO_CALCULADO = -1.0;
+
 
     public static List<String> calcularPontosFortes(List<FormResponse> forms,
                                                     List<RespostaResponse> respostas,
@@ -33,8 +36,11 @@ public class CalcularPontos {
 
         Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas);
         confDetalhada.entrySet().stream()
+                .filter(e -> e.getValue().getMediaPercentTrue() > 0.0)
                 .max(Comparator.comparingDouble(e -> e.getValue().getMediaPercentTrue()))
-                .ifPresent(e -> pontos.add(String.format("Melhor categoria: %s (%.1f%% conformidade)", e.getKey(), e.getValue().getMediaPercentTrue())));
+                .ifPresent(e -> pontos.add(String.format("Melhor categoria: %s (%.1f%% conformidade)",
+                        e.getKey(),
+                        e.getValue().getMediaPercentTrue())));
 
         GenericPercentResult gen = calcularPercentuaisGenericosPorCampo(forms, respostas);
         Map<Long, Double> percentTruePorCampo = gen.percentTrueByCampo;
@@ -184,20 +190,20 @@ public class CalcularPontos {
         return criticos.isEmpty() ? List.of("Nenhum ponto crítico identificado") : criticos;
     }
 
+
     public static Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas) {
         Map<String, CategoryConformanceDTO> mapa = new HashMap<>();
         if (forms == null || respostas == null) return mapa;
 
         for (FormResponse form : forms) {
             if (form.campos() == null || form.campos().isEmpty()) {
-                mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), 0.0, 0.0, 0.0, 0.0));
+                mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), NAO_CALCULADO, 0.0, 0.0, 0.0));
                 continue;
             }
 
             List<CamposFormResponse> camposRelevantes = form.campos().stream()
                     .filter(c -> c.tipo() != null &&
-                            (c.tipo().name().equalsIgnoreCase("CHECKBOX") ||
-                                    c.tipo().name().equalsIgnoreCase("SELECT")))
+                            (c.tipo() == Tipo.CHECKBOX || c.tipo() == Tipo.SELECT))
                     .toList();
 
             if (camposRelevantes.isEmpty()) {
@@ -210,69 +216,72 @@ public class CalcularPontos {
             List<Double> listaNot = new ArrayList<>();
             int camposFora = 0;
             int camposComDados = 0;
+            boolean categoriaAvaliada = false;
 
             for (CamposFormResponse campo : camposRelevantes) {
                 Long id = campo.id();
-                List<RespostaResponse> rCampo = respostas.stream()
+                List<RespostaResponse> respostasCampo = respostas.stream()
                         .filter(r -> r.campoId() != null && r.campoId().equals(id))
                         .toList();
 
-                if (rCampo.isEmpty()) {
+                if (respostasCampo.isEmpty()) {
                     continue;
                 }
 
-                boolean anyCheckbox = rCampo.stream().anyMatch(rr -> rr.checkbox() != null);
-                boolean anySelect = rCampo.stream().anyMatch(rr -> rr.select() != null);
-
-                if (anyCheckbox) {
-                    long trueCount = rCampo.stream()
+                // Verifica o tipo do campo diretamente em vez de depender dos valores das respostas
+                if (campo.tipo() == Tipo.CHECKBOX) {
+                    long trueCount = respostasCampo.stream()
                             .map(RespostaResponse::checkbox)
                             .filter(Objects::nonNull)
                             .filter(cb -> cb == CheckBox.TRUE)
                             .count();
 
-                    long falseCount = rCampo.stream()
+                    long falseCount = respostasCampo.stream()
                             .map(RespostaResponse::checkbox)
                             .filter(Objects::nonNull)
                             .filter(cb -> cb == CheckBox.FALSE)
                             .count();
 
-                    long notGiven = rCampo.stream()
+                    long notGiven = respostasCampo.stream()
                             .map(RespostaResponse::checkbox)
                             .filter(cb -> cb == null || cb == CheckBox.NOT_GIVEN)
                             .count();
 
                     long validCount = trueCount + falseCount;
                     if (validCount > 0) {
-                        double pTrue = (double) trueCount / (double) validCount * 100.0;
-                        double pFalse = (double) falseCount / (double) validCount * 100.0;
-                        double pNot = (double) notGiven / (double) rCampo.size() * 100.0;
+                        categoriaAvaliada = true;
+                        double pTrue = (double) trueCount / validCount * 100.0;
+                        double pFalse = (double) falseCount / validCount * 100.0;
+                        double pNot = (double) notGiven / respostasCampo.size() * 100.0;
+
                         listaTrue.add(pTrue);
                         listaFalse.add(pFalse);
                         listaNot.add(pNot);
+
                         camposComDados++;
                         if (pTrue < THRESHOLD_FORTES) camposFora++;
                     }
-                } else if (anySelect) {
-                    long conformeCount = rCampo.stream()
+                }
+                else if (campo.tipo() == Tipo.SELECT) {
+                    long conformeCount = respostasCampo.stream()
                             .map(RespostaResponse::select)
                             .filter(Objects::nonNull)
                             .filter(sel -> sel == Select.CONFORME)
                             .count();
 
-                    long naoConformeCount = rCampo.stream()
+                    long naoConformeCount = respostasCampo.stream()
                             .map(RespostaResponse::select)
                             .filter(Objects::nonNull)
                             .filter(sel -> sel == Select.NAO_CONFORME)
                             .count();
 
-                    long parcialCount = rCampo.stream()
+                    long parcialCount = respostasCampo.stream()
                             .map(RespostaResponse::select)
                             .filter(Objects::nonNull)
                             .filter(sel -> sel == Select.PARCIAL)
                             .count();
 
-                    long notGivenCount = rCampo.stream()
+                    long notGivenCount = respostasCampo.stream()
                             .map(RespostaResponse::select)
                             .filter(sel -> sel == null || sel == Select.NAO_AVALIADO)
                             .count();
@@ -280,12 +289,14 @@ public class CalcularPontos {
                     long validCount = conformeCount + naoConformeCount + parcialCount;
 
                     if (validCount > 0) {
-                        double pConforme = (double) conformeCount / (double) validCount * 100.0;
-                        double pNaoConforme = (double) naoConformeCount / (double) validCount * 100.0;
-                        double pParcial = (double) parcialCount / (double) validCount * 100.0;
-                        double pNot = (double) notGivenCount / (double) rCampo.size() * 100.0;
+                        categoriaAvaliada = true;
+                        double pConforme = (double) conformeCount / validCount * 100.0;
+                        double pNaoConforme = (double) naoConformeCount / validCount * 100.0;
+                        double pParcial = (double) parcialCount / validCount * 100.0;
+                        double pNot = (double) notGivenCount / respostasCampo.size() * 100.0;
 
                         listaTrue.add(pConforme);
+                        // Considera não conforme e parcial como "false" para o cálculo
                         listaFalse.add(pNaoConforme + pParcial);
                         listaNot.add(pNot);
 
@@ -295,10 +306,22 @@ public class CalcularPontos {
                 }
             }
 
-            double mediaTrue = listaTrue.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            double mediaFalse = listaFalse.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            double mediaNot = listaNot.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            double percCamposFora = camposComDados == 0 ? 0.0 : (double) camposFora / (double) camposComDados * 100.0;
+            double mediaTrue;
+            double mediaFalse;
+            double mediaNot;
+            double percCamposFora;
+
+            if (!categoriaAvaliada) {
+                mediaTrue = NAO_CALCULADO;
+                mediaFalse = 0.0;
+                mediaNot = 0.0;
+                percCamposFora = 0.0;
+            } else {
+                mediaTrue = listaTrue.isEmpty() ? 0.0 : listaTrue.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                mediaFalse = listaFalse.isEmpty() ? 0.0 : listaFalse.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                mediaNot = listaNot.isEmpty() ? 0.0 : listaNot.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                percCamposFora = camposComDados == 0 ? 0.0 : (double) camposFora / camposComDados * 100.0;
+            }
 
             mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), mediaTrue, mediaFalse, mediaNot, percCamposFora));
         }

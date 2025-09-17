@@ -1,5 +1,5 @@
-import {NextResponse} from "next/server";
-import {cookies} from "next/headers";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -9,16 +9,16 @@ async function proxyFetch(path: string, init?: RequestInit) {
         const status = res.status;
         const contentType = res.headers.get("content-type") || "";
 
-        if (status === 204) return new NextResponse(null, {status});
+        if (status === 204) return new NextResponse(null, { status });
 
         const bodyText = await res.text();
         return new NextResponse(bodyText, {
             status,
-            headers: {"content-type": contentType},
+            headers: { "content-type": contentType },
         });
     } catch (err: any) {
         console.error("proxyFetch network error:", err);
-        return NextResponse.json({message: "Bad gateway", detail: err?.message ?? String(err)}, {status: 502});
+        return NextResponse.json({ message: "Bad gateway", detail: err?.message ?? String(err) }, { status: 502 });
     }
 }
 
@@ -26,15 +26,15 @@ export async function GET() {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({message: "Unauthorized"}, {status: 401});
+        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita}`, {
-            headers: {Authorization: `Bearer ${token}`},
+        return await proxyFetch(`/visita`, {  // Removed extra brace
+            headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/visita/relatos GET proxy error:", err);
-        return NextResponse.json({message: "Erro interno", detail: String(err)}, {status: 500});
+        console.error("api/visita GET proxy error:", err);
+        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
 
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({message: "Unauthorized"}, {status: 401});
+        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
         return await proxyFetch(`/visita`, {
@@ -54,8 +54,7 @@ export async function POST(req: Request) {
             body: bodyText,
         });
     } catch (err) {
-        console.error("api/visita/relatos POST proxy error:", err);
-        return NextResponse.json({message: "Erro interno", detail: String(err)}, {status: 500});
+        console.error("api/visita POST proxy error:", err);
+        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
-

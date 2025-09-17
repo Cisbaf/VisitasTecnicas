@@ -48,7 +48,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ visitaId
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/relatorios/consolidado/[idBase] GET proxy error:", err);
+        console.error("api/form/visita/[visitaId] GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

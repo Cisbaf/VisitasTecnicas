@@ -41,3 +41,21 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ relat
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
+export async function PUT(req: Request, { params }: { params: Promise<{ relatoId: string }> }) {
+    try {
+        const { relatoId } = await params;
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        const bodyText = await req.text();
+        return await proxyFetch(`/visita/relatos/${encodeURIComponent(relatoId)}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": req.headers.get("content-type") ?? "application/json" },
+            body: bodyText,
+        });
+    } catch (err) {
+        console.error("api/visita/relatos/[relatoId] PUT proxy error:", err);
+        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
+    }
+}

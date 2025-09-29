@@ -89,13 +89,16 @@ public class UserServiceImp implements UserService {
         var entity = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         var oldpass = entity.getPassword();
 
-        BeanUtils.copyProperties(request, entity, "password");
 
-        if (!BCrypt.checkpw(request.password(), oldpass)) {
+        if (!request.password().equals(oldpass) && request.role().equals(entity.getRole()) && request.baseId().equals(entity.getBaseId())) {
+            System.out.println("New pass: " + request.password());
+            System.out.println("Oldpass: " + oldpass);
             entity.setPassword(BCrypt.hashpw(request.password(), BCrypt.gensalt()));
         } else {
             entity.setPassword(oldpass);
         }
+        BeanUtils.copyProperties(request, entity, "password");
+
         userRepository.save(entity);
         return UserMapper.toResponse(entity);
     }

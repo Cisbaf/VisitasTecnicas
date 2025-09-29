@@ -43,12 +43,19 @@ public class VisitaController {
     }
 
     @GetMapping("/periodo/{idBase}")
-    @Operation(summary = "Get Visitas by Period", description = "Retrieve visitas for a specific base within a date range.")
-    public ResponseEntity<List<VisitaResponse>> getAllByPeriod(@PathVariable Long idBase,
+    @Operation(summary = "Get Visitas by Period and BaseID", description = "Retrieve visitas for a specific base within a date range.")
+    public ResponseEntity<List<VisitaResponse>> getBaseByPeriod(@PathVariable Long idBase,
                                                                @RequestParam() LocalDate dataInicio,
                                                                @RequestParam() LocalDate dataFim) {
-        return ResponseEntity.ok(service.getAllByPeriod(idBase, dataInicio, dataFim));
+        return ResponseEntity.ok(service.getBaseByPeriod(idBase, dataInicio, dataFim));
     }
+
+    @GetMapping("/periodo")
+    @Operation(summary = "Get Visitas by Period", description = "Retrieve visitas within a date range.")
+    public ResponseEntity<List<VisitaResponse>> getAllByPeriod(@RequestParam() LocalDate dataInicio, @RequestParam() LocalDate dataFim) {
+        return ResponseEntity.ok(service.getAllByPeriod( dataInicio, dataFim));
+    }
+
     @GetMapping("/base/{idBase}")
     @Operation(summary = "Get Visitas by Base ID", description = "Retrieve visitas associated with a specific base ID.")
     public ResponseEntity<List<VisitaResponse>> getAllByBaseId(@PathVariable Long idBase) {
@@ -80,6 +87,14 @@ public class VisitaController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Delete all Visitas by Base ID", description = "Delete all visitas associated with a specific base ID.")
+    @DeleteMapping("/base/{idBase}")
+    public ResponseEntity<Void> deleteAllByBaseId(@PathVariable Long idBase) {
+        service.deleteAllByBaseId(idBase);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/membro/{visitaId}")
     @Operation(summary = "Remove a member from a Visita", description = "Remove a team member from an existing visita by its ID.")
     public ResponseEntity<VisitaResponse> removeMembroFromVisita(@PathVariable Long visitaId, @RequestBody @Valid EquipeTecnica membro) {

@@ -18,12 +18,16 @@ public interface VisitaService {
 
     List<EquipeTecnica> getAllMembrosByVisitaId(Long visitaId);
 
-    List<VisitaResponse> getAllByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim);
+    List<VisitaResponse> getBaseByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim);
 
+    List<VisitaResponse> getAllByPeriod(LocalDate dataInicio, LocalDate dataFim);
 
     VisitaResponse updateVisita(Long id, VisitaRequest request);
 
     void delete(Long id);
+
+    void deleteAllByBaseId(Long idBase);
+
     VisitaResponse removeMembroFromVisita(Long visitaId, EquipeTecnica membro);
 
     Boolean existsVisitaById(Long id);

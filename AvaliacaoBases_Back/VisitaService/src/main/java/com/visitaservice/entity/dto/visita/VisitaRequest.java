@@ -5,6 +5,7 @@ import com.visitaservice.entity.VisitaEntity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 @Value
 @Builder
+@ToString
 public class VisitaRequest implements Serializable {
     @NotNull(message = "A data da visita é requerida")
     LocalDate dataVisita;

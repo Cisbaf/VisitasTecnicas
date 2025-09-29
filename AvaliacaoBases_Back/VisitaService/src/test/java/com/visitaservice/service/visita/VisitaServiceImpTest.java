@@ -5,7 +5,6 @@ import com.visitaservice.entity.VisitaEntity;
 import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.repository.VisitaRepository;
-import com.visitaservice.service.IdBaseExists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

@@ -1,4 +1,4 @@
-package com.visitaservice.service;
+package com.visitaservice.service.visita;
 
 
 import org.springframework.cloud.openfeign.FeignClient;

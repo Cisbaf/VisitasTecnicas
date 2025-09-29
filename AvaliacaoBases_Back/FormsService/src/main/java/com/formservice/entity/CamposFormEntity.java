@@ -45,8 +45,4 @@ public class CamposFormEntity {
         this.resposta.add(r);
     }
 
-    public void removeResposta(Resposta r) {
-        r.setCampo(null);
-        this.resposta.remove(r);
-    }
 }

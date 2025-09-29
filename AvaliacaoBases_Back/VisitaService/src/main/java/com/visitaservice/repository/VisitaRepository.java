@@ -12,6 +12,4 @@ public interface VisitaRepository extends JpaRepository<VisitaEntity, Long> {
     List<VisitaEntity> getByDataVisitaBetween(LocalDate dataVisitaAfter, LocalDate dataVisitaBefore);
 
     List<VisitaEntity> findVisitaEntitiesByIdBase(Long idBase);
-
-    void deleteAllByIdBase(Long idBase);
 }

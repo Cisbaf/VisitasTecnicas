@@ -1,4 +1,4 @@
-package com.inspecaoservice.config;
+package com.baseservice.config;
 
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;

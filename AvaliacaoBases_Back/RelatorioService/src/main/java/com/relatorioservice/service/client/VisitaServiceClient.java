@@ -25,9 +25,9 @@ public interface VisitaServiceClient {
     List<RelatoEntity> getRelatosByVisita(@PathVariable Long visitaId);
 
     @GetMapping("/periodo/{idBase}")
-    List<VisitaEntity> getAllByPeriod(@PathVariable Long idBase,
-                                      @RequestParam() LocalDate dataInicio,
-                                      @RequestParam() LocalDate dataFim);
-
-
+    List<VisitaEntity> getBaseByPeriodAndBaseId(@PathVariable Long idBase,
+                                                @RequestParam() LocalDate dataInicio,
+                                                @RequestParam() LocalDate dataFim);
+    @GetMapping("/periodo")
+    List<VisitaEntity> getAllByPeriod(@RequestParam() LocalDate dataInicio, @RequestParam() LocalDate dataFim);
 }

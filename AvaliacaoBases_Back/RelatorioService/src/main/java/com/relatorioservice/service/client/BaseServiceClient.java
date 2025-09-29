@@ -16,4 +16,7 @@ public interface BaseServiceClient {
 
     @GetMapping()
     List<BaseEntity> getAllBases();
+
+    @GetMapping("/exists/{id}")
+    boolean existsById(@PathVariable String id);
 }

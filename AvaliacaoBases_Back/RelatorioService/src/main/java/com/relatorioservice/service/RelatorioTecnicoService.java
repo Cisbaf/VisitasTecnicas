@@ -109,8 +109,8 @@ public class RelatorioTecnicoService {
                 .collect(Collectors.toList());
     }
 
-    public RelatorioConsolidadoResponse gerarRelatoriosPorPeriodo(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
-        List<VisitaEntity> visitas = visitaService.getAllByPeriod(idBase, dataInicio, dataFim);
+    public RelatorioConsolidadoResponse gerarRelatoriosPorPeriodoeIdBase(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
+        List<VisitaEntity> visitas = visitaService.getBaseByPeriodAndBaseId(idBase, dataInicio, dataFim);
 
         List<RelatorioTecnicoResponse> relatorios = visitas.stream()
                 .map(visita -> this.gerarRelatorio(visita.getId()))
@@ -118,6 +118,14 @@ public class RelatorioTecnicoService {
 
         return consolidarRelatorios(relatorios, dataInicio, dataFim);
     }
+    public List<RelatorioTecnicoResponse> gerarRelatoriosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        List<VisitaEntity> visitas = visitaService.getAllByPeriod(dataInicio, dataFim);
+
+        return visitas.stream()
+                .map(visita -> this.gerarRelatorio(visita.getId()))
+                .collect(Collectors.toList());
+    }
+
 
     private RelatorioConsolidadoResponse consolidarRelatorios(
             List<RelatorioTecnicoResponse> relatorios,
@@ -185,7 +193,7 @@ public class RelatorioTecnicoService {
 
         for (BaseEntity base : todasBases) {
             try {
-                List<VisitaEntity> visitas = visitaService.getAllByPeriod(
+                List<VisitaEntity> visitas = visitaService.getBaseByPeriodAndBaseId(
                         base.getId(),
                         dataInicio,
                         dataFim

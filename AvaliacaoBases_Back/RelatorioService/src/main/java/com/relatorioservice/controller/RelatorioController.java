@@ -27,12 +27,20 @@ public class RelatorioController {
 
     @GetMapping("/consolidado/{idBase}")
     @Operation(summary = "Gera um relatório consolidado para uma base em um período específico")
-    public ResponseEntity<RelatorioConsolidadoResponse> getRelatorioConsolidado(
+    public ResponseEntity<RelatorioConsolidadoResponse> getRelatorioConsolidadoComBase(
             @PathVariable Long idBase,
             @RequestParam LocalDate inicio,
             @RequestParam LocalDate fim) {
 
-        return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodo(idBase, inicio, fim));
+        return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodoeIdBase(idBase, inicio, fim));
+    }
+    @GetMapping("/consolidado")
+    @Operation(summary = "Gera um relatório consolidado para uma base em um período específico")
+    public ResponseEntity<List<RelatorioTecnicoResponse>> getRelatorioConsolidado(
+            @RequestParam LocalDate inicio,
+            @RequestParam LocalDate fim) {
+
+        return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodo(inicio, fim));
     }
     @GetMapping("/ranking")
     @Operation(summary = "Gera um relatório de ranking de visitas")

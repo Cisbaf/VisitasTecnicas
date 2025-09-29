@@ -170,9 +170,7 @@ public class CalcularPontos {
                 .toList();
 
         if (!camposCriticos.isEmpty()) {
-            for (String cCriticos : camposCriticos) {
-                criticos.add("Baixa conformidade: " + cCriticos);
-            }
+            criticos.addAll(camposCriticos);
         }
 
         Optional<ViaturaEntity> piorViatura = Optional.ofNullable(viaturas).orElse(List.of()).stream()

@@ -4,7 +4,10 @@ import com.baseservice.entity.BaseRequest;
 import com.baseservice.entity.BaseResponse;
 import com.baseservice.repository.BaseRepository;
 import com.baseservice.service.capsule.BaseService;
+import com.baseservice.service.capsule.ViaturaServiceClient;
+import com.baseservice.service.capsule.VisitaServiceClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +17,13 @@ import java.util.stream.Collectors;
 import static com.baseservice.service.BaseMapper.toDTO;
 import static com.baseservice.service.BaseMapper.toEntity;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BaseServiceImp implements BaseService {
     private final BaseRepository baseRepository;
+    private final ViaturaServiceClient viaturaServiceClient;
+    private final VisitaServiceClient visitaServiceClient;
 
     @Override
     public BaseResponse createBase(BaseRequest baseRequest) {
@@ -32,6 +38,21 @@ public class BaseServiceImp implements BaseService {
             throw new IllegalArgumentException(e.getMessage());
         }
 
+    }
+
+    public BaseResponse getByName(String name){
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be null or empty");
+        }
+
+        var baseEntity = baseRepository.findByNomeContainingIgnoreCase(name.replaceAll("\"([^&]+)\"", ""));
+
+        if (baseEntity == null) {
+            log.info("Base not found with name: {}", name);
+            return  null;
+        }
+
+        return toDTO(baseEntity);
     }
 
     @Override
@@ -74,7 +95,14 @@ public class BaseServiceImp implements BaseService {
         if (!baseRepository.existsById(id)) {
             throw new RuntimeException("Base not found with id: " + id);
         }
-        baseRepository.deleteById(id);
+        try{
+            viaturaServiceClient.deleteViaturasByBaseId(id);
+            visitaServiceClient.deleteVisitasByBaseId(id);
+        }catch (DataIntegrityViolationException e ){
+            throw new IllegalArgumentException("Cannot delete base with id " + id + " due to existing references.");
+        }finally {
+            baseRepository.deleteById(id);
+        }
     }
 
     @Override

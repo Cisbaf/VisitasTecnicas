@@ -8,7 +8,7 @@ class BaseMapper {
 
     protected static BaseEntity toEntity(BaseRequest baseRequest) {
         return BaseEntity.builder()
-                .nome(baseRequest.getNome())
+                .nome(baseRequest.getNome().toUpperCase())
                 .endereco(baseRequest.getEndereco())
                 .bairro(baseRequest.getBairro())
                 .municipio(baseRequest.getMunicipio())
@@ -20,7 +20,7 @@ class BaseMapper {
     protected static BaseResponse toDTO(BaseEntity baseEntity) {
         return BaseResponse.builder()
                 .id(baseEntity.getId())
-                .nome(baseEntity.getNome())
+                .nome(baseEntity.getNome().toUpperCase())
                 .endereco(baseEntity.getEndereco())
                 .bairro(baseEntity.getBairro())
                 .municipio(baseEntity.getMunicipio())

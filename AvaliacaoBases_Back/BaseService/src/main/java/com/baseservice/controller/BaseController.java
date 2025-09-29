@@ -40,6 +40,13 @@ public class BaseController {
         boolean exists = baseService.existsById(id);
         return ResponseEntity.ok(exists);
     }
+    @GetMapping("/name")
+    @Operation(summary = "Get Base by Name", description = "Retrieve a base response by its name.")
+    public ResponseEntity<BaseResponse> findByName(@RequestParam("name") String name) {
+        var response = baseService.getByName(name);
+            return ResponseEntity.ok(response);
+
+    }
 
     @PostMapping
     @Operation(summary = "Create a new Base", description = "Create a new base response with the provided details.")

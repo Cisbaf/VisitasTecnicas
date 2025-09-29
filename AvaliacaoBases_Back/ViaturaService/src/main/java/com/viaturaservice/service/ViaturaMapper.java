@@ -9,14 +9,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class ViaturaMapper {
-    private final IdBaseExists exists;
+    private final BaseService exists;
 
     protected ViaturaEntity toEntity(ViaturaRequest viaturaRequest) {
         if (exists.existsById(viaturaRequest.idBase())) {
             return ViaturaEntity.builder()
                     .placa(viaturaRequest.placa().toUpperCase())
-                    .modelo(viaturaRequest.modelo())
-                    .ano(viaturaRequest.ano())
                     .tipoViatura(viaturaRequest.tipoViatura())
                     .statusOperacional(viaturaRequest.statusOperacional())
                     .idBase(viaturaRequest.idBase())
@@ -30,12 +28,13 @@ class ViaturaMapper {
         return ViaturaResponse.builder()
                 .id(viaturaEntity.getId())
                 .placa(viaturaEntity.getPlaca())
-                .modelo(viaturaEntity.getModelo())
-                .ano(viaturaEntity.getAno())
+                .km(viaturaEntity.getKm())
                 .tipoViatura(viaturaEntity.getTipoViatura())
                 .statusOperacional(viaturaEntity.getStatusOperacional())
                 .idBase(viaturaEntity.getIdBase())
                 .itens(viaturaEntity.getItens())
+                .dataInclusao(viaturaEntity.getDataInclusao())
+                .dataUltimaAlteracao(viaturaEntity.getDataUltimaAlteracao())
                 .build();
     }
 }

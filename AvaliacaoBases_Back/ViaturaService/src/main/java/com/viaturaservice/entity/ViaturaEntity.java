@@ -3,6 +3,7 @@ package com.viaturaservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -18,14 +19,13 @@ public class ViaturaEntity {
     private Long id;
     @Column(nullable = false, unique = true)
     private String placa;
-    private String modelo;
-    private String ano;
+    private String km;
     private String tipoViatura;
     private String statusOperacional;
     @Column(name = "id_base")
     private Long idBase;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<Itens> itens;
-
-
+    private LocalDate dataInclusao;
+    private String dataUltimaAlteracao;
 }

@@ -4,7 +4,7 @@ import com.viaturaservice.controller.ViaturaController;
 import com.viaturaservice.entity.Itens;
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
-import com.viaturaservice.service.IdBaseExists;
+import com.viaturaservice.service.BaseService;
 import com.viaturaservice.service.capsule.ViaturaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class ViaturaControllerTest {
     private ViaturaService viaturaService;
 
     @Mock
-    private IdBaseExists exists;
+    private BaseService exists;
 
     @InjectMocks
     private ViaturaController viaturaController;
@@ -37,8 +37,6 @@ class ViaturaControllerTest {
         List<ViaturaResponse> viaturas = List.of(ViaturaResponse.builder()
                 .id(1L)
                 .placa("ABC1234")
-                .modelo("Gol")
-                .ano("2020")
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
@@ -46,8 +44,6 @@ class ViaturaControllerTest {
                 .build(), ViaturaResponse.builder()
                 .id(2L)
                 .placa("ABC5678")
-                .modelo("Gol")
-                .ano("2020")
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
@@ -66,8 +62,6 @@ class ViaturaControllerTest {
         ViaturaResponse viatura = ViaturaResponse.builder()
                 .id(1L)
                 .placa("ABC1234")
-                .modelo("Gol")
-                .ano("2020")
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
@@ -169,8 +163,6 @@ class ViaturaControllerTest {
         ViaturaResponse updatedViatura = ViaturaResponse.builder()
                 .id(1L)
                 .placa("ABC9871")
-                .modelo("Versa")
-                .ano("2020")
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)

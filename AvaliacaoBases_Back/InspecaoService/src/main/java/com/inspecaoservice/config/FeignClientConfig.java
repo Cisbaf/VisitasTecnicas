@@ -1,4 +1,4 @@
-package com.formservice.config;
+package com.inspecaoservice.config;
 
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;

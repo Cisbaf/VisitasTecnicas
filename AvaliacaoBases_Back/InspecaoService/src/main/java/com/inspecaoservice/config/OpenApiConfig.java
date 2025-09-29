@@ -1,4 +1,4 @@
-package com.formservice.config;
+package com.inspecaoservice.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -12,7 +12,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("CheckList Service API")
+                        .title("Inspeção Service API")
                         .description("API para criação e gestão de itens de checklist"));
     }
 }

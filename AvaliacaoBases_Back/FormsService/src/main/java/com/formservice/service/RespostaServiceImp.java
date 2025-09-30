@@ -65,7 +65,6 @@ public class RespostaServiceImp implements RespostaService {
 
     @Override
     public List<RespostaResponse> getAllResposta(List<Long> visitIds) {
-        System.out.println("Visit Ids: " + visitIds);
         List<Resposta> respostas = new ArrayList<>();
        for(Long id : visitIds){
            var resp = respostaRepository.findAllByVisitaId(id);

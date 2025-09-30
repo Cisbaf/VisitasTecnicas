@@ -30,8 +30,6 @@ public class CampoServiceImp implements CampoService {
 
     public CamposFormResponse findById(Long id) {
         var campo = camposRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + id));
-        var novo = mapper.toCampoResponse(campo);
-        System.out.println(novo.toString());
-        return novo;
+        return mapper.toCampoResponse(campo);
     }
 }

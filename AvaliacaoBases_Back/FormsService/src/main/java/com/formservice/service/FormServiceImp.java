@@ -26,7 +26,6 @@ public class FormServiceImp implements FormService {
 
     @Override
     public FormResponse createForm(FormRequest request) {
-        System.out.println(request);
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be null");
         }

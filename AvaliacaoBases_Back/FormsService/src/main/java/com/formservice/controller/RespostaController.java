@@ -27,12 +27,7 @@ public class RespostaController {
     @Operation(summary = "Get answers by field and visit", description = "Retrieve answers for a specific field in a form based on visit ID")
     public ResponseEntity<List<RespostaResponse>> findAllRespostas(@RequestBody Map<String, List<Long>> request) {
         List<Long> visitIds = request.get("visitIds");
-        System.out.println(visitIds);
-
-        var result = service.getAllResposta(visitIds);
-        System.out.println("Respsotas: " + result);
-
-        return ResponseEntity.ok().body(result);
+        return ResponseEntity.ok().body(service.getAllResposta(visitIds));
     }
 
     @GetMapping("/answers/visit/{visitaId}")

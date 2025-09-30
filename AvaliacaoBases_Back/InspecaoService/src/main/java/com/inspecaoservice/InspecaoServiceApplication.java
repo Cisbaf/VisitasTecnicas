@@ -6,10 +6,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-public class CheckListItemServiceApplication {
+public class InspecaoServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CheckListItemServiceApplication.class, args);
+        SpringApplication.run(InspecaoServiceApplication.class, args);
     }
 
 }

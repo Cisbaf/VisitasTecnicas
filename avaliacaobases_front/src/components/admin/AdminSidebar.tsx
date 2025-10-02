@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Drawer,
     Toolbar,
@@ -17,12 +17,14 @@ import {
     History,
     InsertDriveFile,
     LocalHospital,
+    Person,
 } from "@mui/icons-material";
+import { usePathname } from "next/navigation";
 
 const drawerWidth = 280;
 
 export default function AdminSidebar() {
-    const [pathname, setPathname] = useState("");
+    const pathname = usePathname();
 
     const menuItems = [
         { label: "Visão Geral", icon: <Home />, href: `/admin` },
@@ -31,11 +33,8 @@ export default function AdminSidebar() {
         { label: "Indicadores", icon: <Assessment />, href: `/admin/indicadores` },
         { label: "Relatórios", icon: <InsertDriveFile />, href: `/admin/relatorios` },
         { label: "Histórico", icon: <History />, href: `/admin/historico` },
+        { label: "Registrar", icon: <Person />, href: `/admin/registrar` },
     ];
-
-    const formatarData = (dataString: string) => {
-        return new Date(dataString).toLocaleDateString('pt-BR');
-    };
 
     return (
         <Drawer
@@ -55,10 +54,7 @@ export default function AdminSidebar() {
             <Box sx={{ overflow: "auto", p: 2 }}>
                 <List>
                     {menuItems.map((item) => {
-                        const isSelected =
-                            item.href === `/admin`
-                                ? pathname === `/admin`
-                                : pathname.startsWith(item.href);
+                        const isSelected = pathname === item.href;
 
                         return (
                             <ListItemButton

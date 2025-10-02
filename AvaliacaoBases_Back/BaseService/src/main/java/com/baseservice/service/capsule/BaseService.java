@@ -8,6 +8,8 @@ import java.util.List;
 public interface BaseService {
      BaseResponse createBase(BaseRequest viaturaDTO);
 
+     BaseResponse getByName(String name);
+
      BaseResponse getById(Long id);
 
      List<BaseResponse> getAll();

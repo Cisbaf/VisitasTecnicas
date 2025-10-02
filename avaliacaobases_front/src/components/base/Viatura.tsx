@@ -2,17 +2,32 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Box, Paper, Typography, Button, Stack, Chip, CircularProgress, Snackbar, Alert, IconButton } from "@mui/material";
-import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
+import {
+    Box,
+    Paper,
+    Typography,
+    Button,
+    Stack,
+    Chip,
+    CircularProgress,
+    Snackbar,
+    Alert,
+    IconButton,
+    TextField,
+    InputAdornment
+} from "@mui/material";
+import { Add, Edit, Delete, Visibility, Search } from "@mui/icons-material";
 import ViaturaDialog from "./modal/DialogViatura";
-import { Viatura, ViaturaRequest } from '@/components/types';
+import { BaseResponse, Viatura, ViaturaRequest } from '@/components/types';
 import ViaturaChecklistsModal from "./modal/ViaturaChecklistsModal";
 
 export default function Viaturas({ baseId }: { baseId?: number }) {
     const params = useParams();
     const resolvedBaseId = baseId ?? (params?.baseId ? Number(params.baseId) : null);
 
-    const [viaturas, setViaturas] = useState<Viatura[] | null>(null);
+    const [viaturas, setViaturas] = useState<Viatura[]>([]); // Alterado para array vazio
+    const [filteredViaturas, setFilteredViaturas] = useState<Viatura[]>([]); // Alterado para array vazio
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -22,20 +37,56 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
     const [selectedViatura, setSelectedViatura] = useState<Viatura | null>(null);
     const [checklistsModalOpen, setChecklistsModalOpen] = useState(false);
     const [selectedidViatura, setSelectedidViatura] = useState<number | null>(null);
+    const [baseNames, setBaseNames] = useState<Record<number, string>>({});
+
+    // Função para obter nomes das bases do localStorage
+    const getBaseNames = (): Record<number, string> => {
+        if (typeof window === 'undefined') return {};
+
+        try {
+            const storedBases = localStorage.getItem("allBasesData");
+            if (storedBases) {
+                const bases: BaseResponse[] = JSON.parse(storedBases);
+                const namesMap: Record<number, string> = {};
+
+                bases.forEach(base => {
+                    if (base.id) {
+                        namesMap[base.id] = base.nome;
+                    }
+                });
+
+                return namesMap;
+            }
+        } catch (e) {
+            console.error("Erro ao parsear bases do localStorage", e);
+        }
+
+        return {};
+    };
+
+    useEffect(() => {
+        setBaseNames(getBaseNames());
+    }, []);
 
     const fetchViaturas = async () => {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const url = resolvedBaseId ? `/api/viatura?baseId=${resolvedBaseId}` : `/api/viatura`;
+            const url = resolvedBaseId ? `/api/viatura/base/${resolvedBaseId}` : `/api/viatura`; // Corrigido o endpoint
             const r = await fetch(url, { cache: "no-store" });
-            const responseText = await r.text();
 
-            if (!r.ok) throw new Error(responseText || r.statusText);
-            setViaturas(responseText ? JSON.parse(responseText) : []);
+            if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+
+            const responseText = await r.text();
+            const viaturasData = responseText ? JSON.parse(responseText) : [];
+
+            // Garantir que sempre seja um array
+            setViaturas(Array.isArray(viaturasData) ? viaturasData : []);
+            setFilteredViaturas(Array.isArray(viaturasData) ? viaturasData : []);
         } catch (err: any) {
             setErrorMsg(err.message || "Erro ao carregar viaturas");
             setViaturas([]);
+            setFilteredViaturas([]);
         } finally {
             setLoading(false);
         }
@@ -44,6 +95,28 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
     useEffect(() => {
         fetchViaturas();
     }, [resolvedBaseId]);
+
+    useEffect(() => {
+        if (!viaturas || viaturas.length === 0) {
+            setFilteredViaturas([]);
+            return;
+        }
+
+        if (!searchTerm) {
+            setFilteredViaturas(viaturas);
+            return;
+        }
+
+        const term = searchTerm.toLowerCase();
+        const filtered = viaturas.filter(viatura =>
+            (viatura.placa && viatura.placa.toLowerCase().includes(term)) ||
+            (viatura.modelo && viatura.modelo.toLowerCase().includes(term)) ||
+            (viatura.tipoViatura && viatura.tipoViatura.toLowerCase().includes(term)) ||
+            (viatura.statusOperacional && viatura.statusOperacional.toLowerCase().includes(term))
+        );
+
+        setFilteredViaturas(filtered);
+    }, [searchTerm, viaturas]);
 
     const openChecklistsModal = (idViatura: number) => {
         const id = Number(idViatura);
@@ -140,7 +213,6 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
         </Box>
     );
 
-
     const openCreateModal = () => {
         setDialogMode("create");
         setSelectedViatura(null);
@@ -168,11 +240,20 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
             </Stack>
 
             <Paper sx={{ p: 2, borderRadius: 2 }}>
-                {resolvedBaseId === null && (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        Nenhuma base selecionada. Passe <code>baseId</code> como prop ou acesse via /base/[baseId]
-                    </Alert>
-                )}
+                <TextField
+                    fullWidth
+                    placeholder="Buscar viaturas por placa, modelo, tipo ou status..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{ mb: 2 }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Search />
+                            </InputAdornment>
+                        ),
+                    }}
+                />
 
                 {loading ? (
                     <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -180,11 +261,13 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
                     </Box>
                 ) : errorMsg ? (
                     <Alert severity="error">{errorMsg}</Alert>
-                ) : viaturas && viaturas.length === 0 ? (
-                    <Typography>Não há viaturas cadastradas</Typography>
+                ) : filteredViaturas.length === 0 ? ( // Alterado para filteredViaturas.length
+                    <Typography>
+                        {searchTerm ? "Nenhuma viatura encontrada" : "Não há viaturas cadastradas"}
+                    </Typography>
                 ) : (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                        {viaturas?.map(v => (
+                        {filteredViaturas.map(v => ( // Removido o operador optional chaining
                             <Paper
                                 key={v.id ?? v.placa}
                                 sx={{
@@ -211,6 +294,11 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
 
                                     <Typography variant="body2">
                                         Tipo: <strong>{v.tipoViatura ?? "—"}</strong>
+                                    </Typography>
+
+                                    {/* Exibir o nome da base usando o idBase da viatura */}
+                                    <Typography variant="body2">
+                                        Base: <strong>{v.idBase ? (baseNames[v.idBase] || ` ${v.idBase}`) : "Não atribuída"}</strong>
                                     </Typography>
 
                                     <Box sx={{ mt: 1 }}>

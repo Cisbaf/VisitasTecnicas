@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {Item, ViaturaRequest} from "@/components/types";
+import { Item, ViaturaRequest } from "@/components/types";
 
 interface ViaturaDialogProps {
     open: boolean;
@@ -32,7 +32,7 @@ interface ViaturaDialogProps {
     baseId?: number | null;
 }
 
-export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loading = false, baseId}: ViaturaDialogProps) {
+export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, loading = false, baseId }: ViaturaDialogProps) {
     const [form, setForm] = React.useState<ViaturaRequest>({
         placa: "",
         modelo: "",
@@ -40,7 +40,7 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
         tipoViatura: "USA",
         statusOperacional: "Conforme",
         idBase: baseId ?? null,
-        itens: [{nome: "", conformidade: 100}],
+        itens: [{ nome: "", conformidade: 100 }],
     });
 
     const [showCustomType, setShowCustomType] = React.useState(false);
@@ -63,29 +63,29 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                 tipoViatura: "USA",
                 statusOperacional: "Conforme",
                 idBase: baseId ?? null,
-                itens: [{nome: "", conformidade: 100}],
+                itens: [{ nome: "", conformidade: 100 }],
             });
             setShowCustomType(false);
         }
     }, [viatura, baseId]);
 
     const updateForm = <K extends keyof ViaturaRequest>(key: K, value: ViaturaRequest[K]) => {
-        setForm(prev => ({...prev, [key]: value}));
+        setForm(prev => ({ ...prev, [key]: value }));
     };
 
     const updateItemAt = (index: number, patch: Partial<Item>) => {
         setForm(prev => {
-            const itens = prev.itens.map((it, i) => (i === index ? {...it, ...patch} : it));
-            return {...prev, itens};
+            const itens = prev.itens.map((it, i) => (i === index ? { ...it, ...patch } : it));
+            return { ...prev, itens };
         });
     };
 
     const addItem = () => {
-        setForm(prev => ({...prev, itens: [...prev.itens, {nome: "", conformidade: 100}]}));
+        setForm(prev => ({ ...prev, itens: [...prev.itens, { nome: "", conformidade: 100 }] }));
     };
 
     const removeItem = (index: number) => {
-        setForm(prev => ({...prev, itens: prev.itens.filter((_, i) => i !== index)}));
+        setForm(prev => ({ ...prev, itens: prev.itens.filter((_, i) => i !== index) }));
     };
 
     const handleTipoViaturaChange = (value: string) => {
@@ -106,9 +106,9 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>
                 {mode === "create" ? "Criar Viatura" : `Editar Viatura ${viatura?.placa ? `- ${viatura.placa}` : ""}`}
-                <IconButton aria-label="close" onClick={onClose} sx={{position: "absolute", right: 8, top: 8}}
-                            size="large">
-                    <CloseIcon/>
+                <IconButton aria-label="close" onClick={onClose} sx={{ position: "absolute", right: 8, top: 8 }}
+                    size="large">
+                    <CloseIcon />
                 </IconButton>
             </DialogTitle>
 
@@ -135,7 +135,7 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                         fullWidth
                     />
 
-                    <Stack direction={{xs: "column", sm: "row"}} spacing={2}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                         <FormControl fullWidth>
                             <InputLabel id="tipo-label">Tipo Viatura</InputLabel>
                             <Select
@@ -158,9 +158,9 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                                 value={form.statusOperacional}
                                 onChange={e => updateForm("statusOperacional", e.target.value as string)}
                             >
-                                <MenuItem value="Em Operacao">Em Operação</MenuItem>
-                                <MenuItem value="Em Manutencao">Em Manutenção</MenuItem>
-                                <MenuItem value="Fora de Servico">Fora de Serviço</MenuItem>
+                                <MenuItem value="Em Operação">Em Operação</MenuItem>
+                                <MenuItem value="Em Manutenção">Em Manutenção</MenuItem>
+                                <MenuItem value="Fora de Serviço">Fora de Serviço</MenuItem>
                             </Select>
                         </FormControl>
                     </Stack>
@@ -185,7 +185,7 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                     />
 
                     <Box>
-                        <Typography variant="subtitle2" sx={{mb: 1}}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Itens (manutenção / equipamentos)
                         </Typography>
                         <Stack spacing={1}>
@@ -194,8 +194,8 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                                     <TextField
                                         label="Nome do item"
                                         value={it.nome}
-                                        onChange={e => updateItemAt(idx, {nome: e.target.value})}
-                                        sx={{flex: 1}}
+                                        onChange={e => updateItemAt(idx, { nome: e.target.value })}
+                                        sx={{ flex: 1 }}
                                         size="small"
                                     />
                                     <TextField
@@ -208,11 +208,11 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                                         }
                                         type="number"
                                         size="small"
-                                        sx={{width: 110}}
-                                        inputProps={{min: 0, max: 100}}
+                                        sx={{ width: 110 }}
+                                        inputProps={{ min: 0, max: 100 }}
                                     />
                                     <IconButton aria-label="remover" onClick={() => removeItem(idx)} size="large">
-                                        <DeleteIcon/>
+                                        <DeleteIcon />
                                     </IconButton>
                                 </Stack>
                             ))}
@@ -230,7 +230,7 @@ export default function ViaturaDialog({open, mode, viatura, onClose, onSave, loa
                 </Button>
                 <Button onClick={handleSave} variant="contained" disabled={loading}>
                     {loading ?
-                        <CircularProgress size={18}/> : (mode === "create" ? "Salvar Viatura" : "Atualizar Viatura")}
+                        <CircularProgress size={18} /> : (mode === "create" ? "Salvar Viatura" : "Atualizar Viatura")}
                 </Button>
             </DialogActions>
         </Dialog>

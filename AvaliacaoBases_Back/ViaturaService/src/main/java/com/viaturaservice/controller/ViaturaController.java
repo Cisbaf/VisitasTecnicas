@@ -2,7 +2,9 @@ package com.viaturaservice.controller;
 
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
-import com.viaturaservice.service.IdBaseExists;
+import com.viaturaservice.entity.dto.VeiculoDto;
+import com.viaturaservice.service.BaseService;
+import com.viaturaservice.service.ViaturaUpdateService;
 import com.viaturaservice.service.capsule.ViaturaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -16,12 +18,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ViaturaController {
     private final ViaturaService viaturaService;
-    private final IdBaseExists exists;
+    private final BaseService exists;
+    private final ViaturaUpdateService viaturaUpdateService;
+
+    @GetMapping("/registro")
+    @Operation(summary = "Update Viaturas from external API", description = "Fetch and update viaturas from an external API.")
+    public ResponseEntity<Void> getRegistros() {
+        viaturaUpdateService.atualizarViaturasDiariamente();
+        return ResponseEntity.accepted().build();
+    }
 
     @Operation(summary = "Get all Viaturas", description = "Retrieve a list of all viaturas.")
     @GetMapping
     public ResponseEntity<List<ViaturaResponse>> findAll() {
-        return ResponseEntity.ok(viaturaService.getAllViaturas());
+        var viaturas = viaturaService.getAllViaturas();
+        System.out.println(viaturas);
+        return ResponseEntity.ok(viaturas);
     }
 
     @Operation(summary = "Get Viatura by ID", description = "Retrieve a viatura by its unique identifier.")
@@ -34,6 +46,18 @@ public class ViaturaController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Operation(summary = "Get Viatura details from external API by plate", description = "Retrieve viatura details from an external API using the vehicle's plate number.")
+    @GetMapping("/api/{placa}")
+    public ResponseEntity<VeiculoDto> findByPlaca(@PathVariable String placa) {
+        var viaturaResponse = viaturaService.getVeiculoFromApi(placa);
+        if (viaturaResponse != null) {
+            return ResponseEntity.ok(viaturaResponse);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @Operation(summary = "Get All Viaturas by Base ID", description = "Retrieve all viaturas by its base ID.")
     @GetMapping("/base/{idBase}")
     public ResponseEntity<List<ViaturaResponse>> findByIdBase(@PathVariable Long idBase) {
@@ -71,6 +95,16 @@ public class ViaturaController {
             return ResponseEntity.badRequest().build();
         }
         viaturaService.deleteViatura(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/base/{idBase}")
+    @Operation(summary = "Delete all Viaturas by Base ID", description = "Delete all viaturas associated with a specific base ID.")
+    public ResponseEntity<Void> deleteAllByBaseId(@PathVariable Long idBase) {
+        if (idBase == null || !exists.existsById(idBase)) {
+            return ResponseEntity.badRequest().build();
+        }
+        viaturaService.deleteAllByBaseId(idBase);
         return ResponseEntity.noContent().build();
     }
 

@@ -41,7 +41,7 @@ class BaseServiceImpTest {
         baseRequest = BaseRequest.builder()
                 .nome("Base1")
                 .endereco("End1")
-                .tipoBase("TipoA")
+
                 .build();
 
         baseEntity = new BaseEntity();
@@ -54,7 +54,6 @@ class BaseServiceImpTest {
                 .id(1L)
                 .nome("Base1")
                 .endereco("End1")
-                .tipoBase("TipoA")
                 .build();
     }
 
@@ -136,7 +135,7 @@ class BaseServiceImpTest {
         e2.setTipoBase("T2");
 
         BaseResponse r2 = BaseResponse.builder()
-                .id(2L).nome("B2").endereco("E2").tipoBase("T2").build();
+                .id(2L).nome("B2").endereco("E2").build();
 
         when(baseRepository.findAll()).thenReturn(List.of(baseEntity, e2));
         try (MockedStatic<BaseMapper> mapper = Mockito.mockStatic(BaseMapper.class)) {
@@ -162,7 +161,7 @@ class BaseServiceImpTest {
         BaseRequest updatedRequest = BaseRequest.builder()
                 .nome("BaseUpd")
                 .endereco("EndUpd")
-                .tipoBase("TipoB")
+
                 .build();
 
         BaseEntity updatedEntity = new BaseEntity();
@@ -175,7 +174,7 @@ class BaseServiceImpTest {
                 .id(1L)
                 .nome("BaseUpd")
                 .endereco("EndUpd")
-                .tipoBase("TipoB")
+
                 .build();
 
         when(baseRepository.findById(1L)).thenReturn(Optional.of(baseEntity));

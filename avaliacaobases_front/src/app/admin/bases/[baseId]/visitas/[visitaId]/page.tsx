@@ -1,15 +1,16 @@
 "use client";
-import React, {useEffect, useState} from "react";
-import {Alert, Box, CircularProgress, IconButton, Tab, Tabs, Typography,} from "@mui/material";
-import {ArrowBack as BackIcon} from "@mui/icons-material";
-import {useParams, useRouter} from "next/navigation";
-import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
-import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import React, { useEffect, useState } from "react";
+import { Alert, Box, CircularProgress, IconButton, Tab, Tabs, Typography, } from "@mui/material";
+import { ArrowBack as BackIcon } from "@mui/icons-material";
+import { useParams, useRouter } from "next/navigation";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
-import {CategoriaAgrupada, RelatoDTO, VisitaDetails} from "@/components/types";
+import { CategoriaAgrupada, RelatoDTO, VisitaDetails } from "@/components/types";
 import ChecklistService from "@/components/base/service/ChecklistService";
 import DetalhesVisitaTab from "@/components/admin/visita/DetalhesVisitaTab";
-import ChecklistsTab from "@/components/admin/visita/ChecklistsTab";
+import ChecklistsTab from "@/components/admin/visita/form/ChecklistsTab";
+import PadronizacaoVizualTab from "@/components/admin/visita/form/PadronizacaoVizualTab";
 
 
 interface TabPanelProps {
@@ -19,7 +20,7 @@ interface TabPanelProps {
 }
 
 function TabPanel(props: TabPanelProps) {
-    const {children, value, index, ...other} = props;
+    const { children, value, index, ...other } = props;
 
     return (
         <div
@@ -29,7 +30,7 @@ function TabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            {value === index && <Box sx={{p: 3}}>{children}</Box>}
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
         </div>
     );
 }
@@ -114,12 +115,13 @@ export default function VisitaDetailPage() {
         try {
             const res = await fetch(`/api/visita/membro/${visita.id}`, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({nome, cargo}),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, cargo }),
             });
             if (!res.ok) throw new Error("Erro ao adicionar membro");
             const saved = await res.json();
-            setVisita((v) => (v ? {...v, membros: [...v.membros, saved]} : v));
+            setVisita((v) => (v ? { ...v, membros: [...v.membros, saved] } : v));
+            fetchVisita();
         } catch (err: any) {
             setError(String(err?.message ?? err));
         }
@@ -132,11 +134,11 @@ export default function VisitaDetailPage() {
         try {
             const res = await fetch(`/api/visita/membro/${visita.id}`, {
                 method: "DELETE",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({nome: membro.nome, cargo: membro.cargo}),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome: membro.nome, cargo: membro.cargo }),
             });
             if (!res.ok) throw new Error("Erro ao remover membro");
-            setVisita((v) => (v ? {...v, membros: v.membros.filter((_, i) => i !== index)} : v));
+            setVisita((v) => (v ? { ...v, membros: v.membros.filter((_, i) => i !== index) } : v));
         } catch (err: any) {
             setError(String(err?.message ?? err));
         }
@@ -154,7 +156,7 @@ export default function VisitaDetailPage() {
 
             const res = await fetch(`/api/visita/relatos`, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(fullPayload),
             });
             if (!res.ok) throw new Error("Erro ao criar relato");
@@ -169,7 +171,7 @@ export default function VisitaDetailPage() {
         try {
             const res = await fetch(`/api/visita/relatos`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updates),
             });
             if (!res.ok) throw new Error("Erro ao atualizar relato");
@@ -184,7 +186,7 @@ export default function VisitaDetailPage() {
         if (!visita) return;
         if (!confirm("Excluir relato?")) return;
         try {
-            const res = await fetch(`/api/visita/relatos/${relatoId}`, {method: "DELETE"});
+            const res = await fetch(`/api/visita/relatos/${relatoId}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Erro ao excluir relato");
             setRelatos((prev) => prev.filter((r) => r.id !== relatoId));
         } catch (err: any) {
@@ -192,26 +194,11 @@ export default function VisitaDetailPage() {
         }
     }
 
-    async function saveCurrentVisit() {
-        if (!visita) return;
-        try {
-            const res = await fetch(`/api/visita/${visita.id}`, {
-                method: "PUT",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(visita),
-            });
-            if (!res.ok) throw new Error("Falha ao salvar visita");
-            const updated = await res.json();
-            setVisita(updated);
-        } catch (err: any) {
-            setError(String(err?.message ?? err));
-        }
-    }
 
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                <CircularProgress/>
+                <CircularProgress />
             </Box>
         );
     }
@@ -226,10 +213,10 @@ export default function VisitaDetailPage() {
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box sx={{p: 3}}>
-                <Box sx={{display: "flex", alignItems: "center", mb: 3}}>
-                    <IconButton onClick={() => router.push(`/admin/bases/${baseId}/visitas`)} sx={{mr: 1}}>
-                        <BackIcon/>
+            <Box sx={{ p: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                    <IconButton onClick={() => router.push(`/admin/bases/${baseId}/visitas`)} sx={{ mr: 1 }}>
+                        <BackIcon />
                     </IconButton>
                     <Typography variant="h4">
                         Visita de {new Date(visita.dataVisita).toLocaleDateString("pt-BR")}
@@ -237,15 +224,16 @@ export default function VisitaDetailPage() {
                 </Box>
 
                 {error && (
-                    <Alert severity="error" sx={{mb: 2}} onClose={() => setError(null)}>
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
                         {error}
                     </Alert>
                 )}
 
-                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} aria-label="abas de detalhes da visita">
                         <Tab label="Detalhes" {...a11yProps(0)} />
-                        <Tab label="Checklists" {...a11yProps(1)} />
+                        <Tab label="Padronização Vizual" {...a11yProps(1)} />
+                        <Tab label="Checklists" {...a11yProps(2)} />
                     </Tabs>
                 </Box>
 
@@ -253,20 +241,21 @@ export default function VisitaDetailPage() {
                     <DetalhesVisitaTab
                         visita={visita}
                         relatos={relatos}
-                        onSaveVisit={saveCurrentVisit}
                         onAddMember={addMemberToVisit}
                         onRemoveMember={removeMemberFromVisit}
                         onAddRelato={addRelatoToVisit}
                         onUpdateRelato={updateRelato}
                         onDeleteRelato={deleteRelato}
+                        fetchRelatos={fetchRelatos}
                     />
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={1}>
+                    <PadronizacaoVizualTab visitaId={visitaId} onChecklistAdded={fetchChecklists} />
+                </TabPanel>
+
+                <TabPanel value={tabValue} index={2}>
                     <ChecklistsTab
-                        categoriasAgrupadas={categoriasAgrupadas}
-                        checklistLoading={checklistLoading}
-                        baseId={baseId}
                         visitaId={visitaId}
                         onChecklistAdded={fetchChecklists} // Para recarregar os checklists após adicionar um novo
                     />

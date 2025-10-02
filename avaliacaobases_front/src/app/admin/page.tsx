@@ -2,7 +2,7 @@
 import { cookies } from 'next/headers';
 import { decodeJwtPayload } from '../../lib/decodeJwt';
 import { redirect } from 'next/navigation';
-
+import AdminHome from '@/components/admin/dashboard/AdminHome';
 export default async function AdminPage() {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -21,10 +21,8 @@ export default async function AdminPage() {
     const data = r.ok ? await r.json() : null;
 
     return (
-        <main style={{ padding: 24 }}>
-            <h1>Painel Admin</h1>
-            <p>Usuário: {claims.sub}</p>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
-        </main>
+        <>
+            <AdminHome />
+        </>
     );
 }

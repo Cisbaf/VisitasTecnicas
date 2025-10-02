@@ -19,5 +19,9 @@ public class BaseEntity {
     private Long id;
     private String nome;
     private String endereco;
+    private String bairro;
+    private String municipio;
     private String tipoBase;
+    private String telefone;
+    private String email;
 }

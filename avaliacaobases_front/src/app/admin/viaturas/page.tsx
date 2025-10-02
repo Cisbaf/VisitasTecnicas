@@ -1,8 +1,8 @@
 // app/base/[baseId]/page.tsx
-import {cookies} from 'next/headers';
-import {decodeJwtPayload} from '../../../lib/decodeJwt';
-import {redirect} from 'next/navigation';
-import AdminViatura from '@/components/admin/AdminViatura';
+import { cookies } from 'next/headers';
+import { decodeJwtPayload } from '../../../lib/decodeJwt';
+import { redirect } from 'next/navigation';
+import Viatura from "@/components/base/Viatura";
 
 
 export default async function BasePage() {
@@ -20,5 +20,5 @@ export default async function BasePage() {
         redirect('/login');
     }
 
-    return <AdminViatura/>
+    return <Viatura />
 }

@@ -13,10 +13,17 @@ public class RelatorioTecnicoResponse {
     private String baseNome;
     private String municipio;
 
+    private List<MembroDTO> equipe;
+
     private List<String> pontosFortes;
     private List<String> pontosCriticos;
+
     private Map<String, Double> conformidades;
+
+    private Map<String, CategoryConformanceDTO> conformidadeDetalhada;
+
+    private Double percentualItensForaConformidade;
+
     private List<ViaturaDTO> viaturas;
     private List<RelatoDTO> relatos;
-    private List<MembroDTO> equipe;
 }

@@ -9,6 +9,13 @@ import java.time.LocalDate;
  * DTO for {@link MidiasEntity}
  */
 @Builder
-public record MidiasResponse(Long id, String tipoArquivo, String url, LocalDate dataUpload, Long idVisita,
-                             Long idInconformidade) implements Serializable {
+public record MidiasResponse(
+        Long id,
+        String tipoArquivo,
+        String base64DataUrl,
+        LocalDate dataUpload,
+        Long idVisita,
+        Long idCategoria,
+        String flag
+) implements Serializable {
 }

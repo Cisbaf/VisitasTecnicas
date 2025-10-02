@@ -4,6 +4,7 @@ import com.baseservice.entity.BaseRequest;
 import com.baseservice.entity.BaseResponse;
 import com.baseservice.service.capsule.BaseService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,16 +40,23 @@ public class BaseController {
         boolean exists = baseService.existsById(id);
         return ResponseEntity.ok(exists);
     }
+    @GetMapping("/name")
+    @Operation(summary = "Get Base by Name", description = "Retrieve a base response by its name.")
+    public ResponseEntity<BaseResponse> findByName(@RequestParam("name") String name) {
+        var response = baseService.getByName(name);
+            return ResponseEntity.ok(response);
+
+    }
 
     @PostMapping
     @Operation(summary = "Create a new Base", description = "Create a new base response with the provided details.")
-    public ResponseEntity<BaseResponse> save(@RequestBody BaseRequest BaseRequest) {
+    public ResponseEntity<BaseResponse> save(@RequestBody @Valid BaseRequest BaseRequest) {
         return ResponseEntity.ok(baseService.createBase(BaseRequest));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing Base", description = "Update the details of an existing base response by its ID.")
-    public ResponseEntity<BaseResponse> update(@PathVariable Long id, @RequestBody BaseRequest BaseRequest) {
+    public ResponseEntity<BaseResponse> update(@PathVariable Long id, @RequestBody @Valid BaseRequest BaseRequest) {
         BaseResponse response = baseService.update(id, BaseRequest);
         if (response != null) {
             return ResponseEntity.ok(response);

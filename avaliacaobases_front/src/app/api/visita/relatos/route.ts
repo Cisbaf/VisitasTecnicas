@@ -28,7 +28,7 @@ export async function GET() {
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita/relatos}`, {
+        return await proxyFetch(`/visita/relatos`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
@@ -58,4 +58,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
-

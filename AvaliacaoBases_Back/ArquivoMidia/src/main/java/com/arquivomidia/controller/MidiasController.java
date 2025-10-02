@@ -4,10 +4,14 @@ import com.arquivomidia.entity.MidiasRequest;
 import com.arquivomidia.entity.MidiasResponse;
 import com.arquivomidia.service.MidiaService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -33,15 +37,21 @@ public class MidiasController {
         }
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Save a new media file")
-    public ResponseEntity<MidiasResponse> save(@RequestBody MidiasRequest midia) {
-       try{
-           MidiasResponse savedMidia = service.saveMedia(midia);
-           return ResponseEntity.ok(savedMidia);
-       }catch (Exception ex) {
-           return ResponseEntity.badRequest().body(null);
-       }
+    public ResponseEntity<MidiasResponse> save(
+            @RequestPart("midia") @Valid MidiasRequest midia,
+            @RequestPart("file") MultipartFile file){
+
+        return ResponseEntity.ok(service.saveMedia(midia, file));
+    }
+
+    @PutMapping(value = "/{id}")
+    @Operation(summary = "Update media file flag by ID")
+    public ResponseEntity<MidiasResponse> updateFlag(@PathVariable Long id, @RequestBody MidiasRequest request) throws IOException {
+        System.out.println("Atualizando mídia com ID: " + id + " com dados: " + request);
+        MidiasResponse updatedMidia = service.updateMidia(id, request);
+        return ResponseEntity.ok(updatedMidia);
     }
 
     @DeleteMapping("/{id}")
@@ -58,10 +68,10 @@ public class MidiasController {
         return ResponseEntity.ok(midias);
     }
 
-    @GetMapping("/inconformidade/{nonConformityId}")
+    @GetMapping("/category/{idCategory}")
     @Operation(summary = "Get media files by non-conformity ID")
-    public ResponseEntity<List<MidiasResponse>> getByNonConformityId(@PathVariable Long nonConformityId) {
-        List<MidiasResponse> midias = service.getMediaByNonConformityId(nonConformityId);
+    public ResponseEntity<List<MidiasResponse>> getByIdCategory(@PathVariable Long idCategory) {
+        List<MidiasResponse> midias = service.getMediaByCategoryId(idCategory);
         return ResponseEntity.ok(midias);
     }
 

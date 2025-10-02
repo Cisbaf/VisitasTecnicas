@@ -55,6 +55,16 @@ export interface RelatorioConsolidadoResponse {
     mediasConformidade: { [categoria: string]: number };
     viaturasCriticas: ViaturaDTO[];
     rankingBases: BaseRankingDTO[];
+    conformidadeDetalhada: { [categoria: string]: CategoryConformanceDTO };
+    percentualItensForaConformidade: number;
+}
+
+export interface CategoryConformanceDTO {
+    categoria: string;
+    mediaPercentTrue: number;
+    mediaPercentFalse: number;
+    mediaPercentNotGiven: number;
+    percentualCamposForaConformidade: number;
 }
 
 export interface PontoCriticoDTO {
@@ -92,13 +102,35 @@ export interface RelatoResponse {
     resolvido: boolean;
     baseId: number;
 }
+export interface ConformidadeSelect {
+    [campoId: string]: {
+        nomeCampo: string;
+        percentualConformidade: number;
+        totalRespostas: number;
+    };
+}
 
 export interface BaseResponse {
     id: number;
     nome: string;
     endereco: string;
     tipoBase: string;
+    telefone: string;
+    email: string;
+    bairro: string;
+    municipio: string;
 }
+export type BaseRequest = {
+    id?: number;
+    nome?: string;
+    bairro?: string;
+    municipio?: string;
+    endereco?: string;
+    telefone?: string;
+    email?: string;
+    tipoBase?: string;
+};
+
 
 export interface Avaliacao {
     id: number;
@@ -136,7 +168,7 @@ export interface RelatoDTO {
     prioridade: 'alta' | 'media' | 'baixa';
     gestorResponsavel?: string;
     baseId: number;
-    visitas: number;
+    id_visita: number;
 }
 
 export interface VisitaDetails {
@@ -155,4 +187,71 @@ export interface CategoriaAgrupada {
         dataVisita: string;
         descricoes: CheckDescription[];
     }[];
+}
+
+export interface FormCategory {
+    id?: number;
+    categoria: string;
+    campos: FormField[];
+    tipoForm: string;
+}
+
+export interface FormField {
+    id?: number;
+    titulo: string;
+    tipo: 'TEXTO' | 'CHECKBOX' | 'SELECT';
+    formId?: number;
+}
+
+export interface RespostaRequest {
+    texto: string;
+    checkbox: CheckBox;
+    select: Select;
+    visitaId: number;
+}
+
+export interface RespostaResponse {
+    id: number;
+    campoId: number;
+    texto: string;
+    checkbox: CheckBox;
+    select: Select;
+    visitaId: number;
+}
+
+enum CheckBox {
+    TRUE = 'TRUE',
+    FALSE = 'FALSE',
+    NOT_GIVEN = 'NOT_GIVEN'
+}
+
+export enum Select {
+    CONFORME = 'CONFORME',
+    PARCIAL = 'PARCIAL',
+    NAO_CONFORME = 'NAO_CONFORME',
+    NAO_AVALIADO = 'NAO_AVALIADO',
+}
+
+export type Flag = "GREEN" | "YELLOW" | "RED" | null;
+
+export interface Midia {
+    id: number;
+    tipoArquivo: string;
+    base64DataUrl: string | null;
+    dataUpload: string;
+    idVisita: number | null;
+    idCategoria: number | null;
+    flag?: Flag;
+}
+
+export interface RelatoDTO {
+    id: number;
+    tema: string;
+    mensagem: string;
+    autor: string;
+    data: string;
+    resolvido: boolean;
+    gestorResponsavel?: string;
+    baseId: number;
+    visitas: number;
 }

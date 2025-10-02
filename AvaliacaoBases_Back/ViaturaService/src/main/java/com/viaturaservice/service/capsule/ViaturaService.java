@@ -2,6 +2,7 @@ package com.viaturaservice.service.capsule;
 
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
+import com.viaturaservice.entity.dto.VeiculoDto;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ public interface ViaturaService {
 
     List<ViaturaResponse> getAllViaturasByIdBase(Long idBase);
 
+    VeiculoDto getVeiculoFromApi(String placa);
+
     boolean existsViaturaById(Long id);
 
     List<ViaturaResponse> getAllViaturas();
@@ -19,4 +22,6 @@ public interface ViaturaService {
     ViaturaResponse updateViatura(Long id, ViaturaRequest viaturaRequest);
 
     void deleteViatura(Long id);
+
+    void deleteAllByBaseId(Long idBase);
 }

@@ -9,13 +9,14 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for VisitaService" enabled="true">
+      <profile name="Annotation profile for FormsService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
+        <module name="FormsService" />
         <module name="VisitaService" />
         <module name="ArquivoMidia" />
         <module name="CheckListItemService" />
@@ -41,6 +42,7 @@
       <module name="BaseService" options="-parameters" />
       <module name="CheckListItemService" options="-parameters" />
       <module name="DiscoveryService" options="-parameters" />
+      <module name="FormsService" options="-parameters" />
       <module name="GatewayService" options="-parameters" />
       <module name="ProjetoUnificado" options="-parameters" />
       <module name="RelatorioService" options="-parameters" />

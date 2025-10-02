@@ -1,5 +1,5 @@
 "use client";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     Box,
@@ -9,15 +9,10 @@ import {
     CardContent,
     Chip,
     CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     Grid,
     IconButton,
     Paper,
-    Stack,
-    TextField,
+
     Typography,
 } from "@mui/material";
 import {
@@ -29,13 +24,11 @@ import {
     People as PeopleIcon,
     Visibility as ViewIcon,
 } from "@mui/icons-material";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
+import { BaseRequest, BaseResponse } from "../types";
+import BaseDialog from "./visita/modal/BaseDialog";
 
-interface Base {
-    id: number;
-    nome: string;
-    endereco: string;
-    tipoBase: string;
+interface Base extends BaseResponse {
     viaturasCount?: number;
     userCount?: number;
 }
@@ -48,12 +41,9 @@ export default function AdminBasesPage() {
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingBase, setEditingBase] = useState<Base | null>(null);
-    const [formData, setFormData] = useState({
-        id: 0,
-        nome: "",
-        endereco: "",
-        tipoBase: "",
-    });
+    const [formData, setFormData] = useState<BaseRequest>();
+    const [phoneError, setPhoneError] = useState<string | null>(null);
+    const [emailError, setEmailError] = useState<string | null>(null);
 
     // fetch seguro que trata 204 / body vazio
     async function fetchJsonSafe(url: string) {
@@ -117,13 +107,12 @@ export default function AdminBasesPage() {
             const requests = currentBases.map(async (base) => {
                 try {
                     const res = await fetch(`/api/viatura/base/${base.id}`);
-                    if (!res.ok || res.status === 204) return {id: base.id, count: 0};
+                    if (!res.ok || res.status === 204) return { id: base.id, count: 0 };
 
                     const arr = await res.json().catch(() => []);
-                    console.log(`Base ID ${base.id} - Viaturas:`, arr);
-                    return {id: base.id, count: Array.isArray(arr) ? arr.length : 0};
+                    return { id: base.id, count: Array.isArray(arr) ? arr.length : 0 };
                 } catch {
-                    return {id: base.id, count: 0};
+                    return { id: base.id, count: 0 };
                 }
             });
 
@@ -155,13 +144,12 @@ export default function AdminBasesPage() {
             const requests = currentBases.map(async (base) => {
                 try {
                     const res = await fetch(`/api/auth/user/base/${base.id}`);
-                    if (!res.ok || res.status === 204) return {id: base.id, count: 0};
+                    if (!res.ok || res.status === 204) return { id: base.id, count: 0 };
 
                     const arr = await res.json().catch(() => []);
-                    console.log(`Base ID ${base.id} - User:`, arr);
-                    return {id: base.id, count: Array.isArray(arr) ? arr.length : 0};
+                    return { id: base.id, count: Array.isArray(arr) ? arr.length : 0 };
                 } catch {
-                    return {id: base.id, count: 0};
+                    return { id: base.id, count: 0 };
                 }
             });
 
@@ -192,6 +180,10 @@ export default function AdminBasesPage() {
                 nome: base.nome,
                 endereco: base.endereco,
                 tipoBase: base.tipoBase,
+                telefone: base.telefone,
+                email: base.email,
+                bairro: base.bairro,
+                municipio: base.municipio,
             });
         } else {
             setEditingBase(null);
@@ -200,8 +192,14 @@ export default function AdminBasesPage() {
                 nome: "",
                 endereco: "",
                 tipoBase: "",
+                telefone: "",
+                email: "",
+                bairro: "",
+                municipio: "",
             });
         }
+        setEmailError(null);
+        setPhoneError(null);
         setOpenDialog(true);
     };
 
@@ -212,12 +210,36 @@ export default function AdminBasesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        let hasError = false;
+        const phone = formData?.telefone || '';
+        const email = formData?.email || '';
+
+        // Regex para números de telefone brasileiros (fixo e celular) com DDD.
+        // Aceita formatos como (XX) XXXXX-XXXX, (XX) XXXX-XXXX, e variações.
+        const phoneRegex = /^\(?(?:[14689][1-9]|2[12478]|3[1234578]|5[1345]|7[134579])\)? ?(9\d{4}|\d{4})-?\d{4}$/;
+        if (!phone || !phoneRegex.test(phone)) {
+            setPhoneError("Formato de telefone inválido.");
+            hasError = true;
+        }
+
+        // Regex para validação de email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!email || !emailRegex.test(email)) {
+            setEmailError("Formato de email inválido.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
         try {
             const url = editingBase ? `/api/base/${editingBase.id}` : "/api/base";
             const method = editingBase ? "PUT" : "POST";
             const res = await fetch(url, {
                 method,
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
             if (!res.ok) throw new Error("Erro ao salvar base");
@@ -232,11 +254,40 @@ export default function AdminBasesPage() {
     const handleDelete = async (id: number) => {
         if (!confirm("Tem certeza que deseja excluir esta base?")) return;
         try {
-            const res = await fetch(`/api/base/${id}`, {method: "DELETE"});
+            const res = await fetch(`/api/base/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Falha ao excluir base");
             await fetchBases();
         } catch (err: any) {
             setError(err.message ?? String(err));
+        }
+    };
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const phone = e.target.value;
+        setFormData({ ...formData!, telefone: phone });
+
+        // Regex para números de telefone brasileiros (fixo e celular) com DDD.
+        // Aceita formatos como (XX) XXXXX-XXXX, (XX) XXXX-XXXX, e variações.
+        const regex = /^\(?(?:[14689][1-9]|2[12478]|3[1234578]|5[1345]|7[134579])\)? ?(9\d{4}|\d{4})-?\d{4}$/;
+
+        if (phone && !regex.test(phone)) {
+            setPhoneError("Formato de telefone inválido.");
+        } else {
+            setPhoneError(null);
+        }
+    };
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const email = e.target.value;
+        setFormData({ ...formData!, email: email });
+
+        // Regex para validação de email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (email && !emailRegex.test(email)) {
+            setEmailError("Formato de email inválido.");
+        } else {
+            setEmailError(null);
         }
     };
 
@@ -247,29 +298,29 @@ export default function AdminBasesPage() {
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress/>
+                <CircularProgress />
             </Box>
         );
     }
 
     return (
-        <Box sx={{p: 3}}>
-            <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3}}>
+        <Box sx={{ p: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h4" component="h1">
                     Administração de Bases
                 </Typography>
-                <Button variant="contained" startIcon={<AddIcon/>} onClick={() => handleOpenDialog()}>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
                     Nova Base
                 </Button>
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{mb: 2}} onClose={() => setError(null)}>
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
                     {error}
                 </Alert>
             )}
 
-            <Paper sx={{p: 2}}>
+            <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                     Bases Cadastradas ({bases.length})
                 </Typography>
@@ -287,36 +338,55 @@ export default function AdminBasesPage() {
                                     boxShadow: 3
                                 }
                             }}
+                            key={base.id}
                         >
-                            <CardContent sx={{flexGrow: 1}}>
-                                <Box sx={{display: "flex", alignItems: "center", mb: 2}}>
-                                    <HospitalIcon sx={{mr: 1, color: "primary.main"}}/>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                                    <HospitalIcon sx={{ mr: 1, color: "primary.main" }} />
                                     <Typography variant="h6" component="h2">
                                         {base.nome}
                                     </Typography>
                                 </Box>
 
-                                <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
+
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    {base.bairro} - {base.municipio}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                     {base.endereco}
                                 </Typography>
 
-                                <Chip
-                                    label={base.tipoBase}
-                                    color={base.tipoBase === "Principal" ? "primary" : "default"}
-                                    size="small"
-                                    sx={{mb: 2}}
-                                />
-
-                                <Box sx={{display: 'flex', gap: 1, mb: 2}}>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
                                     <Chip
-                                        icon={<CarIcon/>}
+                                        label={base.tipoBase}
+                                        color={base.tipoBase === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Chip
+                                        label={base.telefone}
+                                        color={base.telefone === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Chip
+                                        label={base.email}
+                                        color={base.email === "Principal" ? "primary" : "default"}
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                    />
+                                </div>
+
+                                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                                    <Chip
+                                        icon={<CarIcon />}
                                         label={base.viaturasCount === undefined ? "..." : `${base.viaturasCount} viaturas`}
                                         size="small"
                                         color={base.viaturasCount === 0 ? "default" : "primary"}
                                         variant="outlined"
                                     />
                                     <Chip
-                                        icon={<PeopleIcon/>}
+                                        icon={<PeopleIcon />}
                                         label={base.userCount === undefined ? "..." : `${base.userCount} usuários`}
                                         size="small"
                                         color={base.userCount === 0 ? "default" : "secondary"}
@@ -328,7 +398,7 @@ export default function AdminBasesPage() {
                             <CardActions>
                                 <Button
                                     size="small"
-                                    startIcon={<ViewIcon/>}
+                                    startIcon={<ViewIcon />}
                                     onClick={() => handleViewVisits(base.id)}
                                 >
                                     Ver Visitas
@@ -338,14 +408,14 @@ export default function AdminBasesPage() {
                                     onClick={() => handleOpenDialog(base)}
                                     color="primary"
                                 >
-                                    <EditIcon/>
+                                    <EditIcon />
                                 </IconButton>
                                 <IconButton
                                     size="small"
                                     onClick={() => handleDelete(base.id)}
                                     color="error"
                                 >
-                                    <DeleteIcon/>
+                                    <DeleteIcon />
                                 </IconButton>
                             </CardActions>
                         </Card>
@@ -353,43 +423,19 @@ export default function AdminBasesPage() {
                 </Grid>
             </Paper>
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>{editingBase ? "Editar Base" : "Nova Base"}</DialogTitle>
-                <form onSubmit={handleSubmit}>
-                    <DialogContent>
-                        <Stack spacing={2} sx={{mt: 1}}>
-                            <TextField
-                                autoFocus
-                                label="Nome da Base"
-                                fullWidth
-                                required
-                                value={formData.nome}
-                                onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                            />
-                            <TextField
-                                label="Endereço"
-                                fullWidth
-                                required
-                                value={formData.endereco}
-                                onChange={(e) => setFormData({...formData, endereco: e.target.value})}
-                            />
-                            <TextField
-                                label="Tipo da Base"
-                                fullWidth
-                                required
-                                value={formData.tipoBase}
-                                onChange={(e) => setFormData({...formData, tipoBase: e.target.value})}
-                            />
-                        </Stack>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDialog}>Cancelar</Button>
-                        <Button type="submit" variant="contained">
-                            {editingBase ? "Atualizar" : "Criar"}
-                        </Button>
-                    </DialogActions>
-                </form>
-            </Dialog>
+            <BaseDialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                onSubmit={handleSubmit}
+                formData={formData!}
+                setFormData={setFormData}
+                editingBase={!!editingBase}
+                handlePhoneChange={handlePhoneChange}
+                handleEmailChange={handleEmailChange}
+                phoneError={phoneError}
+                emailError={emailError}
+            />
+
         </Box>
     );
 }

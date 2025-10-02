@@ -5,10 +5,10 @@ import com.visitaservice.entity.VisitaEntity;
 import com.visitaservice.entity.dto.visita.VisitaRequest;
 import com.visitaservice.entity.dto.visita.VisitaResponse;
 import com.visitaservice.repository.VisitaRepository;
-import com.visitaservice.service.IdBaseExists;
 import com.visitaservice.service.capsule.VisitaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +21,7 @@ public class VisitaServiceImp implements VisitaService {
     private final VisitaRepository visitaRepository;
     private final VisitaMapper mapper;
     private final IdBaseExists exists;
+    private final DeleteRespostas deleteRespostas;
     private final String visitNotFoundMessage = "Visita não encontrada com esse id: ";
 
 
@@ -60,7 +61,7 @@ public class VisitaServiceImp implements VisitaService {
     public List<VisitaResponse> getAll() {
         return visitaRepository.findAll().stream().map(VisitaMapper::toResponse).toList();
     }
-    public List<VisitaResponse> getAllByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
+    public List<VisitaResponse> getBaseByPeriod(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
         if (exists.existsById(idBase)) {
             return visitaRepository.findAllByIdBaseAndDataVisitaBetween(idBase, dataInicio, dataFim)
                     .stream()
@@ -68,6 +69,17 @@ public class VisitaServiceImp implements VisitaService {
                     .toList();
         }
         throw new IllegalArgumentException("Base não existe: " + idBase);
+    }
+
+    public List<VisitaResponse> getAllByPeriod(LocalDate dataInicio, LocalDate dataFim) {
+        try{
+            return visitaRepository.getByDataVisitaBetween( dataInicio, dataFim)
+                    .stream()
+                    .map(VisitaMapper::toResponse)
+                    .toList();
+        }catch (Exception e ){
+            throw new IllegalArgumentException("Erro ao buscar visitas no período: " + e.getMessage());
+        }
     }
 
     @Override
@@ -84,7 +96,6 @@ public class VisitaServiceImp implements VisitaService {
                     .orElseThrow(() -> new IllegalArgumentException(visitNotFoundMessage + id));
             existingVisit.setIdBase(request.getIdBase());
             existingVisit.setDataVisita(request.getDataVisita());
-            existingVisit.setMembros(request.getMembros());
             var updatedVisit = visitaRepository.save(existingVisit);
             return toResponse(updatedVisit);
         }
@@ -92,6 +103,7 @@ public class VisitaServiceImp implements VisitaService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (existsVisitaById(id)) {
             visitaRepository.deleteById(id);
@@ -99,6 +111,16 @@ public class VisitaServiceImp implements VisitaService {
             throw new IllegalArgumentException(visitNotFoundMessage + id);
         }
 
+    }
+    @Transactional
+    public void deleteAllByBaseId(Long idBase) {
+        if (exists.existsById(idBase)) {
+            var visitas = visitaRepository.findVisitaEntitiesByIdBase(idBase);
+            visitas.forEach(visita -> deleteRespostas.deleteRespostasByVisitaId(visita.getId()));
+            visitaRepository.deleteAll(visitas);
+        } else {
+            throw new IllegalArgumentException("Base não existe: " + idBase);
+        }
     }
 
     @Override

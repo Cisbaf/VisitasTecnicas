@@ -27,6 +27,7 @@ class FormMapper {
         return new FormResponse(
                 formEntity.getId(),
                 formEntity.getCategoria(),
+                formEntity.getSummaryId(),
                 formEntity.getCampos(),
                 formEntity.getTipoForm()
         );
@@ -35,6 +36,7 @@ class FormMapper {
     FormEntity toFormEntity(FormRequest request) {
         FormEntity form = FormEntity.builder()
                 .categoria(request.categoria())
+                .summaryId(request.summaryId())
                 .tipoForm(TipoForm.valueOf(request.tipoForm()))
                 .build();
 

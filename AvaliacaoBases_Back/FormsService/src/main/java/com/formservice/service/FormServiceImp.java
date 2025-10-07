@@ -71,7 +71,7 @@ public class FormServiceImp implements FormService {
                 .toList();
         form.getCampos().clear();
         form.setCampos(campos);
-
+        form.setSummaryId(request.summaryId());
         form.setCategoria(request.categoria());
 
         return mapper.toFromResponse(formRepository.save(form));

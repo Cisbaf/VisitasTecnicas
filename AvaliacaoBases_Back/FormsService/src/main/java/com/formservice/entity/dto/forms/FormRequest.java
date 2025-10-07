@@ -13,6 +13,7 @@ import java.util.List;
 public record FormRequest(
         @NotBlank
         String categoria,
+        Long summaryId,
         List<CamposFormRequest> campos,
         String tipoForm
 ) implements Serializable {

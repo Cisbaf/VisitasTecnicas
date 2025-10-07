@@ -21,7 +21,6 @@ public class MidiasEntity {
     private String caminhoArquivo;
     private LocalDate dataUpload;
     private Long idVisita;
-    private Long idCategoria;
     private String flag;
 
 }

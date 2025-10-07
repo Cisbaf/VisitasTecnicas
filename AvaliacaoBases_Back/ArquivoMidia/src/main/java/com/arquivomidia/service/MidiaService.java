@@ -11,8 +11,6 @@ import java.util.List;
 public interface MidiaService {
     List<MidiasResponse> getMediaByVisitId(Long visitId);
 
-    List<MidiasResponse> getMediaByCategoryId(Long categoryId);
-
     MidiasResponse saveMedia(MidiasRequest midia, MultipartFile file);
 
     void deleteMedia(Long id);

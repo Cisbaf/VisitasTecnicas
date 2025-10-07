@@ -68,12 +68,6 @@ public class MidiasController {
         return ResponseEntity.ok(midias);
     }
 
-    @GetMapping("/category/{idCategory}")
-    @Operation(summary = "Get media files by non-conformity ID")
-    public ResponseEntity<List<MidiasResponse>> getByIdCategory(@PathVariable Long idCategory) {
-        List<MidiasResponse> midias = service.getMediaByCategoryId(idCategory);
-        return ResponseEntity.ok(midias);
-    }
 
     @GetMapping("/exists/{id}")
     @Operation(summary = "Check if media file exists by ID")

@@ -34,7 +34,6 @@ class MidiaMapper {
                 .tipoArquivo(TipoMidia.valueOf(midia.tipoArquivo().toUpperCase()))
                 .caminhoArquivo(fileName)
                 .idVisita(midia.idVisita() != null ? midia.idVisita() : null)
-                .idCategoria(midia.idCategoria() != null ? midia.idCategoria() : null)
                 .flag(midia.flag() != null ? midia.flag() : null)
                 .build();
     }
@@ -81,7 +80,6 @@ class MidiaMapper {
                 .base64DataUrl(base64DataUrl)
                 .dataUpload(midia.getDataUpload())
                 .idVisita(midia.getIdVisita())
-                .idCategoria(midia.getIdCategoria())
                 .flag(midia.getFlag() != null ? midia.getFlag() : null)
                 .build();
     }
@@ -93,7 +91,6 @@ class MidiaMapper {
                 .base64DataUrl(null)
                 .dataUpload(midia.getDataUpload())
                 .idVisita(midia.getIdVisita())
-                .idCategoria(midia.getIdCategoria())
                 .flag(midia.getFlag() != null ? midia.getFlag() : null)
                 .build();
     }

@@ -15,8 +15,6 @@ public record MidiasRequest(
         String tipoArquivo,
         @Positive
         Long idVisita,
-        @Positive
-        Long idCategoria,
         String flag
 ) implements Serializable {
 }

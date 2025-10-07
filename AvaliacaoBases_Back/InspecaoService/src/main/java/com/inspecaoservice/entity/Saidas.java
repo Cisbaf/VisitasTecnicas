@@ -1,10 +1,14 @@
 package com.inspecaoservice.entity;
 
 import jakarta.persistence.Embeddable;
+import lombok.Builder;
+
+import java.time.LocalDate;
 
 @Embeddable
+@Builder
 public record Saidas(
-        String mesAno,
-        Double saidaEquipe
+        LocalDate mesAno,
+        String saidaEquipe
 ) {
 }

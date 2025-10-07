@@ -16,7 +16,7 @@ public class CidadeTempo {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
     private String cidade;
-    private Integer tempoMinimo;
-    private Double tempoMedio;
-    private Integer tempoMaximo;
+    private String tempoMinimo;
+    private String tempoMedio;
+    private String tempoMaximo;
 }

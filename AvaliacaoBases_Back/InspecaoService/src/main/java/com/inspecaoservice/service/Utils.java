@@ -81,7 +81,6 @@ public class Utils {
             long minutos = resto / 60_000L;
             resto = resto % 60_000L;
             long segundos = resto / 1000L;
-            long millis = resto % 1000L;
 
             return String.format("%02d:%02d:%02d", horas, minutos, segundos);
 

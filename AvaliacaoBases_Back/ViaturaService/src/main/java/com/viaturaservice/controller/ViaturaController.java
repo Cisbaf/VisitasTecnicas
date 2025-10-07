@@ -31,9 +31,7 @@ public class ViaturaController {
     @Operation(summary = "Get all Viaturas", description = "Retrieve a list of all viaturas.")
     @GetMapping
     public ResponseEntity<List<ViaturaResponse>> findAll() {
-        var viaturas = viaturaService.getAllViaturas();
-        System.out.println(viaturas);
-        return ResponseEntity.ok(viaturas);
+        return ResponseEntity.ok(viaturaService.getAllViaturas());
     }
 
     @Operation(summary = "Get Viatura by ID", description = "Retrieve a viatura by its unique identifier.")

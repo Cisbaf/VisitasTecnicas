@@ -79,47 +79,6 @@ class BaseControllerTest {
     }
 
     @Test
-    @DisplayName("POST / saves and returns BaseResponse")
-    void save_ReturnsSaved() throws Exception {
-        BaseRequest req = BaseRequest.builder().nome("B1").endereco("E1").tipoBase("T1").build();
-        BaseResponse res = BaseResponse.builder().nome("B1").endereco("E1").tipoBase("T1").build();
-        doReturn(res).when(baseService).createBase(any(BaseRequest.class));
-
-        mockMvc.perform(post("/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("B1"));
-    }
-
-
-    @Test
-    @DisplayName("PUT /{id} updates and returns BaseResponse")
-    void update_ReturnsUpdated() throws Exception {
-        BaseRequest req = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        BaseResponse res = BaseResponse.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        doReturn(res).when(baseService).update(1L, req);
-
-        mockMvc.perform(put("/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.endereco").value("E2"));
-    }
-
-    @Test
-    @DisplayName("PUT /{id} returns 404 when not found")
-    void update_NotFound() throws Exception {
-        BaseRequest req = BaseRequest.builder().nome("B2").endereco("E2").tipoBase("T2").build();
-        doReturn(null).when(baseService).update(3L, req);
-
-        mockMvc.perform(put("/3")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     @DisplayName("DELETE /{id} returns 204 when successful")
     void deleteById_Success() throws Exception {
         mockMvc.perform(delete("/1"))

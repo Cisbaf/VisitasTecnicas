@@ -1,10 +1,8 @@
 package com.inspecaoservice.service;
 
-import com.inspecaoservice.entity.CidadeProntidao;
 import com.inspecaoservice.entity.Saidas;
 import com.inspecaoservice.entity.dto.CidadeProntidaoRequest;
 import com.inspecaoservice.entity.dto.CidadeTempoDTO;
-import com.inspecaoservice.entity.dto.PorcentagemProntTemp;
 import lombok.AllArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -15,11 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.OptionalDouble;
 
 import static com.inspecaoservice.service.Utils.converterMesAno;
 import static com.inspecaoservice.service.Utils.converterTimestampExcel;
@@ -61,7 +57,7 @@ public class CsvProcessingService {
         List<CidadeTempoDTO> dados = new ArrayList<>();
 
         try (InputStreamReader reader = new InputStreamReader(file.getInputStream())) {
-            
+
 
             CSVParser csvParser = CSVParser.parse(reader, CSVFormat.DEFAULT
                     .builder()
@@ -147,7 +143,6 @@ public class CsvProcessingService {
 
         return mapaProntidao;
     }
-
 
 
     private long converterTempoParaSegundos(String tempo) {

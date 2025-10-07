@@ -10,7 +10,6 @@ import java.util.function.Predicate;
 @Service
 public class RouterValidator {
 
-    // Lista de endpoints que não precisam de autenticação
     public static final List<String> openEndpoints = Arrays.asList(
             "/auth/user/login",
             "/auth/user/registro"

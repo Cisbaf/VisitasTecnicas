@@ -31,18 +31,27 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
             if (authHeader != null && !authHeader.isBlank()) {
                 token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+
+                for (int i = 0; i < token.length(); i++) {
+                    char c = token.charAt(i);
+                    if (Character.isWhitespace(c)) {
+                        System.out.println("Space found at position: " + i);
+                    }
+                }
+
             } else {
-                // tenta pegar token do cookie 'token'
                 var cookie = request.getCookies().getFirst("token");
-                if (cookie != null) token = cookie.getValue();
+                if (cookie != null) {
+                    token = cookie.getValue();
+                    token = token.trim();
+                }
             }
 
-            if (token == null || !jwtUtils.isValid(token) || jwtUtils.isTokenExpired(token)) {
+            if (token == null || token.isBlank() || !jwtUtils.isValid(token) || jwtUtils.isTokenExpired(token)) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
 
-            // opcional: disponibiliza token para downstream (atributo)
             exchange.getAttributes().put("token", token);
         }
 

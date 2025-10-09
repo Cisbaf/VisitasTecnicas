@@ -25,18 +25,23 @@ public class FileUploadController {
     private CidadeService cidadeService;
 
     @PostMapping("/csv")
-    @Operation(summary = "Upload de arquivo CSV", description = "Faz o upload de um arquivo CSV e processa conforme o tipo detectado.")
-    public ResponseEntity<String> uploadCsvFile(@RequestParam MultipartFile file) {
+    @Operation(summary = "Upload de arquivo CSV", description = "Faz o upload de um arquivo CSV e XLSX e processa conforme o tipo detectado.")
+    public ResponseEntity<String> uploadFile(@RequestParam MultipartFile file) {
 
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Por favor, selecione um arquivo.");
         }
 
-        if (!Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().endsWith(".csv")) {
-            return ResponseEntity.badRequest().body("Por favor, envie um arquivo CSV.");
+        if (!Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().endsWith(".csv") && !file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
+            return ResponseEntity.badRequest().body("Por favor, envie um arquivo CSV ou XLSX.");
         }
 
         try {
+            if (file.getOriginalFilename().endsWith(".xlsx")) {
+                csvProcessingService.processarArquivoVTR(file);
+
+                return ResponseEntity.ok("Relatório VTR processado com sucesso!");
+            }
             // Detecta automaticamente o tipo de arquivo
             if (csvProcessingService.isArquivoTempos(file)) {
                 csvProcessingService.processarArquivoTempos(file);
@@ -101,6 +106,25 @@ public class FileUploadController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok().body(mapaTempos);
+        }
+    }
+
+    @GetMapping("/vtr")
+    public ResponseEntity<?> getAllVTR(){
+        var listaVtr = cidadeService.getAllVTR();
+        if (listaVtr.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok().body(listaVtr);
+        }
+    }
+    @GetMapping("/vtr/media")
+    public ResponseEntity<?> getVtrMedia(){
+        var listaVtr = cidadeService.getVtrMedia();
+        if (listaVtr.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok().body(listaVtr);
         }
     }
 

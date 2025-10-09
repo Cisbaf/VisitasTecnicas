@@ -10,7 +10,6 @@ import com.formservice.entity.dto.forms.FormResponse;
 import com.formservice.entity.dto.resposta.RespostaRequest;
 import com.formservice.entity.dto.resposta.RespostaResponse;
 import com.formservice.entity.emuns.CheckBox;
-import com.formservice.entity.emuns.Select;
 import com.formservice.entity.emuns.Tipo;
 import com.formservice.entity.emuns.TipoForm;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,7 @@ class FormMapper {
         FormEntity form = FormEntity.builder()
                 .categoria(request.categoria())
                 .summaryId(request.summaryId())
-                .tipoForm(TipoForm.valueOf(request.tipoForm()))
+                .tipoForm(request.summaryId() == 2 ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO)
                 .build();
 
         if (form.getCampos() == null) {
@@ -77,7 +76,6 @@ class FormMapper {
         try{
             return RespostaResponse.builder()
                     .texto(entity.getTexto() != null ? entity.getTexto() : "")
-                    .select(entity.getSelect() != null ? entity.getSelect() : Select.NAO_AVALIADO)
                     .visitaId(entity.getVisitaId())
                     .checkbox(entity.getCheckbox() != null ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
                     .texto(entity.getTexto() != null ? entity.getTexto() : "")
@@ -95,7 +93,6 @@ class FormMapper {
                 .texto(request.texto() != null ? request.texto() : "")
                 .visitaId(request.visitaId())
                 .checkbox(request.checkbox() != null ? request.checkbox() : CheckBox.NOT_GIVEN)
-                .select(request.select() != null ? request.select() : Select.NAO_AVALIADO)
                 .campo(campo)
                 .build();
     }

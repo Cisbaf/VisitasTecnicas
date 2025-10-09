@@ -2,7 +2,6 @@ package com.formservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.formservice.entity.emuns.CheckBox;
-import com.formservice.entity.emuns.Select;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -24,10 +23,6 @@ public class Resposta {
 
     @Enumerated(EnumType.STRING)
     private CheckBox checkbox;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "select_option")
-    private Select select;
 
     private Long visitaId;
 

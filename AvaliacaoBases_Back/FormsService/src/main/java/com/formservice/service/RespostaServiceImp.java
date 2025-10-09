@@ -4,7 +4,6 @@ import com.formservice.entity.Resposta;
 import com.formservice.entity.dto.resposta.RespostaRequest;
 import com.formservice.entity.dto.resposta.RespostaResponse;
 import com.formservice.entity.emuns.CheckBox;
-import com.formservice.entity.emuns.Select;
 import com.formservice.respository.CamposFormRepository;
 import com.formservice.respository.RespostaRepository;
 import com.formservice.service.capsule.RespostaService;
@@ -39,7 +38,6 @@ public class RespostaServiceImp implements RespostaService {
                 resposta.setTexto(req.texto());
 
                 resposta.setCheckbox(req.checkbox());
-                resposta.setSelect(req.select());
             } else {
                 resposta = mapper.toRespostaEntity(req, campo);
 
@@ -48,11 +46,7 @@ public class RespostaServiceImp implements RespostaService {
                 } else {
                     resposta.setCheckbox(CheckBox.NOT_GIVEN);
                 }
-                if (req.select() != null) {
-                    resposta.setSelect(req.select());
-                } else {
-                    resposta.setSelect(Select.NAO_AVALIADO);
-                }
+
             }
 
             respostasParaSalvar.add(resposta);

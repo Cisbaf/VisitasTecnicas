@@ -73,6 +73,7 @@ public class FormServiceImp implements FormService {
         form.setCampos(campos);
         form.setSummaryId(request.summaryId());
         form.setCategoria(request.categoria());
+        form.setTipoForm(request.summaryId() == 2 ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO);
 
         return mapper.toFromResponse(formRepository.save(form));
     }

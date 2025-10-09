@@ -2,7 +2,6 @@ package com.formservice.entity.dto.resposta;
 
 import com.formservice.entity.Resposta;
 import com.formservice.entity.emuns.CheckBox;
-import com.formservice.entity.emuns.Select;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -14,7 +13,6 @@ import java.io.Serializable;
 public record RespostaRequest(
         String texto,
         CheckBox checkbox,
-        Select select,
         @NotNull
         @Positive
         Long visitaId

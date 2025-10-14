@@ -11,7 +11,9 @@ public interface RespostaService {
     List<RespostaResponse> getAllResposta(List<Long> visitaIds);
     List<RespostaResponse> getRespostaByCampoAndVisita(Long campoId, Long formId);
 
-    List<RespostaResponse> addRespostas(List<RespostaRequest> request, Long campoId);
+    List<RespostaResponse> addRespostasToCampo(List<RespostaRequest> request, Long campoId);
+
+    List<RespostaResponse> addRespostas(List<RespostaRequest> request);
 
     List<RespostaResponse> getRespostasByVisitaId(Long visitaId);
 

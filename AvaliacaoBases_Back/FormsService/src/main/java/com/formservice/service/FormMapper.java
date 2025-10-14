@@ -44,7 +44,7 @@ class FormMapper {
         }
 
         List<CamposFormEntity> campos;
-        if(request.campos() != null) {
+        if (request.campos() != null) {
             campos = request.campos().stream()
                     .map(c -> toCampoEntity(c, form))
                     .toList();
@@ -72,22 +72,22 @@ class FormMapper {
                 .form(formEntity)
                 .build();
     }
-    RespostaResponse toRespostaResponse(Resposta entity) {
-        try{
+
+    public RespostaResponse toRespostaResponse(Resposta entity) {
+        try {
             return RespostaResponse.builder()
                     .texto(entity.getTexto() != null ? entity.getTexto() : "")
                     .visitaId(entity.getVisitaId())
                     .checkbox(entity.getCheckbox() != null ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
-                    .texto(entity.getTexto() != null ? entity.getTexto() : "")
                     .id(entity.getId())
-                    .campoId(entity.getCampo().getId())
+                    .campoId(entity.getCampo() != null ? entity.getCampo().getId() : null) // Verificação de null
                     .build();
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(entity.toString());
             throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage());
         }
-
     }
+
     Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
         return Resposta.builder()
                 .texto(request.texto() != null ? request.texto() : "")

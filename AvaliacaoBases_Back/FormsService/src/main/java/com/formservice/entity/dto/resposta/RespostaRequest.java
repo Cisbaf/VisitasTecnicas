@@ -15,6 +15,8 @@ public record RespostaRequest(
         CheckBox checkbox,
         @NotNull
         @Positive
-        Long visitaId
+        Long visitaId,
+        Long campoId
+
 ) implements Serializable {
 }

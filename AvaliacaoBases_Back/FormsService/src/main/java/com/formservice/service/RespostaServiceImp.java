@@ -22,7 +22,7 @@ public class RespostaServiceImp implements RespostaService {
     private final CamposFormRepository camposRepository;
     private final FormMapper mapper;
 
-    public List<RespostaResponse> addRespostas(List<RespostaRequest> request, Long campoId) {
+    public List<RespostaResponse> addRespostasToCampo(List<RespostaRequest> request, Long campoId) {
         var campo = camposRepository.findById(campoId)
                 .orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
 
@@ -57,13 +57,53 @@ public class RespostaServiceImp implements RespostaService {
                 .toList();
     }
 
+    public List<RespostaResponse> addRespostas(List<RespostaRequest> request) {
+
+        List<Resposta> respostasParaSalvar = new ArrayList<>();
+
+        int index = 0;
+        for (RespostaRequest req : request) {
+            var campo = camposRepository.findById(req.campoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + req.campoId()));
+
+            Optional<Resposta> respostaExistente = respostaRepository.getByCampoAndVisitaId(campo, req.visitaId());
+
+            Resposta resposta;
+
+            if (respostaExistente.isPresent()) {
+                resposta = respostaExistente.get();
+                resposta.setTexto(req.texto());
+
+                resposta.setCheckbox(req.checkbox());
+            } else {
+                resposta = mapper.toRespostaEntity(req, campo);
+
+                if (req.checkbox() != null) {
+                    resposta.setCheckbox(req.checkbox());
+                } else {
+                    resposta.setCheckbox(CheckBox.NOT_GIVEN);
+                }
+
+            }
+
+            respostasParaSalvar.add(resposta);
+            index++;
+        }
+
+        return respostaRepository.saveAll(respostasParaSalvar).stream()
+                .map(mapper::toRespostaResponse)
+                .toList();
+    }
+
     @Override
     public List<RespostaResponse> getAllResposta(List<Long> visitIds) {
         List<Resposta> respostas = new ArrayList<>();
-       for(Long id : visitIds){
-           var resp = respostaRepository.findAllByVisitaId(id);
-              respostas.addAll(resp);
-       }
+        for (Long id : visitIds) {
+            var resp = respostaRepository.findAllByVisitaId(id);
+            resp.stream()
+                    .filter(r -> r.getCampo() != null)
+                    .forEach(respostas::add);
+        }
         return respostas.stream().map(mapper::toRespostaResponse).toList();
     }
 
@@ -73,10 +113,16 @@ public class RespostaServiceImp implements RespostaService {
 
         return respostaRepository.findAllByVisitaIdAndCampo(visitId, campo).stream().map(mapper::toRespostaResponse).toList();
     }
+
     @Override
     public List<RespostaResponse> getRespostasByVisitaId(Long visitaId) {
-        return respostaRepository.findAllByVisitaId(visitaId).stream().map(mapper::toRespostaResponse).toList();
+        List<Resposta> respostas = respostaRepository.findAllByVisitaId(visitaId);
+        return respostas.stream()
+                .filter(r -> r.getCampo() != null)
+                .map(mapper::toRespostaResponse)
+                .toList();
     }
+
     @Override
     @Transactional
     public void deleteRespostasByVisitaId(Long visitaId) {

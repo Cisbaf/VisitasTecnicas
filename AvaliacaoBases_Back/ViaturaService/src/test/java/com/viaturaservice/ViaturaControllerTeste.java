@@ -1,7 +1,6 @@
 package com.viaturaservice;
 
 import com.viaturaservice.controller.ViaturaController;
-import com.viaturaservice.entity.Itens;
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
 import com.viaturaservice.service.BaseService;

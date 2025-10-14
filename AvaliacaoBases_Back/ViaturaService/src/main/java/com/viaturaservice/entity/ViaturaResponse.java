@@ -4,7 +4,6 @@ import lombok.Builder;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * DTO for {@link ViaturaEntity}
@@ -17,7 +16,6 @@ public record ViaturaResponse(
         String tipoViatura,
         String statusOperacional,
         Long idBase,
-        List<Itens> itens,
         LocalDate dataInclusao,
         String dataUltimaAlteracao
 ) implements Serializable {

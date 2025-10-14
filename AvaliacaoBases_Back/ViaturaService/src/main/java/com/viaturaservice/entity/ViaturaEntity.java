@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -24,8 +23,6 @@ public class ViaturaEntity {
     private String statusOperacional;
     @Column(name = "id_base")
     private Long idBase;
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<Itens> itens;
     private LocalDate dataInclusao;
     private String dataUltimaAlteracao;
 }

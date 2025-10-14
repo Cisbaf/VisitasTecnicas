@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +27,7 @@ public class ViaturaUpdateService {
     private final ViaturaRepository viaturaRepository;
     private final BaseService baseRepository; // Para relacionar com a base/cidade
 
-    @Scheduled(cron = "0 0 6 * * ?")
+    @Scheduled(fixedRate = 87000000 ,  initialDelay = 10000) // a cada 24 horas e 10 minutos
     @Transactional
     public void atualizarViaturasDiariamente() {
         log.info("Iniciando atualização diária de viaturas...");
@@ -115,7 +114,7 @@ public class ViaturaUpdateService {
         // Se houve alteração, atualizar data de modificação
         if (houveAlteracao) {
             viatura.setDataUltimaAlteracao(veiculoApi.getPreenchimentos() != null && !veiculoApi.getPreenchimentos().isEmpty()
-                    ? veiculoApi.getPreenchimentos().getLast().getDia()
+                    ? veiculoApi.getPreenchimentos().getFirst().getDia()
                     : null);
             viaturaRepository.save(viatura);
             log.info("Viatura atualizada: {}", viatura.getPlaca());
@@ -137,7 +136,6 @@ public class ViaturaUpdateService {
                 .statusOperacional("Em Operação") // Status padrão
                 .idBase(base.id())
                 .km(km)
-                .itens(new ArrayList<>()) // Lista vazia de itens
                 .dataInclusao(LocalDate.now())
                 .dataUltimaAlteracao(ultimaAlteracao)
                 .build();

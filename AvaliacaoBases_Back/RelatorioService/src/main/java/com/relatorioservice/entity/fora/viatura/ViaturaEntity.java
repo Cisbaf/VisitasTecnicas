@@ -1,8 +1,8 @@
 package com.relatorioservice.entity.fora.viatura;
 
-import lombok.*;
-
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 
 @Data
 @Builder
@@ -16,6 +16,5 @@ public class ViaturaEntity {
     private String tipoViatura;
     private String statusOperacional;
     private Long idBase;
-    private List<Itens> itens;
 
 }

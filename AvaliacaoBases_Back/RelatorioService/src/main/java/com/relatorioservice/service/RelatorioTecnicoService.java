@@ -91,10 +91,6 @@ public class RelatorioTecnicoService {
             dto.setPlaca(v.getPlaca());
             dto.setModelo(v.getModelo());
             dto.setStatus(v.getStatusOperacional());
-            dto.setItensCriticos(Optional.ofNullable(v.getItens()).orElse(List.of()).stream()
-                    .filter(i -> i.getConformidade() < 80)
-                    .map(i -> new ItemViaturaDTO(i.getNome(), i.getConformidade()))
-                    .collect(Collectors.toList()));
             return dto;
         }).collect(Collectors.toList());
     }
@@ -174,7 +170,6 @@ public class RelatorioTecnicoService {
         // Agrupar viaturas por placa para remover duplicatas
         Map<String, ViaturaDTO> viaturasUnicas = relatorios.stream()
                 .flatMap(r -> r.getViaturas().stream())
-                .filter(v -> !v.getItensCriticos().isEmpty())
                 .collect(Collectors.toMap(
                         ViaturaDTO::getPlaca,
                         v -> v,

@@ -6,9 +6,7 @@ import com.relatorioservice.entity.fora.forms.dto.CamposFormResponse;
 import com.relatorioservice.entity.fora.forms.dto.FormResponse;
 import com.relatorioservice.entity.fora.forms.dto.RespostaResponse;
 import com.relatorioservice.entity.fora.forms.enums.CheckBox;
-import com.relatorioservice.entity.fora.forms.enums.Select;
 import com.relatorioservice.entity.fora.forms.enums.Tipo;
-import com.relatorioservice.entity.fora.viatura.Itens;
 import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
 
 import java.util.*;
@@ -80,29 +78,6 @@ public class CalcularPontos {
             pontos.addAll(categoriasFortes);
         }
 
-        Optional<ViaturaEntity> melhorViatura = Optional.ofNullable(viaturas).orElse(List.of()).stream()
-                .filter(v -> v.getItens() != null && !v.getItens().isEmpty())
-                .max(Comparator.comparingDouble(v ->
-                        v.getItens().stream().mapToDouble(Itens::getConformidade).average().orElse(0.0)
-                ));
-
-        melhorViatura.ifPresent(v -> {
-            double media = v.getItens().stream().mapToDouble(Itens::getConformidade).average().orElse(0.0);
-            if(media > 0.0) {
-                pontos.add(String.format("Melhor viatura: %s (%.1f%%)", v.getPlaca(), media));
-            }
-        });
-
-        Optional<Itens> melhorEquipamento = Optional.ofNullable(viaturas).orElse(List.of()).stream()
-                .flatMap(v -> Optional.ofNullable(v.getItens()).orElse(List.of()).stream())
-                .max(Comparator.comparingInt(Itens::getConformidade));
-
-        melhorEquipamento.ifPresent(item -> {
-            if(item.getConformidade() > 0) {
-                pontos.add(String.format("Melhor equipamento: %s (%d%%)", item.getNome(), item.getConformidade()));
-            }
-        });
-
         long relatosResolvidos = Optional.ofNullable(relatos).orElse(List.of()).stream()
                 .filter(RelatoEntity::getResolvido).count();
 
@@ -173,23 +148,6 @@ public class CalcularPontos {
             criticos.addAll(camposCriticos);
         }
 
-        Optional<ViaturaEntity> piorViatura = Optional.ofNullable(viaturas).orElse(List.of()).stream()
-                .filter(v -> v.getItens() != null && !v.getItens().isEmpty())
-                .min(Comparator.comparingDouble(v ->
-                        v.getItens().stream().mapToDouble(Itens::getConformidade).average().orElse(100.0)
-                ));
-
-        piorViatura.ifPresent(v -> {
-            double media = v.getItens().stream().mapToDouble(Itens::getConformidade).average().orElse(0.0);
-            criticos.add(String.format("Pior viatura: %s (%.1f%%)", v.getPlaca(), media));
-        });
-
-        Optional<Itens> piorEquipamento = Optional.ofNullable(viaturas).orElse(List.of()).stream()
-                .flatMap(v -> Optional.ofNullable(v.getItens()).orElse(List.of()).stream())
-                .min(Comparator.comparingInt(Itens::getConformidade));
-
-        piorEquipamento.ifPresent(item -> criticos.add(String.format("Pior equipamento: %s (%d%%)", item.getNome(), item.getConformidade())));
-
         long relatosPendentes = Optional.ofNullable(relatos).orElse(List.of()).stream().filter(r -> !r.getResolvido()).count();
         if (relatosPendentes > 0) {
             criticos.add(relatosPendentes + " relatos pendentes");
@@ -211,7 +169,7 @@ public class CalcularPontos {
 
             List<CamposFormResponse> camposRelevantes = form.campos().stream()
                     .filter(c -> c.tipo() != null &&
-                            (c.tipo() == Tipo.CHECKBOX || c.tipo() == Tipo.SELECT))
+                            (c.tipo() == Tipo.CHECKBOX ))
                     .toList();
 
             if (camposRelevantes.isEmpty()) {
@@ -270,48 +228,7 @@ public class CalcularPontos {
                         if (pTrue < THRESHOLD_FORTES) camposFora++;
                     }
                 }
-                else if (campo.tipo() == Tipo.SELECT) {
-                    long conformeCount = respostasCampo.stream()
-                            .map(RespostaResponse::select)
-                            .filter(Objects::nonNull)
-                            .filter(sel -> sel == Select.CONFORME)
-                            .count();
 
-                    long naoConformeCount = respostasCampo.stream()
-                            .map(RespostaResponse::select)
-                            .filter(Objects::nonNull)
-                            .filter(sel -> sel == Select.NAO_CONFORME)
-                            .count();
-
-                    long parcialCount = respostasCampo.stream()
-                            .map(RespostaResponse::select)
-                            .filter(Objects::nonNull)
-                            .filter(sel -> sel == Select.PARCIAL)
-                            .count();
-
-                    long notGivenCount = respostasCampo.stream()
-                            .map(RespostaResponse::select)
-                            .filter(sel -> sel == null || sel == Select.NAO_AVALIADO)
-                            .count();
-
-                    long validCount = conformeCount + naoConformeCount + parcialCount;
-
-                    if (validCount > 0) {
-                        categoriaAvaliada = true;
-                        double pConforme = (double) conformeCount / validCount * 100.0;
-                        double pNaoConforme = (double) naoConformeCount / validCount * 100.0;
-                        double pParcial = (double) parcialCount / validCount * 100.0;
-                        double pNot = (double) notGivenCount / respostasCampo.size() * 100.0;
-
-                        listaTrue.add(pConforme);
-                        // Considera não conforme e parcial como "false" para o cálculo
-                        listaFalse.add(pNaoConforme + pParcial);
-                        listaNot.add(pNot);
-
-                        camposComDados++;
-                        if (pConforme < THRESHOLD_FORTES) camposFora++;
-                    }
-                }
             }
 
             double mediaTrue;
@@ -385,7 +302,6 @@ public class CalcularPontos {
             }
 
             boolean anyCheckbox = rCampo.stream().anyMatch(rr -> rr.checkbox() != null);
-            boolean anySelect = rCampo.stream().anyMatch(rr -> rr.select() != null);
 
             if (anyCheckbox) {
                 long trueCount = rCampo.stream()
@@ -404,24 +320,6 @@ public class CalcularPontos {
                     double pct = (double) trueCount / (double) validCount * 100.0;
                     res.percentTrueByCampo.put(campoId, pct);
                     res.countCheckboxByCampo.put(campoId, (int) validCount);
-                }
-            } else if (anySelect) {
-                long conformeCount = rCampo.stream()
-                        .map(RespostaResponse::select)
-                        .filter(Objects::nonNull)
-                        .filter(sel -> sel == Select.CONFORME)
-                        .count();
-
-                long validCount = rCampo.stream()
-                        .map(RespostaResponse::select)
-                        .filter(Objects::nonNull)
-                        .filter(sel -> sel == Select.CONFORME || sel == Select.NAO_CONFORME || sel == Select.PARCIAL)
-                        .count();
-
-                if (validCount > 0) {
-                    double pct = (double) conformeCount / (double) validCount * 100.0;
-                    res.percentConformeByCampo.put(campoId, pct);
-                    res.countSelectByCampo.put(campoId, (int) validCount);
                 }
             }
         }

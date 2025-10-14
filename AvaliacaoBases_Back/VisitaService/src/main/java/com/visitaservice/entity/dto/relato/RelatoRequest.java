@@ -16,12 +16,8 @@ public record RelatoRequest(
         String mensagem,
         @NotBlank(message = "O tema do relato é requerido")
         String tema,
-        @NotBlank(message = "O gestor responsavel pela visita é requerido")
-        String gestorResponsavel,
         @NotNull(message = "É necessario adicionar a data do relato")
         Date data,
-        @NotNull(message = "Campo não pode ser nulo")
-        Boolean resolvido,
         @NotNull
         Long id_visita
 ) implements Serializable {}

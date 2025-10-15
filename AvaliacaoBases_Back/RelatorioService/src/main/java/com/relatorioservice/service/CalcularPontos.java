@@ -1,37 +1,151 @@
 package com.relatorioservice.service;
 
 import com.relatorioservice.entity.dtos.CategoryConformanceDTO;
-import com.relatorioservice.entity.fora.Visita.RelatoEntity;
 import com.relatorioservice.entity.fora.forms.dto.CamposFormResponse;
 import com.relatorioservice.entity.fora.forms.dto.FormResponse;
 import com.relatorioservice.entity.fora.forms.dto.RespostaResponse;
 import com.relatorioservice.entity.fora.forms.enums.CheckBox;
 import com.relatorioservice.entity.fora.forms.enums.Tipo;
-import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class CalcularPontos {
 
     private static final double THRESHOLD_FORTES = 80.0;
     private static final double THRESHOLD_CRITICOS = 20.0;
     private static final double NAO_CALCULADO = -1.0;
 
+    // Nova estrutura para resultados hierárquicos (igual ao frontend)
+    static class ResultadosHierarquicos {
+        Map<Long, PorFormulario> porFormulario = new HashMap<>();
+        Map<Long, PorSummary> porSummary = new HashMap<>();
+        Geral geral = new Geral();
+
+        static class PorFormulario {
+            int total;
+            int conforme;
+            double porcentagem;
+            long summaryId;
+        }
+
+        static class PorSummary {
+            int totalCampos = 0;
+            int totalConforme = 0;
+            double porcentagem = 0;
+            List<Long> forms = new ArrayList<>();
+        }
+
+        static class Geral {
+            int totalCampos = 0;
+            int totalConforme = 0;
+            double porcentagem = 0;
+        }
+    }
+
+    public static ResultadosHierarquicos calcularConformidadeHierarquica(
+            List<FormResponse> inspectionForms,
+            List<RespostaResponse> respostasVisita) {
+
+        ResultadosHierarquicos resultados = new ResultadosHierarquicos();
+
+        try {
+            for (FormResponse form : inspectionForms) {
+                List<CamposFormResponse> checkboxFields = form.campos() != null ?
+                        form.campos().stream()
+                                .filter(c -> c.tipo() == Tipo.CHECKBOX)
+                                .toList() :
+                        new ArrayList<>();
+
+                if (checkboxFields.isEmpty()) continue;
+
+                int totalCampos = 0;
+                int camposConformes = 0;
+
+                for (CamposFormResponse field : checkboxFields) {
+                    if (field.id() == null) continue;
+
+                    Optional<RespostaResponse> respostaOpt = respostasVisita.stream()
+                            .filter(r -> r.campoId() != null && r.campoId().equals(field.id()))
+                            .findFirst();
+
+                    totalCampos += 1;
+
+                    if (respostaOpt.isPresent()) {
+                        RespostaResponse resposta = respostaOpt.get();
+                        boolean isConforme = false;
+
+                        if (resposta.checkbox() != null) {
+                            isConforme = resposta.checkbox() == CheckBox.TRUE;
+                        }
+
+                        if (isConforme) {
+                            camposConformes += 1;
+                        }
+                    }
+                }
+
+                double porcentagemForm = totalCampos > 0 ? (camposConformes * 100.0) / totalCampos : 0;
+
+                ResultadosHierarquicos.PorFormulario porForm = new ResultadosHierarquicos.PorFormulario();
+                porForm.total = totalCampos;
+                porForm.conforme = camposConformes;
+                porForm.porcentagem = porcentagemForm;
+                porForm.summaryId = form.summaryId();
+
+                resultados.porFormulario.put(form.id(), porForm);
+
+                // Inicializar summary se não existir
+                if (!resultados.porSummary.containsKey(form.summaryId())) {
+                    resultados.porSummary.put(form.summaryId(), new ResultadosHierarquicos.PorSummary());
+                }
+
+                ResultadosHierarquicos.PorSummary porSummary = resultados.porSummary.get(form.summaryId());
+                porSummary.forms.add(form.id());
+                porSummary.totalCampos += totalCampos;
+                porSummary.totalConforme += camposConformes;
+            }
+
+            // 2. Calcular por summary (igual frontend)
+            for (Map.Entry<Long, ResultadosHierarquicos.PorSummary> entry : resultados.porSummary.entrySet()) {
+                ResultadosHierarquicos.PorSummary summary = entry.getValue();
+                summary.porcentagem = summary.totalCampos > 0 ?
+                        (summary.totalConforme * 100.0) / summary.totalCampos : 0;
+
+                resultados.geral.totalCampos += summary.totalCampos;
+                resultados.geral.totalConforme += summary.totalConforme;
+            }
+
+            // 3. Calcular porcentagem geral (igual frontend)
+            resultados.geral.porcentagem = resultados.geral.totalCampos > 0 ?
+                    (resultados.geral.totalConforme * 100.0) / resultados.geral.totalCampos : 0;
+
+            return resultados;
+
+        } catch (Exception err) {
+            System.err.println("Erro processando conformidade hierárquica: " + err.getMessage());
+            return resultados;
+        }
+    }
+
+    // MÉTODOS EXISTENTES - AGORA USAM A NOVA LÓGICA
 
     public static List<String> calcularPontosFortes(List<FormResponse> forms,
-                                                    List<RespostaResponse> respostas,
-                                                    List<ViaturaEntity> viaturas,
-                                                    List<RelatoEntity> relatos) {
+                                                    List<RespostaResponse> respostas) {
         List<String> pontos = new ArrayList<>();
         if (forms == null || respostas == null) {
             return pontos;
         }
 
+        // Usar a nova lógica hierárquica como base
+        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
         Map<Long, CamposFormResponse> camposById = getCamposById(forms);
         Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas);
 
+        // Resto da lógica mantida...
         confDetalhada.entrySet().stream()
                 .filter(e -> e.getValue().getMediaPercentTrue() > 0.0)
                 .max(Comparator.comparingDouble(e -> e.getValue().getMediaPercentTrue()))
@@ -78,20 +192,11 @@ public class CalcularPontos {
             pontos.addAll(categoriasFortes);
         }
 
-        long relatosResolvidos = Optional.ofNullable(relatos).orElse(List.of()).stream()
-                .filter(RelatoEntity::getResolvido).count();
-
-        if (relatosResolvidos > 0) {
-            pontos.add(relatosResolvidos + " relatos resolvidos");
-        }
-
-        return pontos; // Retorna vazio se não houver pontos fortes
+        return pontos;
     }
 
     public static List<String> calcularPontosCriticos(List<FormResponse> forms,
-                                                      List<RespostaResponse> respostas,
-                                                      List<RelatoEntity> relatos,
-                                                      List<ViaturaEntity> viaturas) {
+                                                      List<RespostaResponse> respostas) {
         List<String> criticos = new ArrayList<>();
         if (forms == null || respostas == null) {
             criticos.add("Dados insuficientes para identificar pontos críticos");
@@ -148,105 +253,31 @@ public class CalcularPontos {
             criticos.addAll(camposCriticos);
         }
 
-        long relatosPendentes = Optional.ofNullable(relatos).orElse(List.of()).stream().filter(r -> !r.getResolvido()).count();
-        if (relatosPendentes > 0) {
-            criticos.add(relatosPendentes + " relatos pendentes");
-        }
-
         return criticos.isEmpty() ? List.of("Nenhum ponto crítico identificado") : criticos;
     }
-
 
     public static Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas) {
         Map<String, CategoryConformanceDTO> mapa = new HashMap<>();
         if (forms == null || respostas == null) return mapa;
 
+        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
+
         for (FormResponse form : forms) {
-            if (form.campos() == null || form.campos().isEmpty()) {
+            if (form == null) continue;
+
+            ResultadosHierarquicos.PorFormulario formData = resultados.porFormulario.get(form.id());
+
+            if (formData == null) {
+                // Se não tem dados do formulário, não foi calculado
                 mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), NAO_CALCULADO, 0.0, 0.0, 0.0));
                 continue;
             }
 
-            List<CamposFormResponse> camposRelevantes = form.campos().stream()
-                    .filter(c -> c.tipo() != null &&
-                            (c.tipo() == Tipo.CHECKBOX ))
-                    .toList();
-
-            if (camposRelevantes.isEmpty()) {
-                mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), 0.0, 0.0, 0.0, 0.0));
-                continue;
-            }
-
-            List<Double> listaTrue = new ArrayList<>();
-            List<Double> listaFalse = new ArrayList<>();
-            List<Double> listaNot = new ArrayList<>();
-            int camposFora = 0;
-            int camposComDados = 0;
-            boolean categoriaAvaliada = false;
-
-            for (CamposFormResponse campo : camposRelevantes) {
-                Long id = campo.id();
-                List<RespostaResponse> respostasCampo = respostas.stream()
-                        .filter(r -> r.campoId() != null && r.campoId().equals(id))
-                        .toList();
-
-                if (respostasCampo.isEmpty()) {
-                    continue;
-                }
-
-                // Verifica o tipo do campo diretamente em vez de depender dos valores das respostas
-                if (campo.tipo() == Tipo.CHECKBOX) {
-                    long trueCount = respostasCampo.stream()
-                            .map(RespostaResponse::checkbox)
-                            .filter(Objects::nonNull)
-                            .filter(cb -> cb == CheckBox.TRUE)
-                            .count();
-
-                    long falseCount = respostasCampo.stream()
-                            .map(RespostaResponse::checkbox)
-                            .filter(Objects::nonNull)
-                            .filter(cb -> cb == CheckBox.FALSE)
-                            .count();
-
-                    long notGiven = respostasCampo.stream()
-                            .map(RespostaResponse::checkbox)
-                            .filter(cb -> cb == null || cb == CheckBox.NOT_GIVEN)
-                            .count();
-
-                    long validCount = trueCount + falseCount;
-                    if (validCount > 0) {
-                        categoriaAvaliada = true;
-                        double pTrue = (double) trueCount / validCount * 100.0;
-                        double pFalse = (double) falseCount / validCount * 100.0;
-                        double pNot = (double) notGiven / respostasCampo.size() * 100.0;
-
-                        listaTrue.add(pTrue);
-                        listaFalse.add(pFalse);
-                        listaNot.add(pNot);
-
-                        camposComDados++;
-                        if (pTrue < THRESHOLD_FORTES) camposFora++;
-                    }
-                }
-
-            }
-
-            double mediaTrue;
-            double mediaFalse;
-            double mediaNot;
-            double percCamposFora;
-
-            if (!categoriaAvaliada) {
-                mediaTrue = NAO_CALCULADO;
-                mediaFalse = 0.0;
-                mediaNot = 0.0;
-                percCamposFora = 0.0;
-            } else {
-                mediaTrue = listaTrue.isEmpty() ? 0.0 : listaTrue.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-                mediaFalse = listaFalse.isEmpty() ? 0.0 : listaFalse.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-                mediaNot = listaNot.isEmpty() ? 0.0 : listaNot.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-                percCamposFora = camposComDados == 0 ? 0.0 : (double) camposFora / camposComDados * 100.0;
-            }
+            // Usar os dados calculados pela nova lógica
+            double mediaTrue = formData.porcentagem;
+            double mediaFalse = 0.0; // Não calculado na nova lógica
+            double mediaNot = 0.0;   // Não calculado na nova lógica
+            double percCamposFora = 0.0; // Não calculado na nova lógica
 
             mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), mediaTrue, mediaFalse, mediaNot, percCamposFora));
         }
@@ -254,6 +285,13 @@ public class CalcularPontos {
         return mapa;
     }
 
+    // MÉTODO NOVO para obter a média geral de conformidade (igual frontend)
+    public static double calcularMediaConformidadeGeral(List<FormResponse> forms, List<RespostaResponse> respostas) {
+        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
+        return resultados.geral.porcentagem;
+    }
+
+    // Mantém todos os métodos auxiliares existentes
     public static double percentualItensForaConformidadeGlobal(List<FormResponse> forms, List<RespostaResponse> respostas) {
         if (forms == null || respostas == null) return 0.0;
 
@@ -344,7 +382,10 @@ public class CalcularPontos {
         if (campo == null) return "Sem categoria";
 
         for (FormResponse form : forms) {
-            if (form.campos() != null && form.campos().stream().anyMatch(c -> c.id().equals(campo.id()))) {
+            if (form == null) continue;
+            if (form.campos() != null && form.campos().stream()
+                    .filter(Objects::nonNull)
+                    .anyMatch(c -> c.id() != null && c.id().equals(campo.id()))) {
                 return form.categoria();
             }
         }

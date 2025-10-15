@@ -15,6 +15,9 @@ public class BaseRankingDTO implements Comparable<BaseRankingDTO> {
     private double mediaConformidade;
     private LocalDate dataUltimaVisita;
     private int posicaoRanking;
+    private Double porcentagemVtrAtiva;
+    private String tempoMedioProntidao;
+    private String tempoMedioAtendimento;
 
     public BaseRankingDTO(String nomeBase, Long idBase, double mediaConformidade, LocalDate dataUltimaVisita) {
         this.nomeBase = nomeBase;

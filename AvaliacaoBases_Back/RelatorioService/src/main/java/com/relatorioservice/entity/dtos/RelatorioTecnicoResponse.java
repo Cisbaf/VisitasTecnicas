@@ -26,4 +26,8 @@ public class RelatorioTecnicoResponse {
 
     private List<ViaturaDTO> viaturas;
     private List<RelatoDTO> relatos;
+
+    private Double porcentagemVtrAtiva;
+    private String tempoMedioProntidao;
+    private String tempoMedioAtendimento;
 }

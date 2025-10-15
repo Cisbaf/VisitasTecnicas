@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ViaturaDTO {
     private String placa;
-    private String modelo;
-    private String status;
-    private List<ItemViaturaDTO> itensCriticos;
+    private String tipoViatura;
+    private String km;
+    private String dataUltimaAlteracao;
 }

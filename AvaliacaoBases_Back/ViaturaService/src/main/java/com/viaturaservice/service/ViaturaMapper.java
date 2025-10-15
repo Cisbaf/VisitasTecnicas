@@ -27,7 +27,7 @@ class ViaturaMapper {
         return ViaturaResponse.builder()
                 .id(viaturaEntity.getId())
                 .placa(viaturaEntity.getPlaca())
-                .km(viaturaEntity.getKm())
+                .km(viaturaEntity.getKm().startsWith("0") ? "0" : viaturaEntity.getKm())
                 .tipoViatura(viaturaEntity.getTipoViatura())
                 .statusOperacional(viaturaEntity.getStatusOperacional())
                 .idBase(viaturaEntity.getIdBase())

@@ -105,6 +105,7 @@ public class ViaturaUpdateService {
 
             assert veiculoApi.getKM() != null;
             String kmAtual = veiculoApi.getKM().replaceAll("\\D", "");
+            kmAtual = kmAtual.startsWith("0" ) || kmAtual.isEmpty() ?  "0" : kmAtual;
             if (!kmAtual.equals(viatura.getDataUltimaAlteracao())) {
                 viatura.setKm(kmAtual);
                 houveAlteracao = true;
@@ -129,7 +130,7 @@ public class ViaturaUpdateService {
         var ultimaAlteracao = veiculoApi.getPreenchimentos() != null && !veiculoApi.getPreenchimentos().isEmpty()
                 ? veiculoApi.getPreenchimentos().getLast().getDia()
                 : null;
-        var km = veiculoApi.getKM().equals("Não encontrado!") ? "0" : veiculoApi.getKM().replaceAll("\\D", "").concat(" km");
+        var km = veiculoApi.getKM().equals("Não encontrado!") ? "0" : veiculoApi.getKM().replaceAll("\\D", "");
         ViaturaEntity novaViatura = ViaturaEntity.builder()
                 .placa(placa)
                 .tipoViatura(veiculoApi.getIdentificacao())

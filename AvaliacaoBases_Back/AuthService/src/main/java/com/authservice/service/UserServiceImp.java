@@ -46,7 +46,7 @@ public class UserServiceImp implements UserService {
     }
 
     public String login(LoginRequest request) {
-        var entity = userRepository.findByUser(request.user());
+        var entity = userRepository.findByUser(request.user().trim());
         if (entity == null || !BCrypt.checkpw(request.password(), entity.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }

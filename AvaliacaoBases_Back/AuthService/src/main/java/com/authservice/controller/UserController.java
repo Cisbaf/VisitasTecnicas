@@ -6,6 +6,7 @@ import com.authservice.entity.userDto.UserResponse;
 import com.authservice.service.capsule.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -105,11 +107,13 @@ public class UserController {
         String accessToken = userService.login(request);
         ResponseCookie cookie = ResponseCookie.from("token", accessToken)
                 .httpOnly(true)
-                .secure(secureCookie)
+                .secure(false)
                 .path("/")
                 .maxAge(Long.parseLong(expiration))
                 .sameSite(sameSite)
                 .build();
+
+        log.info("Token gerado: {}", accessToken);
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body("Login feito com sucesso");
@@ -121,7 +125,7 @@ public class UserController {
 
         ResponseCookie cookie = ResponseCookie.from("token", "")
                 .httpOnly(true)
-                .secure(secureCookie)
+                .secure(false)
                 .path("/")
                 .maxAge(Duration.ZERO)
                 .sameSite(sameSite)

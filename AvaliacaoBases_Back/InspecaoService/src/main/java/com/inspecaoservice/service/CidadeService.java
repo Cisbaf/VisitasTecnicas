@@ -1,5 +1,6 @@
 package com.inspecaoservice.service;
 
+import com.inspecaoservice.entity.CidadeProntidao;
 import com.inspecaoservice.entity.RelatorioVTR;
 import com.inspecaoservice.entity.Saidas;
 import com.inspecaoservice.entity.VTR;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,14 +37,16 @@ public class CidadeService {
                 if (cidadeProntidao != null) {
                     cidadeProntidao.getSaidas().clear();
                     cidadeProntidao.getSaidas().add(saida);
+                    cidadeProntidao.setDataEnvio(LocalDate.now());
                     prontidaoRepository.save(cidadeProntidao);
                 } else {
 
                     List<Saidas> listaSaidas = new ArrayList<>();
                     listaSaidas.add(saida);
-                    var novoCidadeProntidao = com.inspecaoservice.entity.CidadeProntidao.builder()
+                    var novoCidadeProntidao = CidadeProntidao.builder()
                             .cidade(dado.getCidade())
                             .saidas(listaSaidas)
+                            .dataEnvio(LocalDate.now())
                             .build();
                     prontidaoRepository.save(novoCidadeProntidao);
                 }
@@ -62,6 +66,7 @@ public class CidadeService {
                 cidadeTempo.setTempoMinimo(dado.getTempoMinimo());
                 cidadeTempo.setTempoMedio(dado.getTempoMedio());
                 cidadeTempo.setTempoMaximo(dado.getTempoMaximo());
+                cidadeTempo.setDataEnvio(LocalDate.now());
                 tempoRepository.save(cidadeTempo);
             } else {
                 var novoCidadeTempo = com.inspecaoservice.entity.CidadeTempo.builder()
@@ -69,6 +74,7 @@ public class CidadeService {
                         .tempoMinimo(dado.getTempoMinimo())
                         .tempoMedio(dado.getTempoMedio())
                         .tempoMaximo(dado.getTempoMaximo())
+                        .dataEnvio(LocalDate.now())
                         .build();
                 tempoRepository.save(novoCidadeTempo);
             }
@@ -118,6 +124,7 @@ public class CidadeService {
                     var novoRelatorioVrt = RelatorioVTR.builder()
                             .cidade(dado.getCidade())
                             .VTR(listaVtr)
+                            .dataEnvio(LocalDate.now())
                             .build();
                     relatorios.add(novoRelatorioVrt);
                 }
@@ -139,6 +146,7 @@ public class CidadeService {
                 .tempoMinimo(String.valueOf(cidadeTempo.getTempoMinimo()))
                 .tempoMedio(String.valueOf(cidadeTempo.getTempoMedio()))
                 .tempoMaximo(String.valueOf(cidadeTempo.getTempoMaximo()))
+                .dataEnvio(cidadeTempo.getDataEnvio())
                 .build()).toList();
     }
     public List<VtrMediaDto> getVtrMedia() {
@@ -150,6 +158,7 @@ public class CidadeService {
             return VtrMediaDto.builder()
                     .cidade(relatorio.getCidade())
                     .ativa(Math.round(mediaAtiva * 100.0) / 100.0)
+                    .dataEnvio(relatorio.getDataEnvio())
                     .build();
         }).toList();
 
@@ -164,6 +173,9 @@ public class CidadeService {
         cidadesTempo.forEach(cidadeTempo ->
                 mapaTempos.put(cidadeTempo.getCidade(), cidadeTempo.getTempoMedio())
         );
+        if (cidadesTempo.getFirst().getDataEnvio() != null) {
+            mapaTempos.put("dataAtualizacao", cidadesTempo.getFirst().getDataEnvio().toString());
+        }
         return mapaTempos;
     }
 
@@ -173,6 +185,7 @@ public class CidadeService {
         return cidadesProntidao.stream().map(cidadeProntidao -> CidadeProntidaoResponse.builder()
                 .cidade(cidadeProntidao.getCidade())
                 .saida(cidadeProntidao.getSaidas())
+                .dataEnvio(cidadeProntidao.getDataEnvio())
                 .build()).toList();
     }
 }

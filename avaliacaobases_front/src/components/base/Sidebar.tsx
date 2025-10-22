@@ -88,9 +88,8 @@ export default function Sidebar() {
 
     const menuItems = [
         { label: "Visão Geral", icon: <Home />, href: `/base/${baseId}` },
-        { label: "Inspeção", icon: <CheckBox />, href: `/base/${baseId}/checklists` },
+        { label: "Inspeção", icon: <CheckBox />, href: `/base/${baseId}/inspecao` },
         { label: "Viaturas", icon: <LocalShipping />, href: `/base/${baseId}/viatura` },
-        { label: "Indicadores", icon: <Assessment />, href: `/base/${baseId}/indicadores` },
         { label: "Relatórios", icon: <InsertDriveFile />, href: `/base/${baseId}/relatorios` },
         { label: "Histórico", icon: <History />, href: `/base/${baseId}/historico` },
     ];

@@ -20,6 +20,9 @@ public class RelatorioTecnicoResponse {
 
     private Map<String, Double> conformidades;
 
+    private Map<Long, Double> conformidadesPorSummary;
+
+
     private Map<String, CategoryConformanceDTO> conformidadeDetalhada;
 
     private Double percentualItensForaConformidade;
@@ -30,4 +33,7 @@ public class RelatorioTecnicoResponse {
     private Double porcentagemVtrAtiva;
     private String tempoMedioProntidao;
     private String tempoMedioAtendimento;
+
+    private double mediaGeralConformidade;
+
 }

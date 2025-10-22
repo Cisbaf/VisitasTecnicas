@@ -27,7 +27,7 @@ public class RelatorioTecnicoService {
     private final InspecaoServiceClient inspecaoServiceClient;
 
 
-    public RelatorioTecnicoResponse gerarRelatorio(Long visitaId) {
+    public RelatorioTecnicoResponse gerarRelatorio(Long visitaId, LocalDate dataInicio, LocalDate dataFim) {
         try {
             VisitaEntity visita = visitaService.getVisitaById(visitaId);
 
@@ -50,7 +50,7 @@ public class RelatorioTecnicoService {
             }
 
             List<EquipeTecnica> equipe = visitaService.getAllMembrosByVisitaId(visitaId);
-            List<ViaturaEntity> viaturas = viaturaService.getViaturasByBase(base.getId());
+            List<ViaturaEntity> viaturas = viaturaService.findByPeriodo(base.getId(), dataInicio.toString(), dataFim.toString());
 
             List<FormResponse> forms = Optional.ofNullable(formService.getAll()).orElse(List.of());
             List<RespostaResponse> respostas = Optional.ofNullable(formService.getRespostasByVisitaId(visitaId)).orElse(List.of());
@@ -68,17 +68,15 @@ public class RelatorioTecnicoService {
     }
 
 
-
     private RelatorioTecnicoResponse processarRelatorio(VisitaEntity visita,
                                                         BaseEntity base,
                                                         List<EquipeTecnica> equipe,
                                                         List<ViaturaEntity> viaturas,
                                                         List<FormResponse> forms,
                                                         List<RespostaResponse> respostas,
-                                                        List<VtrMediaDto>vtrMediaList,
+                                                        List<VtrMediaDto> vtrMediaList,
                                                         HashMap<String, String> temposMedia,
-                                                        HashMap<String, String> prontidaoMedia)
-    {
+                                                        HashMap<String, String> prontidaoMedia) {
 
         RelatorioTecnicoResponse relatorio = new RelatorioTecnicoResponse();
 
@@ -94,26 +92,23 @@ public class RelatorioTecnicoService {
                 .map(m -> new MembroDTO(m.getNome(), m.getCargo()))
                 .collect(Collectors.toList()));
 
-        // Garantir que as listas não sejam nulas antes de passar para CalcularPontos
         List<FormResponse> safeForms = Optional.ofNullable(forms).orElse(Collections.emptyList());
         List<RespostaResponse> safeRespostas = Optional.ofNullable(respostas).orElse(Collections.emptyList());
         List<ViaturaEntity> safeViaturas = Optional.ofNullable(viaturas).orElse(Collections.emptyList());
 
         CalcularPontos.ResultadosHierarquicos resultadosHierarquicos =
-                CalcularPontos.calcularConformidadeHierarquica(safeForms, safeRespostas);
+                CalcularPontos.calcularConformidadeHierarquica(safeForms, safeRespostas, visita);
 
-        // Calcular média de conformidade da visita
         double mediaConformidadeVisita = resultadosHierarquicos.geral.porcentagem;
+        relatorio.setMediaGeralConformidade(mediaConformidadeVisita);
 
-        // Usar os métodos existentes para pontos fortes e críticos
-        relatorio.setPontosFortes(CalcularPontos.calcularPontosFortes(safeForms, safeRespostas));
-        relatorio.setPontosCriticos(CalcularPontos.calcularPontosCriticos(safeForms, safeRespostas));
+        relatorio.setPontosFortes(CalcularPontos.calcularPontosFortes(safeForms, safeRespostas, visita));
+        relatorio.setPontosCriticos(CalcularPontos.calcularPontosCriticos(safeForms, safeRespostas, visita));
 
-        // Usar a nova lógica para conformidade detalhada
-        Map<String, CategoryConformanceDTO> confDetalhada = CalcularPontos.calcularConformidadesDetalhadas(safeForms, safeRespostas);
+        Map<String, CategoryConformanceDTO> confDetalhada = CalcularPontos.calcularConformidadesDetalhadas(safeForms, safeRespostas, visita);
         relatorio.setConformidadeDetalhada(confDetalhada);
 
-        // Construir o map de conformidades simples a partir dos resultados hierárquicos
+        // Construir o map de conformidades por categoria (mantido para compatibilidade)
         Map<String, Double> conformidadesSimples = new HashMap<>();
         for (Map.Entry<Long, CalcularPontos.ResultadosHierarquicos.PorFormulario> entry :
                 resultadosHierarquicos.porFormulario.entrySet()) {
@@ -121,7 +116,6 @@ public class RelatorioTecnicoService {
             Long formId = entry.getKey();
             CalcularPontos.ResultadosHierarquicos.PorFormulario formData = entry.getValue();
 
-            // Encontrar o formulário para obter a categoria
             Optional<FormResponse> formOpt = safeForms.stream()
                     .filter(f -> f.id().equals(formId))
                     .findFirst();
@@ -131,20 +125,23 @@ public class RelatorioTecnicoService {
                 conformidadesSimples.put(categoria, formData.porcentagem);
             }
         }
-
         relatorio.setConformidades(conformidadesSimples);
 
-        // Calcular percentual de itens fora de conformidade
+        // NOVO: Construir o map de conformidades por summary
+        Map<Long, Double> conformidadesPorSummary = new HashMap<>();
+        for (Map.Entry<Long, CalcularPontos.ResultadosHierarquicos.PorSummary> entry :
+                resultadosHierarquicos.porSummary.entrySet()) {
+            conformidadesPorSummary.put(entry.getKey(), entry.getValue().porcentagem);
+        }
+        relatorio.setConformidadesPorSummary(conformidadesPorSummary);
+
         double percentualFora = CalcularPontos.percentualItensForaConformidadeGlobal(safeForms, safeRespostas);
         relatorio.setPercentualItensForaConformidade(percentualFora);
-
-        // relatorio.setMediaConformidadeGeral(mediaConformidadeVisita);
 
         relatorio.setViaturas(processarViaturas(safeViaturas));
 
         String baseNomeNormalizado = normalizarNome(base.getNome());
 
-        // Encontrar dados para esta base
         Optional<VtrMediaDto> vtrBase = vtrMediaList.stream()
                 .filter(vtr -> normalizarNome(vtr.getCidade()).equals(baseNomeNormalizado))
                 .findFirst();
@@ -155,6 +152,7 @@ public class RelatorioTecnicoService {
 
         return relatorio;
     }
+
 
     private List<ViaturaDTO> processarViaturas(List<ViaturaEntity> viaturas) {
         return viaturas.stream().map(v -> {
@@ -167,25 +165,31 @@ public class RelatorioTecnicoService {
         }).collect(Collectors.toList());
     }
 
-    public RelatorioConsolidadoResponse gerarRelatoriosPorPeriodoeIdBase(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
+    public RelatorioConsolidadoResponse gerarRelatoriosPorPeriodIdBase(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
         List<VisitaEntity> visitas = Optional.ofNullable(
                 visitaService.getBaseByPeriodAndBaseId(idBase, dataInicio, dataFim)
         ).orElse(List.of());
 
-        List<RelatorioTecnicoResponse> relatorios = visitas.stream()
+        // escolher a última visita pela dataVisita
+        VisitaEntity ultimaVisita = visitas.stream()
                 .filter(Objects::nonNull)
-                .map(visita -> {
-                    try {
-                        return this.gerarRelatorio(visita.getId());
-                    } catch (Exception e) {
-                        System.err.println("Erro ao gerar relatório para visita: " + visita.getId());
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .filter(v -> v.getDataVisita() != null && v.getId() != null)
+                .max(Comparator.comparing(VisitaEntity::getDataVisita))
+                .orElse(null);
 
-        return consolidarRelatorios(relatorios, dataInicio, dataFim);
+        if (ultimaVisita == null) {
+            // nenhuma visita válida encontrada -> consolidar vazio
+            return consolidarRelatorios(List.of(), dataInicio, dataFim);
+        }
+
+        RelatorioTecnicoResponse rel;
+        try {
+            rel = this.gerarRelatorio(ultimaVisita.getId(), dataInicio, dataFim);
+        } catch (Exception e) {
+            return consolidarRelatorios(List.of(), dataInicio, dataFim);
+        }
+
+        return consolidarRelatorios(rel != null ? List.of(rel) : List.of(), dataInicio, dataFim);
     }
 
     public List<RelatorioTecnicoResponse> gerarRelatoriosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
@@ -193,13 +197,22 @@ public class RelatorioTecnicoService {
                 visitaService.getAllByPeriod(dataInicio, dataFim)
         ).orElse(List.of());
 
-        return visitas.stream()
+        // agrupa por idBase e pega a última visita de cada base
+        Map<Long, Optional<VisitaEntity>> ultimaPorBase = visitas.stream()
                 .filter(Objects::nonNull)
+                .filter(v -> v.getIdBase() != null && v.getDataVisita() != null && v.getId() != null)
+                .collect(Collectors.groupingBy(
+                        VisitaEntity::getIdBase,
+                        Collectors.maxBy(Comparator.comparing(VisitaEntity::getDataVisita))
+                ));
+
+        return ultimaPorBase.values().stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .map(visita -> {
                     try {
-                        return this.gerarRelatorio(visita.getId());
+                        return this.gerarRelatorio(visita.getId(), dataInicio, dataFim);
                     } catch (Exception e) {
-                        System.err.println("Erro ao gerar relatório para visita: " + visita.getId());
                         return null;
                     }
                 })
@@ -237,6 +250,22 @@ public class RelatorioTecnicoService {
                         .collect(Collectors.toList())
         );
 
+        // NOVO: Calcular médias por summary em vez de por categoria
+        Map<Long, DoubleSummaryStatistics> statsPorSummary = relatorios.stream()
+                .flatMap(r -> r.getConformidadesPorSummary().entrySet().stream())
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.summarizingDouble(Map.Entry::getValue)
+                ));
+
+        Map<Long, Double> mediasConformidadePorSummary = new HashMap<>();
+        statsPorSummary.forEach((summaryId, stats) ->
+                mediasConformidadePorSummary.put(summaryId, stats.getAverage())
+        );
+
+        consolidado.setConformidadesPorSummary(mediasConformidadePorSummary);
+
+        // Mantido para compatibilidade (se necessário)
         Map<String, DoubleSummaryStatistics> statsPorCategoria = relatorios.stream()
                 .flatMap(r -> r.getConformidades().entrySet().stream())
                 .collect(Collectors.groupingBy(
@@ -273,6 +302,7 @@ public class RelatorioTecnicoService {
                     metricas.setPorcentagemVtrAtiva(base.getPorcentagemVtrAtiva());
                     metricas.setTempoMedioProntidao(base.getTempoMedioProntidao());
                     metricas.setTempoMedioAtendimento(base.getTempoMedioAtendimento());
+                    metricas.setMediaConformidade(base.getMediaConformidade());
                     return metricas;
                 })
                 .collect(Collectors.toList());
@@ -286,104 +316,145 @@ public class RelatorioTecnicoService {
         List<BaseEntity> todasBases = baseService.getAllBases();
         List<BaseRankingDTO> ranking = new ArrayList<>();
 
-        // OBTER DADOS EXTERNOS UMA ÚNICA VEZ
-        List<VtrMediaDto> vtrMediaList = inspecaoServiceClient.getVtrMedia();
-        HashMap<String, String> prontidaoMedia = inspecaoServiceClient.getMediaProntidao();
-        HashMap<String, String> temposMedia = inspecaoServiceClient.getMediaTempos();
+        // Dados externos (uma vez)
+        List<VtrMediaDto> vtrMediaList = Optional.ofNullable(inspecaoServiceClient.getVtrMedia()).orElse(List.of());
+        Map<String, Double> vtrMediaMap = vtrMediaList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(v -> normalizarNome(v.getCidade()), VtrMediaDto::getAtiva, (a, b) -> a));
 
-        // Criar mapas para acesso rápido por nome normalizado
-        Map<String, Double> vtrMediaMap = new HashMap<>();
-        Map<String, String> prontidaoMediaMap = new HashMap<>();
-        Map<String, String> temposMediaMap = new HashMap<>();
+        Map<String, String> prontidaoMediaMap = Optional.ofNullable(inspecaoServiceClient.getMediaProntidao())
+                .orElse(new HashMap<>()).entrySet().stream()
+                .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
-        for (VtrMediaDto vtr : vtrMediaList) {
+        Map<String, String> temposMediaMap = Optional.ofNullable(inspecaoServiceClient.getMediaTempos())
+                .orElse(new HashMap<>()).entrySet().stream()
+                .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
-                vtrMediaMap.put(normalizarNome(vtr.getCidade()), vtr.getAtiva());
+        List<FormResponse> formsAll = Optional.ofNullable(formService.getAll()).orElse(List.of());
 
-        }
-
-        for (Map.Entry<String, String> entry : prontidaoMedia.entrySet()) {
-            prontidaoMediaMap.put(normalizarNome(entry.getKey()), entry.getValue());
-        }
-
-        for (Map.Entry<String, String> entry : temposMedia.entrySet()) {
-            temposMediaMap.put(normalizarNome(entry.getKey()), entry.getValue());
-        }
+        // TODAS AS MÉTRICAS COM MESMO PESO (0,25 cada)
+        final double pesoConformidade = 0.25;
+        final double pesoVtrAtiva = 0.25;
+        final double pesoProntidao = 0.25;
+        final double pesoAtendimento = 0.25;
 
         for (BaseEntity base : todasBases) {
             try {
-                List<VisitaEntity> visitas = visitaService.getBaseByPeriodAndBaseId(
-                        base.getId(),
-                        dataInicio,
-                        dataFim
-                );
+                List<VisitaEntity> visitas = Optional.ofNullable(
+                        visitaService.getBaseByPeriodAndBaseId(base.getId(), dataInicio, dataFim)
+                ).orElse(List.of());
+                if (visitas.isEmpty()) continue;
 
-                if (visitas.isEmpty()) {
-                    continue;
-                }
+                VisitaEntity ultimaVisita = visitas.stream()
+                        .filter(Objects::nonNull)
+                        .filter(v -> v.getDataVisita() != null && v.getId() != null)
+                        .max(Comparator.comparing(VisitaEntity::getDataVisita).thenComparing(VisitaEntity::getId))
+                        .orElse(null);
+                if (ultimaVisita == null) continue;
 
-                double somaMediasConformidade = 0.0;
-                int totalVisitasComConformidade = 0;
+                List<RespostaResponse> respostasVisita = Optional.ofNullable(
+                        formService.getRespostasByVisitaId(ultimaVisita.getId())
+                ).orElse(List.of());
 
-                for (VisitaEntity visita : visitas) {
-                    try {
-                        List<FormResponse> formsVisita = Optional.ofNullable(formService.getAll()).orElse(List.of());
-                        List<RespostaResponse> respostasVisita = Optional.ofNullable(formService.getRespostasByVisitaId(visita.getId())).orElse(List.of());
+                CalcularPontos.ResultadosHierarquicos resultados =
+                        CalcularPontos.calcularConformidadeHierarquica(formsAll, respostasVisita, ultimaVisita);
 
-                        CalcularPontos.ResultadosHierarquicos resultados =
-                                CalcularPontos.calcularConformidadeHierarquica(formsVisita, respostasVisita);
+                double mediaConformidadeBase = resultados.geral.porcentagem;
+                if (mediaConformidadeBase <= 0) continue;
 
-                        double mediaConformidadeVisita = resultados.geral.porcentagem;
+                BaseRankingDTO dto = new BaseRankingDTO(base.getNome(), base.getId(), mediaConformidadeBase, ultimaVisita.getDataVisita());
+                String baseNomeNorm = normalizarNome(base.getNome());
 
-                        if (mediaConformidadeVisita > 0) {
-                            somaMediasConformidade += mediaConformidadeVisita;
-                            totalVisitasComConformidade++;
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Erro ao processar visita " + visita.getId() + ": " + e.getMessage());
-                        continue;
-                    }
-                }
+                Double vtrRaw = vtrMediaMap.get(baseNomeNorm);
+                dto.setPorcentagemVtrAtiva(vtrRaw);
+                dto.setTempoMedioProntidao(prontidaoMediaMap.get(baseNomeNorm));
+                dto.setTempoMedioAtendimento(temposMediaMap.get(baseNomeNorm));
 
-                if (totalVisitasComConformidade > 0) {
-                    double mediaConformidadeBase = somaMediasConformidade / totalVisitasComConformidade;
+                // Normalizações para escala 0-1
+                double normConf = Math.max(0.0, Math.min(1.0, mediaConformidadeBase / 100.0));
+                double normVtr = normalizeVtrRaw(vtrRaw);
 
-                    VisitaEntity ultimaVisita = visitas.stream()
-                            .filter(Objects::nonNull)
-                            .max(Comparator.comparing(VisitaEntity::getDataVisita))
-                            .orElse(null);
+                Double prontMin = parseDurationToMinutes(prontidaoMediaMap.get(baseNomeNorm));
+                Double atendMin = parseDurationToMinutes(temposMediaMap.get(baseNomeNorm));
 
-                    // BUSCAR DADOS EXTERNOS PARA ESTA BASE
-                    String baseNomeNormalizado = normalizarNome(base.getNome());
+                // Para tempos: menor é melhor, então invertemos a escala
+                // Usamos uma função que dá score mais alto para tempos menores
+                double normPront = normalizarTempo(prontMin);
+                double normAtend = normalizarTempo(atendMin);
 
-                    BaseRankingDTO baseRanking = new BaseRankingDTO(
-                            base.getNome(),
-                            base.getId(),
-                            mediaConformidadeBase,
-                            ultimaVisita != null ? ultimaVisita.getDataVisita() : null
-                    );
+                // Cálculo do score com pesos iguais
+                double score = (pesoConformidade * normConf) +
+                        (pesoVtrAtiva * normVtr) +
+                        (pesoProntidao * normPront) +
+                        (pesoAtendimento * normAtend);
 
-                    // Adicionar métricas externas
-                    baseRanking.setPorcentagemVtrAtiva(vtrMediaMap.get(baseNomeNormalizado));
-                    baseRanking.setTempoMedioProntidao(prontidaoMediaMap.get(baseNomeNormalizado));
-                    baseRanking.setTempoMedioAtendimento(temposMediaMap.get(baseNomeNormalizado));
+                dto.setScore(score);
 
-                    ranking.add(baseRanking);
-                }
+                ranking.add(dto);
+
             } catch (Exception e) {
-                System.err.println("Erro ao processar base " + base.getId() + ": " + e.getMessage());
+                System.err.println(e.getMessage());
             }
         }
 
-        // Ordenar por média de conformidade (maior primeiro)
-        ranking.sort((b1, b2) -> Double.compare(b2.getMediaConformidade(), b1.getMediaConformidade()));
-
+        // ordenar por score (compareTo agora usa score quando presente) e setar posição
+        ranking.sort(null);
         for (int i = 0; i < ranking.size(); i++) {
             ranking.get(i).setPosicaoRanking(i + 1);
         }
 
         return ranking;
     }
+
+    private double normalizarTempo(Double minutos) {
+        if (minutos == null) return 0.5;
+
+        // Definir um tempo máximo razoável (ex: 120 minutos = 2 horas)
+        // Tempos menores que isso recebem scores mais altos
+        double tempoMaximo = 120.0;
+
+        // Se o tempo for maior que o máximo, score mínimo
+        if (minutos > tempoMaximo) return 0.1;
+
+        // Função decrescente: quanto menor o tempo, maior o score
+        // Score vai de ~0.5 (para 60min) até 1.0 (para 0min)
+        return 1.0 - (minutos / (tempoMaximo * 2));
+    }
+
+    private static Double normalizeVtrRaw(Double v) {
+        if (v == null) return 0.5;
+        if (v <= 1.0) return v;
+        if (v <= 100.0) return v / 100.0;
+        return 0.5;
+    }
+
+    private static Double parseDurationToMinutes(String s) {
+        if (s == null) return null;
+        s = s.trim();
+        try {
+            if (s.contains(":")) {
+                String[] parts = s.split(":");
+                if (parts.length == 2) {
+                    int a = Integer.parseInt(parts[0]);
+                    int b = Integer.parseInt(parts[1]);
+                    return a * 60.0 + b;
+                } else if (parts.length == 3) {
+                    int h = Integer.parseInt(parts[0]);
+                    int m = Integer.parseInt(parts[1]);
+                    int sec = Integer.parseInt(parts[2]);
+                    return h * 60.0 + m + sec / 60.0;
+                }
+            } else {
+                return Double.parseDouble(s);
+            }
+        } catch (Exception ex) {
+            return null;
+        }
+        return null;
+    }
+
+
+
     private String normalizarNome(String nome) {
         if (nome == null) return "";
         String s = nome.trim().toUpperCase(Locale.forLanguageTag("pt-BR"));
@@ -392,4 +463,5 @@ public class RelatorioTecnicoService {
         s = s.replaceAll("\\s+", " ");
         return s;
     }
+
 }

@@ -1,6 +1,7 @@
 package com.relatorioservice.service;
 
 import com.relatorioservice.entity.dtos.CategoryConformanceDTO;
+import com.relatorioservice.entity.fora.Visita.VisitaEntity;
 import com.relatorioservice.entity.fora.forms.dto.CamposFormResponse;
 import com.relatorioservice.entity.fora.forms.dto.FormResponse;
 import com.relatorioservice.entity.fora.forms.dto.RespostaResponse;
@@ -46,13 +47,25 @@ public class CalcularPontos {
         }
     }
 
-    public static ResultadosHierarquicos calcularConformidadeHierarquica(
+    static ResultadosHierarquicos calcularConformidadeHierarquica(
             List<FormResponse> inspectionForms,
-            List<RespostaResponse> respostasVisita) {
+            List<RespostaResponse> respostasVisita,
+            VisitaEntity visita) {
 
         ResultadosHierarquicos resultados = new ResultadosHierarquicos();
 
         try {
+            if (visita == null || visita.getId() == null) {
+                return resultados;
+            }
+
+            Long visitaId = visita.getId();
+
+            List<RespostaResponse> respostasDaVisita = respostasVisita.stream()
+                    .filter(resposta -> resposta.visitaId() != null && resposta.visitaId().equals(visitaId))
+                    .toList();
+
+            // Primeiro: calcular a porcentagem de cada formulário
             for (FormResponse form : inspectionForms) {
                 List<CamposFormResponse> checkboxFields = form.campos() != null ?
                         form.campos().stream()
@@ -62,66 +75,70 @@ public class CalcularPontos {
 
                 if (checkboxFields.isEmpty()) continue;
 
-                int totalCampos = 0;
+                int totalCampos = checkboxFields.size();
                 int camposConformes = 0;
 
                 for (CamposFormResponse field : checkboxFields) {
-                    if (field.id() == null) continue;
-
-                    Optional<RespostaResponse> respostaOpt = respostasVisita.stream()
-                            .filter(r -> r.campoId() != null && r.campoId().equals(field.id()))
+                    Optional<RespostaResponse> respostaOpt = respostasDaVisita.stream()
+                            .filter(r -> Objects.equals(r.campoId(), field.id()))
                             .findFirst();
-
-                    totalCampos += 1;
 
                     if (respostaOpt.isPresent()) {
                         RespostaResponse resposta = respostaOpt.get();
-                        boolean isConforme = false;
-
-                        if (resposta.checkbox() != null) {
-                            isConforme = resposta.checkbox() == CheckBox.TRUE;
-                        }
-
-                        if (isConforme) {
-                            camposConformes += 1;
+                        if (resposta.checkbox() == CheckBox.TRUE) {
+                            camposConformes++;
                         }
                     }
                 }
 
-                double porcentagemForm = totalCampos > 0 ? (camposConformes * 100.0) / totalCampos : 0;
+                double porcentagemForm = totalCampos > 0 ? (camposConformes * 100.0) / totalCampos : 0.0;
 
                 ResultadosHierarquicos.PorFormulario porForm = new ResultadosHierarquicos.PorFormulario();
                 porForm.total = totalCampos;
                 porForm.conforme = camposConformes;
                 porForm.porcentagem = porcentagemForm;
                 porForm.summaryId = form.summaryId();
-
                 resultados.porFormulario.put(form.id(), porForm);
 
-                // Inicializar summary se não existir
-                if (!resultados.porSummary.containsKey(form.summaryId())) {
-                    resultados.porSummary.put(form.summaryId(), new ResultadosHierarquicos.PorSummary());
+                // Adiciona o formulário ao summary
+                resultados.porSummary
+                        .computeIfAbsent(form.summaryId(), id -> new ResultadosHierarquicos.PorSummary())
+                        .forms.add(form.id());
+            }
+
+            // ✅ CORREÇÃO: Calcula a porcentagem por summary como MÉDIA SIMPLES das porcentagens dos formulários
+            for (ResultadosHierarquicos.PorSummary summary : resultados.porSummary.values()) {
+                double somaPorcentagens = 0;
+                int formsComDados = 0;
+
+                for (Long formId : summary.forms) {
+                    ResultadosHierarquicos.PorFormulario form = resultados.porFormulario.get(formId);
+                    if (form != null && form.total > 0) {
+                        somaPorcentagens += form.porcentagem;
+                        formsComDados++;
+                    }
                 }
 
-                ResultadosHierarquicos.PorSummary porSummary = resultados.porSummary.get(form.summaryId());
-                porSummary.forms.add(form.id());
-                porSummary.totalCampos += totalCampos;
-                porSummary.totalConforme += camposConformes;
+                summary.porcentagem = formsComDados > 0 ? somaPorcentagens / formsComDados : 0.0;
+
+                // Mantém os totais para referência (opcional)
+                summary.totalCampos = summary.forms.stream()
+                        .mapToInt(formId -> resultados.porFormulario.get(formId).total)
+                        .sum();
+                summary.totalConforme = summary.forms.stream()
+                        .mapToInt(formId -> resultados.porFormulario.get(formId).conforme)
+                        .sum();
             }
 
-            // 2. Calcular por summary (igual frontend)
-            for (Map.Entry<Long, ResultadosHierarquicos.PorSummary> entry : resultados.porSummary.entrySet()) {
-                ResultadosHierarquicos.PorSummary summary = entry.getValue();
-                summary.porcentagem = summary.totalCampos > 0 ?
-                        (summary.totalConforme * 100.0) / summary.totalCampos : 0;
+            // ✅ CORREÇÃO: Calcula a média geral como MÉDIA SIMPLES das porcentagens dos summaries
+            List<Double> porcentagensSummaries = resultados.porSummary.values().stream()
+                    .map(summary -> summary.porcentagem)
+                    .filter(porcentagem -> porcentagem > 0) // Considera apenas summaries com dados
+                    .toList();
 
-                resultados.geral.totalCampos += summary.totalCampos;
-                resultados.geral.totalConforme += summary.totalConforme;
-            }
-
-            // 3. Calcular porcentagem geral (igual frontend)
-            resultados.geral.porcentagem = resultados.geral.totalCampos > 0 ?
-                    (resultados.geral.totalConforme * 100.0) / resultados.geral.totalCampos : 0;
+            resultados.geral.porcentagem = porcentagensSummaries.isEmpty() ?
+                    0.0 :
+                    porcentagensSummaries.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
             return resultados;
 
@@ -131,21 +148,17 @@ public class CalcularPontos {
         }
     }
 
-    // MÉTODOS EXISTENTES - AGORA USAM A NOVA LÓGICA
 
     public static List<String> calcularPontosFortes(List<FormResponse> forms,
-                                                    List<RespostaResponse> respostas) {
+                                                    List<RespostaResponse> respostas, VisitaEntity visita) {
         List<String> pontos = new ArrayList<>();
         if (forms == null || respostas == null) {
             return pontos;
         }
 
-        // Usar a nova lógica hierárquica como base
-        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
         Map<Long, CamposFormResponse> camposById = getCamposById(forms);
-        Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas);
+        Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas,visita);
 
-        // Resto da lógica mantida...
         confDetalhada.entrySet().stream()
                 .filter(e -> e.getValue().getMediaPercentTrue() > 0.0)
                 .max(Comparator.comparingDouble(e -> e.getValue().getMediaPercentTrue()))
@@ -196,7 +209,7 @@ public class CalcularPontos {
     }
 
     public static List<String> calcularPontosCriticos(List<FormResponse> forms,
-                                                      List<RespostaResponse> respostas) {
+                                                      List<RespostaResponse> respostas, VisitaEntity visita) {
         List<String> criticos = new ArrayList<>();
         if (forms == null || respostas == null) {
             criticos.add("Dados insuficientes para identificar pontos críticos");
@@ -205,7 +218,7 @@ public class CalcularPontos {
 
         Map<Long, CamposFormResponse> camposById = getCamposById(forms);
 
-        Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas);
+        Map<String, CategoryConformanceDTO> confDetalhada = calcularConformidadesDetalhadas(forms, respostas, visita);
         confDetalhada.entrySet().stream()
                 .min(Comparator.comparingDouble(e -> e.getValue().getMediaPercentTrue()))
                 .ifPresent(e -> criticos.add(String.format("Pior categoria: %s (%.1f%% conformidade)", e.getKey(), e.getValue().getMediaPercentTrue())));
@@ -256,11 +269,11 @@ public class CalcularPontos {
         return criticos.isEmpty() ? List.of("Nenhum ponto crítico identificado") : criticos;
     }
 
-    public static Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas) {
+    public static Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaEntity visita) {
         Map<String, CategoryConformanceDTO> mapa = new HashMap<>();
         if (forms == null || respostas == null) return mapa;
 
-        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
+        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas, visita);
 
         for (FormResponse form : forms) {
             if (form == null) continue;
@@ -273,22 +286,15 @@ public class CalcularPontos {
                 continue;
             }
 
-            // Usar os dados calculados pela nova lógica
             double mediaTrue = formData.porcentagem;
-            double mediaFalse = 0.0; // Não calculado na nova lógica
-            double mediaNot = 0.0;   // Não calculado na nova lógica
-            double percCamposFora = 0.0; // Não calculado na nova lógica
+            double mediaFalse = 0.0;
+            double mediaNot = 0.0;
+            double percCamposFora = 0.0;
 
             mapa.put(form.categoria(), new CategoryConformanceDTO(form.categoria(), mediaTrue, mediaFalse, mediaNot, percCamposFora));
         }
 
         return mapa;
-    }
-
-    // MÉTODO NOVO para obter a média geral de conformidade (igual frontend)
-    public static double calcularMediaConformidadeGeral(List<FormResponse> forms, List<RespostaResponse> respostas) {
-        ResultadosHierarquicos resultados = calcularConformidadeHierarquica(forms, respostas);
-        return resultados.geral.porcentagem;
     }
 
     // Mantém todos os métodos auxiliares existentes

@@ -22,7 +22,7 @@ public class RelatorioController {
     @GetMapping("/tecnico/{visitaId}")
     @Operation(summary = "Gera um relatório técnico para uma visita específica")
     public ResponseEntity<RelatorioTecnicoResponse> gerarRelatorio(@PathVariable Long visitaId) {
-        return ResponseEntity.ok(relatorioService.gerarRelatorio(visitaId));
+        return ResponseEntity.ok(relatorioService.gerarRelatorio(visitaId, LocalDate.of(2001, 1, 1), LocalDate.now()));
     }
 
     @GetMapping("/consolidado/{idBase}")
@@ -32,7 +32,7 @@ public class RelatorioController {
             @RequestParam LocalDate inicio,
             @RequestParam LocalDate fim) {
 
-        return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodoeIdBase(idBase, inicio, fim));
+        return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodIdBase(idBase, inicio, fim));
     }
     @GetMapping("/consolidado")
     @Operation(summary = "Gera um relatório consolidado para uma base em um período específico")

@@ -41,7 +41,8 @@ public class FormServiceImp implements FormService {
 
     public ArrayList<FormEntity> getByVisitaId(Long visitaId) {
         var respostas = respostaRepository.findAllByVisitaId(visitaId);
-        return respostas.stream()
+
+        return respostas.stream().filter(m -> m.getCampo() != null)
                 .map(resposta -> resposta.getCampo().getForm())
                 .distinct().collect(Collectors.toCollection(ArrayList::new));
     }
@@ -52,6 +53,7 @@ public class FormServiceImp implements FormService {
                 .map(mapper::toFromResponse)
                 .toList();
     }
+
     @Override
     public List<FormResponse> getAllByTipo(TipoForm tipoForm) {
         var tipo = TipoForm.valueOf(String.valueOf(tipoForm));

@@ -13,4 +13,5 @@ public class BaseMetricasExternasDTO {
     private Double porcentagemVtrAtiva;
     private String tempoMedioProntidao;
     private String tempoMedioAtendimento;
+    private Double mediaConformidade;
 }

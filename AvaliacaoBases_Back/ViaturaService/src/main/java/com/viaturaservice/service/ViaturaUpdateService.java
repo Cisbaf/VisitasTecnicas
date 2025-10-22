@@ -134,9 +134,9 @@ public class ViaturaUpdateService {
         ViaturaEntity novaViatura = ViaturaEntity.builder()
                 .placa(placa)
                 .tipoViatura(veiculoApi.getIdentificacao())
-                .statusOperacional("Em Operação") // Status padrão
+                .statusOperacional(!veiculoApi.getPreenchimentos().isEmpty() ? "Operacional" : "Indefinido")
                 .idBase(base.id())
-                .km(km)
+                .km(km.startsWith("0") || km.isEmpty() ? "0" : km)
                 .dataInclusao(LocalDate.now())
                 .dataUltimaAlteracao(ultimaAlteracao)
                 .build();

@@ -31,7 +31,7 @@ class ViaturaMapper {
                 .tipoViatura(viaturaEntity.getTipoViatura())
                 .statusOperacional(viaturaEntity.getStatusOperacional())
                 .idBase(viaturaEntity.getIdBase())
-                .dataInclusao(viaturaEntity.getDataInclusao())
+                .dataInclusao(viaturaEntity.getDataInclusao().toString())
                 .dataUltimaAlteracao(viaturaEntity.getDataUltimaAlteracao())
                 .build();
     }

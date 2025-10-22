@@ -1,8 +1,11 @@
 package com.viaturaservice.service;
 
+import com.viaturaservice.entity.BaseResponse;
 import com.viaturaservice.entity.ViaturaEntity;
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
+import com.viaturaservice.entity.api.Cidade;
+import com.viaturaservice.entity.api.Veiculo;
 import com.viaturaservice.entity.dto.VeiculoDto;
 import com.viaturaservice.repository.ViaturaRepository;
 import com.viaturaservice.service.capsule.RegistroApiService;
@@ -12,9 +15,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.viaturaservice.service.ViaturaMapper.toDTO;
@@ -25,6 +30,7 @@ public class ViaturaServiceImp implements ViaturaService {
     private final ViaturaRepository viaturaRepository;
     private final ViaturaMapper mapper;
     private final RegistroApiService registroApiService;
+    private final BaseService baseService;
 
     public ViaturaResponse createViatura(ViaturaRequest viaturaRequest) {
         try {
@@ -66,6 +72,67 @@ public class ViaturaServiceImp implements ViaturaService {
         );
     }
 
+    public List<ViaturaResponse> getVeiculoFromApiByPeriodo(Long baseId, String data_inicio, String data_final) {
+        var base = baseService.getById(baseId);
+        if (base == null) {
+            throw new RuntimeException("Base não encontrada.");
+        }
+
+        var registros = registroApiService.getVeiculosPeriodo(data_inicio, data_final);
+        List<ViaturaResponse> viaturas = new ArrayList<>();
+
+        if (registros != null && registros.getCidades() != null) {
+            String nomeBaseNormalizado = normalizarTexto(base.nome());
+
+            var cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomeBaseNormalizado);
+
+            if (cidade != null && cidade.getVeiculos() != null) {
+                for (var veiculoEntry : cidade.getVeiculos().entrySet()) {
+                    var veiculo = veiculoEntry.getValue();
+                    ViaturaResponse viaturaResponse = getViaturaResponse(veiculoEntry, veiculo, base);
+                    viaturas.add(viaturaResponse);
+                }
+            }
+        }
+        return viaturas;
+    }
+
+    public List<ViaturaResponse> getVeiculoFromApiByPeriodo(String data_inicio, String data_final) {
+        var registros = registroApiService.getVeiculosPeriodo(data_inicio, data_final);
+        List<ViaturaResponse> viaturas = new ArrayList<>();
+
+        if (registros != null && registros.getCidades() != null) {
+
+            var bases = baseService.getAllBases();
+            for (BaseResponse base : bases) {
+                String nomeBaseNormalizado = normalizarTexto(base.nome());
+                var cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomeBaseNormalizado);
+
+                if (cidade != null && cidade.getVeiculos() != null) {
+                    for (var veiculoEntry : cidade.getVeiculos().entrySet()) {
+                        var veiculo = veiculoEntry.getValue();
+                        ViaturaResponse viaturaResponse = getViaturaResponse(veiculoEntry, veiculo, base);
+                        viaturas.add(viaturaResponse);
+                    }
+                }
+            }
+        }
+        return viaturas;
+    }
+
+    private static ViaturaResponse getViaturaResponse(Map.Entry<String, Veiculo> veiculoEntry, Veiculo veiculo, BaseResponse base) {
+        ViaturaResponse viaturaResponse = new ViaturaResponse();
+        viaturaResponse.setPlaca(veiculoEntry.getKey() != null ? veiculoEntry.getKey() : "Não encontrado!");
+        viaturaResponse.setKm(veiculo.getKM() != null && !veiculo.getKM().equals("Não encontrado!") && veiculo.getKM().startsWith("0") ? veiculo.getKM().replaceAll("\\D", "") : "0");
+        viaturaResponse.setTipoViatura(veiculo.getIdentificacao());
+        viaturaResponse.setIdBase(base.id());
+        viaturaResponse.setStatusOperacional(!veiculo.getPreenchimentos().isEmpty() ? "Operacional" : "Indefinido");
+        viaturaResponse.setDataUltimaAlteracao(!veiculo.getPreenchimentos().isEmpty() ? veiculo.getPreenchimentos().getFirst().getDia() : null);
+        viaturaResponse.setDataInclusao(!veiculo.getPreenchimentos().isEmpty() ? veiculo.getPreenchimentos().getLast().getDia() : null);
+        return viaturaResponse;
+    }
+
+
     @Override
     public boolean existsViaturaById(Long id) {
         return viaturaRepository.existsById(id);
@@ -103,5 +170,25 @@ public class ViaturaServiceImp implements ViaturaService {
             throw new IllegalArgumentException("Erro ao deletar viaturas da base: " + e.getMessage(), e);
         }
 
+    }
+
+
+    private String normalizarTexto(String texto) {
+        if (texto == null) return null;
+
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .trim();
+    }
+
+    private Cidade encontrarCidadeCorrespondente(Map<String, Cidade> cidades, String nomeBaseNormalizado) {
+        for (Map.Entry<String, Cidade> entry : cidades.entrySet()) {
+            String nomeCidadeNormalizado = normalizarTexto(entry.getKey());
+            if (nomeBaseNormalizado.equals(nomeCidadeNormalizado)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 }

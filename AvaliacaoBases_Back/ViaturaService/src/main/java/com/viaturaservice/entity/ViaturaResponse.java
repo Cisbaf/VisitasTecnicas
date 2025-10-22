@@ -1,22 +1,26 @@
 package com.viaturaservice.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 
 /**
  * DTO for {@link ViaturaEntity}
  */
 @Builder
-public record ViaturaResponse(
-        Long id,
-        String placa,
-        String km,
-        String tipoViatura,
-        String statusOperacional,
-        Long idBase,
-        LocalDate dataInclusao,
-        String dataUltimaAlteracao
-) implements Serializable {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ViaturaResponse implements Serializable {
+    private Long id;
+    private String placa;
+    private String km;
+    private String tipoViatura;
+    private String statusOperacional;
+    private Long idBase;
+    private String dataInclusao;
+    private String dataUltimaAlteracao;
 }

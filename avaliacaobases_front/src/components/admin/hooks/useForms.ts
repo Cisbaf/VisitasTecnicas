@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FormCategory } from '@/components/types';
+import { PREDEFINED_SUMMARIES } from '@/components/types';
 
-type FormType = "INSPECAO" | "PADRONIZACAO";
-
-export function useForms(formType: FormType, onFormUpdate?: () => void) {
+export function useForms(onFormUpdate?: () => void) {
     const [forms, setForms] = useState<FormCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -13,7 +12,7 @@ export function useForms(formType: FormType, onFormUpdate?: () => void) {
     const fetchForms = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/form/type/${formType}`);
+            const response = await fetch(`/api/form`);
             if (!response.ok) throw new Error('Falha ao carregar formulários');
             const data = await response.json();
             setForms(data);
@@ -22,14 +21,13 @@ export function useForms(formType: FormType, onFormUpdate?: () => void) {
         } finally {
             setLoading(false);
         }
-    }, [formType]);
+    }, []);
 
     useEffect(() => {
         fetchForms();
     }, [fetchForms]);
 
-    const handleSaveForm = async (formData: { id?: number; categoria: string; campos: any[]; tipoForm: string }) => {
-        formData.tipoForm = formType;
+    const handleSaveForm = async (formData: { id?: number; categoria: string; summaryId: number; campos: any[]; tipoForm: string }) => {
         const uri = editingForm ? `/api/form/${formData.id}` : '/api/form/saveForm';
         const method = editingForm ? 'PUT' : 'POST';
 
@@ -82,5 +80,7 @@ export function useForms(formType: FormType, onFormUpdate?: () => void) {
         handleDeleteForm,
         handleOpenModal,
         handleCloseModal,
+        summaries: PREDEFINED_SUMMARIES,
+
     };
 }

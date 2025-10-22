@@ -2,27 +2,25 @@
 import React, { useState } from "react";
 import {
     Box,
-    Typography,
     Button,
-    IconButton,
-    Tooltip,
-    Chip,
     Dialog,
     DialogContent,
     DialogTitle,
+    IconButton,
+    Tooltip,
+    Typography,
     useMediaQuery,
     useTheme,
 } from "@mui/material";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import CloseIcon from "@mui/icons-material/Close";
-import { Midia, Flag } from "@/components/types";
+import { Flag, Midia } from "@/components/types";
 
 interface MidiaGalleryProps {
     midias: Midia[];
-    idCategoria: number;
-    onSetFlag: (midiaId: number, flag: Flag, idCategoria: number) => void;
-    onUploadMidia: (file: File, tipo: string, idCategoria: number) => void;
+    onSetFlag: (midiaId: number, flag: Flag) => void;
+    onUploadMidia: (file: File, tipo: string) => void;
 }
 
 const getSafeImageUrl = (base64DataUrl: string | null): string => {
@@ -46,7 +44,6 @@ const getCardColor = (flag: Flag) => {
 
 export default function MidiaGallery({
     midias,
-    idCategoria,
     onSetFlag,
     onUploadMidia,
 }: MidiaGalleryProps) {
@@ -157,7 +154,7 @@ export default function MidiaGallery({
                                     <Tooltip title="Marcar verde">
                                         <IconButton
                                             size="small"
-                                            onClick={() => onSetFlag(midia.id, "GREEN", idCategoria)}
+                                            onClick={() => onSetFlag(midia.id, "GREEN")}
                                         >
                                             <FiberManualRecordIcon sx={{ color: "green", fontSize: 20 }} />
                                         </IconButton>
@@ -166,7 +163,7 @@ export default function MidiaGallery({
                                     <Tooltip title="Marcar amarela">
                                         <IconButton
                                             size="small"
-                                            onClick={() => onSetFlag(midia.id, "YELLOW", idCategoria)}
+                                            onClick={() => onSetFlag(midia.id, "YELLOW")}
                                         >
                                             <FiberManualRecordIcon sx={{ color: "goldenrod", fontSize: 20 }} />
                                         </IconButton>
@@ -175,7 +172,7 @@ export default function MidiaGallery({
                                     <Tooltip title="Marcar vermelha">
                                         <IconButton
                                             size="small"
-                                            onClick={() => onSetFlag(midia.id, "RED", idCategoria)}
+                                            onClick={() => onSetFlag(midia.id, "RED")}
                                         >
                                             <FiberManualRecordIcon sx={{ color: "red", fontSize: 20 }} />
                                         </IconButton>
@@ -197,7 +194,7 @@ export default function MidiaGallery({
                             accept="image/*"
                             onChange={(e) => {
                                 if (e.target.files?.[0]) {
-                                    onUploadMidia(e.target.files[0], "FOTO", idCategoria);
+                                    onUploadMidia(e.target.files[0], "FOTO");
                                 }
                             }}
                         />
@@ -213,7 +210,8 @@ export default function MidiaGallery({
                 maxWidth="lg"
                 fullScreen={fullScreen}
             >
-                <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "#f5f5f5" }}>
+                <DialogTitle
+                    sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "#f5f5f5" }}>
                     <IconButton onClick={handleClose} size="small" aria-label="Fechar" sx={{ color: "black" }}>
                         <CloseIcon />
                     </IconButton>

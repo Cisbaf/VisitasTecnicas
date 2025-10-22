@@ -1,4 +1,3 @@
-// components/admin/visita/FormEditorModal.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
 import {
@@ -29,22 +28,24 @@ import {
     Save as SaveIcon
 } from '@mui/icons-material';
 import { FormField, FormCategory } from '@/components/types';
+import { PREDEFINED_SUMMARIES } from '@/components/types';
 
 interface FormEditorModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (formData: { id?: number; categoria: string; campos: FormField[]; tipoForm: string }) => void;
+    onSave: (formData: { id?: number; categoria: string; summaryId: number; campos: any[]; tipoForm: string }) => void;
     initialData?: FormCategory;
-    tipoForm: string;
 }
 
-export default function FormEditorModal({ open, onClose, onSave, initialData, tipoForm }: FormEditorModalProps) {
+export default function FormEditorModal({ open, onClose, onSave, initialData }: FormEditorModalProps) {
     const [id, setId] = useState(initialData?.id || undefined);
     const [categoria, setCategoria] = useState(initialData?.categoria || '');
+    const [summaryId, setSummaryId] = useState(initialData?.summaryId || PREDEFINED_SUMMARIES[0].id);
+    const [tipoForm, setTipoForm] = useState('');
     const [campos, setCampos] = useState<FormField[]>(initialData?.campos || []);
     const [novoCampo, setNovoCampo] = useState<FormField>({
         titulo: '',
-        tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
+        tipo: 'CHECKBOX',
     });
     const [editandoCampoIndex, setEditandoCampoIndex] = useState<number | null>(null);
     const [erro, setErro] = useState('');
@@ -53,15 +54,17 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
         if (open) {
             setId(initialData?.id || undefined);
             setCategoria(initialData?.categoria || '');
+            setSummaryId(initialData?.summaryId || PREDEFINED_SUMMARIES[0].id);
             setCampos(initialData?.campos || []);
             setNovoCampo({
                 titulo: '',
-                tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
+                tipo: 'CHECKBOX',
             });
+
             setEditandoCampoIndex(null);
             setErro('');
         }
-    }, [open, initialData, tipoForm]);
+    }, [open, initialData]);
 
     const handleAddCampo = () => {
         if (!novoCampo.titulo.trim()) {
@@ -80,7 +83,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
         }
         setNovoCampo({
             titulo: '',
-            tipo: tipoForm === 'PADRONIZACAO' ? 'SELECT' : 'CHECKBOX'
+            tipo: 'CHECKBOX',
         });
     };
 
@@ -104,9 +107,21 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
             setErro('Adicione pelo menos um campo ao formulário');
             return;
         }
+        if (summaryId === 2) {
+            setTipoForm('PADRONIZACAO')
+        } else {
+            setTipoForm('INSPECAO')
+        }
 
         setErro('');
-        onSave({ id, categoria, campos, tipoForm });
+        onSave({
+            id,
+            categoria,
+            summaryId,
+            campos,
+            tipoForm,
+
+        });
     };
 
     return (
@@ -130,6 +145,21 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
                         required
                         sx={{ mt: 2 }}
                     />
+
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel>Sumário</InputLabel>
+                        <Select
+                            value={summaryId}
+                            label="Sumário"
+                            onChange={(e) => setSummaryId(e.target.value as number)}
+                        >
+                            {PREDEFINED_SUMMARIES.map((sumario) => (
+                                <MenuItem key={sumario.id} value={sumario.id}>
+                                    {sumario.titulo}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
                     <Divider sx={{ my: 3 }} />
 
@@ -173,28 +203,16 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
                                     label="Tipo"
                                     onChange={(e) => setNovoCampo({
                                         ...novoCampo,
-                                        tipo: e.target.value as 'CHECKBOX' | 'TEXTO' | 'SELECT'
+                                        tipo: e.target.value as 'CHECKBOX' | 'TEXTO'
                                     })}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: { zIndex: 1301 },
-                                        },
-                                    }}
                                 >
-                                    {tipoForm === 'PADRONIZACAO' && (
-                                        <MenuItem value="SELECT">Select</MenuItem>
-
-                                    )}
-                                    {tipoForm !== 'PADRONIZACAO' && (
-                                        <MenuItem value="CHECKBOX">Checkbox</MenuItem>
-
-                                    )}
-                                    {tipoForm !== 'PADRONIZACAO' && (
-                                        <MenuItem value="TEXTO">Texto</MenuItem>
-
-                                    )}
-
-
+                                    {tipoForm === 'PADRONIZACAO'
+                                        ? <MenuItem value="SELECT">Select</MenuItem>
+                                        : [
+                                            <MenuItem key="checkbox" value="CHECKBOX">Checkbox</MenuItem>,
+                                            <MenuItem key="texto" value="TEXTO">Texto</MenuItem>
+                                        ]
+                                    }
                                 </Select>
                             </FormControl>
 
@@ -213,7 +231,6 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
                             {campos.map((campo, index) => (
                                 <ListItem key={index} divider={index < campos.length - 1}>
                                     <ListItemText
-                                        sx={{ width: 200 }}
                                         primary={campo.titulo}
                                         secondary={
                                             <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
@@ -226,7 +243,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
                                         }
                                         secondaryTypographyProps={{ component: 'div' }}
                                     />
-                                    <ListItem secondaryAction sx={{ justifyContent: 'flex-end' }}>
+                                    <Box>
                                         <IconButton
                                             onClick={() => handleEditCampo(index)}
                                             sx={{ mr: 1 }}
@@ -236,7 +253,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, ti
                                         <IconButton onClick={() => handleDeleteCampo(index)}>
                                             <DeleteIcon />
                                         </IconButton>
-                                    </ListItem>
+                                    </Box>
                                 </ListItem>
                             ))}
                         </List>

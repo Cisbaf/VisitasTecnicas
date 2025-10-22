@@ -1,18 +1,24 @@
 "use client";
 import React, { useState } from "react";
 import { Alert, Box, CircularProgress, Paper, Typography } from "@mui/material";
-import DynamicForm from "../DynamicForm";
 import FormEditorModal from "../modal/FormEditorModal";
 import { useForms } from "@/components/admin/hooks/useForms";
 import { TabHeader } from "./TabHeader";
-import { FormAccordion } from "./FormAccordion";
+import { SummaryAccordion } from "./Accordion/SummaryAccordion";
+import { PREDEFINED_SUMMARIES, Summary } from "@/components/types";
 
 interface ChecklistsTabProps {
     visitaId: number;
-    onChecklistAdded: () => void;
 }
 
-export default function ChecklistsTab({ visitaId, onChecklistAdded }: ChecklistsTabProps) {
+const summaries: Summary[] = [
+    { id: 1, titulo: "Dados Gerais" },
+    { id: 2, titulo: "Segurança" },
+    { id: 3, titulo: "Qualidade" },
+    { id: 4, titulo: "Meio Ambiente" },
+];
+
+export default function ChecklistsTab({ visitaId }: ChecklistsTabProps) {
     const {
         forms,
         loading,
@@ -25,17 +31,23 @@ export default function ChecklistsTab({ visitaId, onChecklistAdded }: Checklists
         handleDeleteForm,
         handleOpenModal,
         handleCloseModal,
-    } = useForms("INSPECAO", onChecklistAdded);
+    } = useForms();
 
-    const [expanded, setExpanded] = useState<string | false>(false);
+    const [expandedSummary, setExpandedSummary] = useState<string | false>(false);
 
-    const handleChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
-        setExpanded(isExpanded ? panel : false);
+    const handleSummaryChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+        setExpandedSummary(isExpanded ? panel : false);
     };
 
     if (loading) {
         return <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px"><CircularProgress /></Box>;
     }
+
+    // Agrupar forms por sumarioId
+    const formsPorSumario = PREDEFINED_SUMMARIES.map(sumario => ({
+        ...sumario,
+        forms: forms.filter(form => form.summaryId === sumario.id)
+    }));
 
     return (
         <>
@@ -49,23 +61,20 @@ export default function ChecklistsTab({ visitaId, onChecklistAdded }: Checklists
                 </Paper>
             ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {forms.map((form) => {
-                        const formKey = form.id?.toString() || form.categoria;
+                    {formsPorSumario.map((sumario) => {
+                        const summaryKey = `summary-${sumario.id}`;
                         return (
-                            <FormAccordion
-                                key={formKey}
-                                form={form}
-                                expanded={expanded === formKey}
-                                onChange={handleChange(formKey)}
-                                onEdit={handleOpenModal}
-                                onDelete={handleDeleteForm}
-                            >
-                                <DynamicForm
-                                    form={form}
-                                    visitaId={visitaId}
-                                    onSave={fetchForms}
-                                />
-                            </FormAccordion>
+                            <SummaryAccordion
+                                key={summaryKey}
+                                summary={sumario}
+                                forms={sumario.forms}
+                                expanded={expandedSummary === summaryKey}
+                                onChange={handleSummaryChange(summaryKey)}
+                                onEditForm={handleOpenModal}
+                                onDeleteForm={handleDeleteForm}
+                                visitaId={visitaId}
+                                onFormSave={fetchForms}
+                            />
                         );
                     })}
                 </Box>
@@ -76,7 +85,6 @@ export default function ChecklistsTab({ visitaId, onChecklistAdded }: Checklists
                 onClose={handleCloseModal}
                 onSave={handleSaveForm}
                 initialData={editingForm}
-                tipoForm="INSPECAO"
             />
         </>
     );

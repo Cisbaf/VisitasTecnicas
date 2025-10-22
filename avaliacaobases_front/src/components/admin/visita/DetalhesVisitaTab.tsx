@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Box, Chip, Divider, IconButton, Paper, Typography, } from "@mui/material";
-import { Delete as DeleteIcon, Edit as EditIcon, Person as PersonIcon, Save as SaveIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon, Edit as EditIcon, Person as PersonIcon } from "@mui/icons-material";
 import { RelatoDTO, VisitaDetails } from "@/components/types";
 import AddMemberInline from "./AddMemberInline";
 import AddRelatoInline from "./AddRelatoInline";
+import AddBaseMemberInline from "./AddBaseMeberInline";
 
 
 interface DetalhesVisitaTabProps {
@@ -23,12 +24,15 @@ export default function DetalhesVisitaTab({
     onAddMember,
     onRemoveMember,
     onAddRelato,
-    onUpdateRelato,
     onDeleteRelato,
     fetchRelatos
 }: DetalhesVisitaTabProps) {
     const [editandoRelatoId, setEditandoRelatoId] = useState<number | null>(null);
     const [relatoEditando, setRelatoEditando] = useState<RelatoDTO | null>(null);
+    const CARGOS_ESPECIFICOS = ['COORDENADOR ADM', 'RT DE ENFERMAGEM', 'COORDENADOR MÉDICO'];
+
+    const membrosEspecificos = visita.membros.filter(m => CARGOS_ESPECIFICOS.includes(m.cargo!));
+    const membrosGerais = visita.membros.filter(m => !CARGOS_ESPECIFICOS.includes(m.cargo!));
 
     const iniciarEdicao = (relato: RelatoDTO) => {
         setEditandoRelatoId(relato.id);
@@ -77,19 +81,37 @@ export default function DetalhesVisitaTab({
         <>
 
             <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1">Membros</Typography>
+                <Typography variant="subtitle1">Membros da visita</Typography>
+                {membrosGerais.map((m, idx) => (
+                    <Chip
+                        key={idx}
+                        icon={<PersonIcon />}
+                        label={`${m.nome}${m.cargo ? ` — ${m.cargo}` : ""} `}
+                        onDelete={() => onRemoveMember(visita.membros.indexOf(m))}
+                        variant="outlined"
+                    />
+                ))}
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
-                    {visita.membros.map((m, idx) => (
-                        <Chip
-                            key={idx}
-                            icon={<PersonIcon />}
-                            label={`${m.nome}${m.cargo ? ` — ${m.cargo}` : ""}`}
-                            onDelete={() => onRemoveMember(idx)}
-                            variant="outlined"
-                        />
-                    ))}
                     <AddMemberInline onAdd={onAddMember} />
                 </Box>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1">Membros da base</Typography>
+                {membrosEspecificos.map((m, idx) => (
+                    <Chip
+                        key={idx}
+                        icon={<PersonIcon />}
+                        label={`${m.nome}${m.cargo ? ` — ${m.cargo}` : ""} `}
+                        onDelete={() => onRemoveMember(visita.membros.indexOf(m))}
+                        variant="outlined"
+                    />
+                ))}
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
+
+                    <AddBaseMemberInline onAdd={onAddMember} equipe={visita.membros} />
+                </Box>
+
             </Box>
 
             <Divider sx={{ my: 3 }} />
@@ -109,8 +131,6 @@ export default function DetalhesVisitaTab({
                                     autor: relato.autor,
                                     mensagem: relato.mensagem,
                                     tema: relato.tema || '',
-                                    gestorResponsavel: relato.gestorResponsavel || '',
-                                    resolvido: relato.resolvido || false
                                 }}
                                 isEditing={true}
                             />
@@ -122,13 +142,14 @@ export default function DetalhesVisitaTab({
                                 p: 1.5,
                                 mb: 1,
                                 borderRadius: 2,
-                                borderLeft: relato.resolvido ? "6px solid green" : "6px solid red",
+                                borderLeft: "6px solid brown",
                             }}
                         >
                             <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
                                 <Box>
                                     <Typography variant="subtitle2">{relato.tema ?? "Sem tema"}</Typography>
-                                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>{relato.mensagem}</Typography>
+                                    <Typography variant="body2"
+                                        sx={{ whiteSpace: "pre-wrap" }}>{relato.mensagem}</Typography>
                                     <Typography variant="caption" display="block" color="text.secondary">
                                         {relato.autor} • {relato.data ? new Date(relato.data).toLocaleDateString('pt-BR') : ""}
                                     </Typography>

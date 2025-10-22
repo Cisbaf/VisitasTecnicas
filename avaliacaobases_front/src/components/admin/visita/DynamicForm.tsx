@@ -37,50 +37,46 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
 
         const fetchAnswers = async () => {
             try {
+                // Inicializa com valores vazios
                 const initialData: { [key: string]: string } = {};
-
-                const fetchPromises = (form.campos || []).map(async (field: any) => {
+                (form.campos || []).forEach((field: any) => {
                     const fieldId = field.id ? field.id.toString() : field.titulo;
                     initialData[fieldId] = "";
-
-                    if (!field.id) return;
-
-                    try {
-                        const resp = await fetch(
-                            `/api/form/answers?campoId=${field.id}&visitaId=${visitaId}`,
-                            { signal: controller.signal }
-                        );
-
-                        if (!resp.ok) {
-                            return;
-                        }
-
-                        const answers: RespostaResponse[] = await resp.json();
-                        if (!answers || answers.length === 0) return;
-
-                        const answer = answers[0];
-
-                        if (field.tipo === "TEXTO") {
-                            initialData[fieldId] = answer.texto ?? "";
-                        } else if (field.tipo === "CHECKBOX") {
-                            initialData[fieldId] = answer.checkbox ?? "";
-                        } else if (field.tipo === "SELECT") {
-                            initialData[fieldId] = answer.select ?? "";
-                        }
-                    } catch (err) {
-                        if ((err as any).name === "AbortError") return;
-                        console.error(`Erro ao carregar resposta do campo ${field.id}:`, err);
-                    }
                 });
 
-                await Promise.all(fetchPromises);
+                // Busca todas as respostas de uma vez
+                const resp = await fetch(
+                    `/api/form/answers/visit/${visitaId}`,
+                    { signal: controller.signal }
+                );
+
+                if (!resp.ok) {
+                    throw new Error("Erro ao carregar respostas");
+                }
+
+                const answers: RespostaResponse[] = await resp.json();
+
+                // Preenche os dados com as respostas obtidas
+                answers.forEach((answer) => {
+                    const field = (form.campos || []).find((c: any) => c.id === answer.campoId);
+                    if (!field) return;
+
+                    const fieldId = field.id!.toString();
+
+                    if (field.tipo === "TEXTO") {
+                        initialData[fieldId] = answer.texto ?? "";
+                    } else if (field.tipo === "CHECKBOX") {
+                        initialData[fieldId] = answer.checkbox ?? "";
+                    }
+                });
 
                 if (!aborted) {
                     setFormData(initialData);
                 }
             } catch (err) {
                 if ((err as any).name === "AbortError") return;
-                console.error("Fetch answers error:", err);
+                console.error("Erro ao carregar respostas:", err);
+                // Mantém os valores vazios em caso de erro
                 const initialData: { [key: string]: string } = {};
                 (form.campos || []).forEach((field: any) => {
                     initialData[field.id ? field.id.toString() : field.titulo] = "";
@@ -101,7 +97,7 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
             aborted = true;
             controller.abort();
         };
-    }, [form.campos, visitaId]);
+    }, [visitaId]);
 
     const handleFieldChange = (fieldId: string, value: string) => {
         setFormData((prev) => ({ ...prev, [fieldId]: value }));
@@ -121,21 +117,17 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
 
                     let texto = "";
                     let checkbox = "NOT_GIVEN";
-                    let select = "NAO_AVALIADO";
 
                     if (field.tipo === "TEXTO") {
                         texto = value;
                     } else if (field.tipo === "CHECKBOX") {
                         checkbox = value === "TRUE" ? "TRUE" : value === "FALSE" ? "FALSE" : "NOT_GIVEN";
-                    } else if (field.tipo === "SELECT") {
-                        select = value || "NAO_AVALIADO";
                     }
 
                     return {
                         campoId: field.id,
                         texto,
                         checkbox,
-                        select,
                         visitaId,
                     };
                 });
@@ -149,24 +141,16 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                 return;
             }
 
-            const savePromises = respostas.map((resposta) =>
-                fetch(`/api/form/answers/saveAnswers/${resposta.campoId}`, {
+            const savePromises = [
+                fetch(`/api/form/answers/saveAnswers`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify([resposta]),
+                    body: JSON.stringify(respostas),
                 })
-            );
+            ];
 
-            const results = await Promise.all(savePromises);
-
-            const failed = results
-                .map((r) => ({ ok: r.ok, status: r.status, url: r.url }))
-                .filter((r) => !r.ok);
-
-            if (failed.length > 0) {
-                console.error("Algumas respostas não foram salvas:", failed);
-                throw new Error("Falha ao salvar algumas respostas (ver console).");
-            }
+            // Aguardar todas as promises
+            await Promise.all(savePromises);
 
             setSuccess("Respostas salvas com sucesso!");
             setTimeout(() => {

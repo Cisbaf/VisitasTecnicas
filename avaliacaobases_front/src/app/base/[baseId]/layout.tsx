@@ -17,7 +17,7 @@ type Props = {
     drawerWidth?: number;
 };
 
-export default function Layout({ children, drawerWidth = 280 }: Props) {
+export default function Layout({ children }: Props) {
     const params = useParams();
     const baseId = params?.baseId as string | undefined;
 
@@ -84,7 +84,7 @@ export default function Layout({ children, drawerWidth = 280 }: Props) {
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             {/* aqui evitamos mismatch: antes do mount mostramos fallback estável */}
                             {isClient && baseData
-                                ? `${baseData.tipoBase} - ${baseData.nome}`
+                                ? `${baseData.tipoBase ? baseData.tipoBase + " - " : ''}  ${baseData.nome}`
                                 : headerFallback}
                         </Typography>
                     </Box>
@@ -108,7 +108,7 @@ export default function Layout({ children, drawerWidth = 280 }: Props) {
 
             <Box
                 component="main"
-                sx={{ flexGrow: 1, p: 3, mt: 10, width: `calc(100% - ${drawerWidth}px)` }}
+                sx={{ flexGrow: 1, p: 3, mt: 10, width: `calc(100% - 280px)` }}
             >
                 {children}
             </Box>

@@ -21,12 +21,31 @@ export default function LoginForm() {
                 credentials: 'include',
                 body: JSON.stringify({ user, password }),
             });
+
+            console.log('Response status:', res.status);
+            console.log('Response headers:');
+            res.headers.forEach((value, key) => {
+                console.log(`${key}: ${value}`);
+            });
+
             if (!res.ok) {
                 const j = await res.json().catch(() => null);
                 setError(j?.error || 'Erro no login');
                 return;
             }
-            router.push('/');
+
+            // Verifique os cookies imediatamente após a resposta
+            console.log('Cookies após login:', document.cookie);
+
+            // Aguarde um pouco e verifique novamente
+            setTimeout(() => {
+                console.log('Cookies após timeout:', document.cookie);
+                router.push('/');
+            }, 100);
+
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Erro de conexão');
         } finally {
             setLoading(false);
         }

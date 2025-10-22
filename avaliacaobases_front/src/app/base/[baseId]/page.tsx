@@ -1,19 +1,18 @@
 // app/base/[baseId]/page.tsx
 import { cookies } from 'next/headers';
-import { decodeJwtPayload } from '../../../lib/decodeJwt';
+import { decodeJwtPayload } from '@/lib/decodeJwt';
 import { redirect } from 'next/navigation';
 import BasesDashboard from '@/components/base/BasesDashboard';
 
-interface Props { params: { baseId: string } }
-
-export default async function BasePage({ params }: Props) {
-    const { baseId } = await params;
+export default async function BasePage() {
 
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     const claims = decodeJwtPayload(token as string | undefined);
+    const expired = claims && claims.exp * 1000 < Date.now();
 
-    if (!claims) {
+
+    if (!claims || expired) {
         redirect('/login');
     }
 

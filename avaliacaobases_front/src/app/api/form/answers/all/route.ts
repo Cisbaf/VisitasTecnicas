@@ -1,4 +1,4 @@
-// app/api/forms/field/[id]/route.ts
+// app/api/forms/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -23,24 +23,38 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function DELETE(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
+// app/api/form/answers/all/route.ts
+export async function POST(req: Request) {
     try {
-        const { id } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form/field/${id}`, {
-            method: "DELETE",
+        const visitIds = await req.json();
+
+        // Envolva os visitIds em um objeto para o backend Spring
+        const requestBody = Array.isArray(visitIds) ? { visitIds } : visitIds;
+
+        const backendResponse = await proxyFetch(`/form/answers/all`, {
+            method: 'POST',
             headers: {
-                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
+            body: JSON.stringify(requestBody)
         });
+
+        if (!backendResponse.ok) {
+            const errorText = await backendResponse.text();
+            console.error('Backend error:', errorText);
+            throw new Error(`Backend responded with status: ${backendResponse.status}`);
+        }
+
+        const data = await backendResponse.json();
+        return NextResponse.json(data);
+
     } catch (err) {
-        console.error("api/form/field DELETE proxy error:", err);
-        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
+        console.error("api/form/answers/all POST proxy error:", err);
+        return NextResponse.json({ message: "Internal error", detail: String(err) }, { status: 500 });
     }
 }

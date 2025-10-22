@@ -1,4 +1,4 @@
-// app/api/forms/field/[id]/route.ts
+// app/api/forms/saveAnswers/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -23,24 +23,25 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function DELETE(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
+export async function POST(
+    req: Request
 ) {
     try {
-        const { id } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form/field/${id}`, {
-            method: "DELETE",
+        const bodyText = await req.text();
+        return await proxyFetch(`/form/answers/saveAnswers`, {
+            method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
+                "Content-Type": req.headers.get("content-type") ?? "application/json",
             },
+            body: bodyText,
         });
     } catch (err) {
-        console.error("api/form/field DELETE proxy error:", err);
+        console.error("api/forms/saveAnswers POST proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

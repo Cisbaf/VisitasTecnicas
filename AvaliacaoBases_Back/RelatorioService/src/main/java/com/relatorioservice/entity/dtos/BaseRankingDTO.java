@@ -29,9 +29,13 @@ public class BaseRankingDTO implements Comparable<BaseRankingDTO> {
 
     @Override
     public int compareTo(BaseRankingDTO outra) {
-        if (this.score != null && outra != null && outra.getScore() != null) {
+        if (outra == null) {
+            return -1;
+        }
+        if (this.score != null  && outra.getScore() != null) {
             return Double.compare(outra.getScore(), this.score);
         }
+
         return Double.compare(outra.mediaConformidade, this.mediaConformidade);
     }
 }

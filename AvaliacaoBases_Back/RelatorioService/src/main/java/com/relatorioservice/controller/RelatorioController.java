@@ -34,6 +34,7 @@ public class RelatorioController {
 
         return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodIdBase(idBase, inicio, fim));
     }
+
     @GetMapping("/consolidado")
     @Operation(summary = "Gera um relatório consolidado para uma base em um período específico")
     public ResponseEntity<List<RelatorioTecnicoResponse>> getRelatorioConsolidado(
@@ -42,6 +43,7 @@ public class RelatorioController {
 
         return ResponseEntity.ok(relatorioService.gerarRelatoriosPorPeriodo(inicio, fim));
     }
+
     @GetMapping("/ranking")
     @Operation(summary = "Gera um relatório de ranking de visitas")
     public ResponseEntity<List<BaseRankingDTO>> getRankingVisitas(

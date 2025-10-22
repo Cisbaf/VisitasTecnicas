@@ -2,7 +2,6 @@ package com.viaturaservice.service.capsule;
 
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
-import com.viaturaservice.entity.api.RegistroApi;
 import com.viaturaservice.entity.dto.VeiculoDto;
 
 import java.util.List;

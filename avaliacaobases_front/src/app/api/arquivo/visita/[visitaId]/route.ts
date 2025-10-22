@@ -23,15 +23,15 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(req: Request, { params }: { params: { idCategoria: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ visitaId: string }> }) {
     try {
 
-        const { idCategoria } = await params;
+        const { visitaId } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/arquivo/category/${encodeURIComponent(idCategoria)}`, {
+        return await proxyFetch(`/arquivo/visita/${encodeURIComponent(visitaId)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });

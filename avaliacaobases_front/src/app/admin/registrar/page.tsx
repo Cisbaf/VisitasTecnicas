@@ -46,7 +46,6 @@ export default function GerenciamentoFuncionarios() {
         setSearchTerm,
         setCurrentUser,
         setSnackbar,
-        fetchUsers,
         handleAddUser,
         handleUpdateUser,
         handleChangePassword,
@@ -57,6 +56,7 @@ export default function GerenciamentoFuncionarios() {
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+
 
     // Handlers para abrir modais
     const handleOpenEditModal = (user: any) => {

@@ -35,12 +35,11 @@ interface ViaturaDialogProps {
 export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, loading = false, baseId }: ViaturaDialogProps) {
     const [form, setForm] = React.useState<ViaturaRequest>({
         placa: "",
-        modelo: "",
-        ano: "",
+        km: "",
         tipoViatura: "USA",
         statusOperacional: "Conforme",
         idBase: baseId ?? null,
-        itens: [{ nome: "", conformidade: 100 }],
+        itens: [{ nome: "", conformidade: 100 }]
     });
 
     const [showCustomType, setShowCustomType] = React.useState(false);
@@ -58,8 +57,8 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
         } else {
             setForm({
                 placa: "",
-                modelo: "",
-                ano: "",
+                km: "",
+
                 tipoViatura: "USA",
                 statusOperacional: "Conforme",
                 idBase: baseId ?? null,
@@ -121,16 +120,11 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
                         placeholder="AAA9999"
                         fullWidth
                     />
-                    <TextField
-                        label="Modelo"
-                        value={form.modelo}
-                        onChange={e => updateForm("modelo", e.target.value)}
-                        fullWidth
-                    />
+
                     <TextField
                         label="Ano"
-                        value={form.ano}
-                        onChange={e => updateForm("ano", e.target.value)}
+                        value={form.km}
+                        onChange={e => updateForm("km", e.target.value)}
                         placeholder="2023"
                         fullWidth
                     />

@@ -10,7 +10,6 @@ import com.formservice.entity.dto.forms.FormResponse;
 import com.formservice.entity.dto.resposta.RespostaRequest;
 import com.formservice.entity.dto.resposta.RespostaResponse;
 import com.formservice.entity.emuns.CheckBox;
-import com.formservice.entity.emuns.Select;
 import com.formservice.entity.emuns.Tipo;
 import com.formservice.entity.emuns.TipoForm;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +26,7 @@ class FormMapper {
         return new FormResponse(
                 formEntity.getId(),
                 formEntity.getCategoria(),
+                formEntity.getSummaryId(),
                 formEntity.getCampos(),
                 formEntity.getTipoForm()
         );
@@ -35,7 +35,8 @@ class FormMapper {
     FormEntity toFormEntity(FormRequest request) {
         FormEntity form = FormEntity.builder()
                 .categoria(request.categoria())
-                .tipoForm(TipoForm.valueOf(request.tipoForm()))
+                .summaryId(request.summaryId())
+                .tipoForm(request.summaryId() == 2 ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO)
                 .build();
 
         if (form.getCampos() == null) {
@@ -43,7 +44,7 @@ class FormMapper {
         }
 
         List<CamposFormEntity> campos;
-        if(request.campos() != null) {
+        if (request.campos() != null) {
             campos = request.campos().stream()
                     .map(c -> toCampoEntity(c, form))
                     .toList();
@@ -71,29 +72,27 @@ class FormMapper {
                 .form(formEntity)
                 .build();
     }
-    RespostaResponse toRespostaResponse(Resposta entity) {
-        try{
+
+    public RespostaResponse toRespostaResponse(Resposta entity) {
+        try {
             return RespostaResponse.builder()
                     .texto(entity.getTexto() != null ? entity.getTexto() : "")
-                    .select(entity.getSelect() != null ? entity.getSelect() : Select.NAO_AVALIADO)
                     .visitaId(entity.getVisitaId())
                     .checkbox(entity.getCheckbox() != null ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
-                    .texto(entity.getTexto() != null ? entity.getTexto() : "")
                     .id(entity.getId())
-                    .campoId(entity.getCampo().getId())
+                    .campoId(entity.getCampo() != null ? entity.getCampo().getId() : null) // Verificação de null
                     .build();
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(entity.toString());
             throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage());
         }
-
     }
+
     Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
         return Resposta.builder()
                 .texto(request.texto() != null ? request.texto() : "")
                 .visitaId(request.visitaId())
                 .checkbox(request.checkbox() != null ? request.checkbox() : CheckBox.NOT_GIVEN)
-                .select(request.select() != null ? request.select() : Select.NAO_AVALIADO)
                 .campo(campo)
                 .build();
     }

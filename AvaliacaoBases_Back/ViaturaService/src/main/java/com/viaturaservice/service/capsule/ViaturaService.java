@@ -13,6 +13,10 @@ public interface ViaturaService {
 
     List<ViaturaResponse> getAllViaturasByIdBase(Long idBase);
 
+    List<ViaturaResponse> getVeiculoFromApiByPeriodo(Long baseId, String data_inicio, String data_final);
+    List<ViaturaResponse> getVeiculoFromApiByPeriodo( String data_inicio, String data_final);
+
+
     VeiculoDto getVeiculoFromApi(String placa);
 
     boolean existsViaturaById(Long id);

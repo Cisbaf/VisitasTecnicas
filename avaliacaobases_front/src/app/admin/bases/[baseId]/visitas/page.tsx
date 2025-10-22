@@ -33,9 +33,14 @@ export default function BaseVisitasPage() {
     const [detailLoading, setDetailLoading] = useState(false);
     const [relatos, setRelato] = useState<RelatoDTO[]>([]);
     const [editingVisita, setEditingVisita] = useState<VisitaDetails | null>(null);
+    const [bases, setBases] = useState<any[]>([]);
 
     useEffect(() => {
         fetchVisitas();
+        const storedData = localStorage.getItem("allBasesData");
+        if (storedData) {
+            setBases(JSON.parse(storedData));
+        }
     }, [baseId]);
 
     async function fetchVisitas() {
@@ -158,7 +163,7 @@ export default function BaseVisitasPage() {
                     <IconButton onClick={() => router.push("/admin/bases")} sx={{ mr: 1 }}>
                         <BackIcon />
                     </IconButton>
-                    <Typography variant="h4">Visitas da Base {baseId}</Typography>
+                    <Typography variant="h4">Visitas de {bases.find(b => b.id === baseId)?.nome}</Typography>
                 </Box>
 
                 {error && (

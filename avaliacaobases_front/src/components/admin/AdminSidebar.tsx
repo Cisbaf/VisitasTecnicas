@@ -1,24 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import {
-    Drawer,
-    Toolbar,
-    Box,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Divider
-} from "@mui/material";
-import {
-    Home,
-    LocalShipping,
-    Assessment,
-    History,
-    InsertDriveFile,
-    LocalHospital,
-    Person,
-} from "@mui/icons-material";
+import React from "react";
+import { Box, Divider, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
+import { Assessment, History, Home, InsertDriveFile, LocalHospital, LocalShipping, Person, } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 
 const drawerWidth = 280;

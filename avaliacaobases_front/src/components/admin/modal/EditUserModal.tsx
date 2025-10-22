@@ -37,7 +37,8 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         if (user) {
             setFormData({
                 role: user.role,
-                baseId: user.baseId
+                baseId: user.baseId,
+                password: user.password
             });
         }
     }, [user]);

@@ -1,15 +1,16 @@
-export type Item = { nome: string; conformidade: number };
 
 export type ViaturaRequest = {
     placa: string;
-    modelo: string;
-    ano: string;
+    km: string;
     tipoViatura: string;
     statusOperacional: string;
     idBase: number | null;
-    itens: Item[];
 };
-export type Viatura = ViaturaRequest & { id: number };
+export type Viatura = ViaturaRequest & {
+    id: number,
+    dataInclusao: Date,
+    dataUltimaAlteracao: string
+};
 
 export interface VisitaResponse {
     id: number;
@@ -23,10 +24,11 @@ export interface EquipeTecnica {
     cargo?: string;
 }
 
-export interface CheckListResponse {
+export interface UserResponse {
     id: number;
-    categoria: string;
-    descricao: CheckDescription[];
+    user: string;
+    role: string;
+    baseId: number | null;
 }
 
 export interface CheckDescription {
@@ -40,12 +42,6 @@ export interface CheckDescription {
     viaturaId: number;
 }
 
-export interface CheckListRequest {
-    categoria: string;
-    descricao: CheckDescription[];
-    visitaId: number;
-}
-
 export interface RelatorioConsolidadoResponse {
     dataInicio: string;
     dataFim: string;
@@ -53,10 +49,20 @@ export interface RelatorioConsolidadoResponse {
     pontosFortes: string[];
     pontosCriticosGerais: PontoCriticoDTO[];
     mediasConformidade: { [categoria: string]: number };
+    conformidadesPorSummary: { [summary: number]: number };
     viaturasCriticas: ViaturaDTO[];
     rankingBases: BaseRankingDTO[];
     conformidadeDetalhada: { [categoria: string]: CategoryConformanceDTO };
     percentualItensForaConformidade: number;
+    metricasExternasBases: BaseMetricasExternasDTO[];
+}
+interface BaseMetricasExternasDTO {
+    baseNome: string;
+    idBase: number;
+    porcentagemVtrAtiva: number;
+    tempoMedioProntidao: number;
+    tempoMedioAtendimento: number;
+    mediaConformidade: number;
 }
 
 export interface CategoryConformanceDTO {
@@ -74,9 +80,9 @@ export interface PontoCriticoDTO {
 
 export interface ViaturaDTO {
     placa: string;
-    modelo: string;
-    status: string;
-    itensCriticos: ItemViaturaDTO[];
+    tipoViatura: string;
+    km: string;
+    dataUltimaAlteracao: string;
 }
 
 export interface ItemViaturaDTO {
@@ -90,6 +96,7 @@ export interface BaseRankingDTO {
     mediaConformidade: number;
     dataUltimaVisita: string;
     posicaoRanking: number;
+    score: number
 }
 
 export interface RelatoResponse {
@@ -97,17 +104,8 @@ export interface RelatoResponse {
     autor: string;
     mensagem: string;
     tema: string;
-    gestorResponsavel: string;
     data: Date;
-    resolvido: boolean;
     baseId: number;
-}
-export interface ConformidadeSelect {
-    [campoId: string]: {
-        nomeCampo: string;
-        percentualConformidade: number;
-        totalRespostas: number;
-    };
 }
 
 export interface BaseResponse {
@@ -120,6 +118,7 @@ export interface BaseResponse {
     bairro: string;
     municipio: string;
 }
+
 export type BaseRequest = {
     id?: number;
     nome?: string;
@@ -139,16 +138,6 @@ export interface Avaliacao {
     idCheckList: number;
 }
 
-export interface DashboardData {
-    viaturas: Viatura[];
-    visitas: VisitaResponse[];
-    relatorios: RelatorioConsolidadoResponse[];
-    checklists: CheckListResponse[];
-    relatos: RelatoDTO[];
-    equipe: any[];
-    indicadores: IndicadoresDTO;
-}
-
 export interface IndicadoresDTO {
     indiceSaude: number;
     conformidadeGeral: number;
@@ -164,9 +153,6 @@ export interface RelatoDTO {
     mensagem: string;
     autor: string;
     data: string;
-    resolvido: boolean;
-    prioridade: 'alta' | 'media' | 'baixa';
-    gestorResponsavel?: string;
     baseId: number;
     id_visita: number;
 }
@@ -189,9 +175,14 @@ export interface CategoriaAgrupada {
     }[];
 }
 
+export interface Summary {
+    id: number;
+    titulo: string;
+}
 export interface FormCategory {
     id?: number;
     categoria: string;
+    summaryId?: number;
     campos: FormField[];
     tipoForm: string;
 }
@@ -199,15 +190,8 @@ export interface FormCategory {
 export interface FormField {
     id?: number;
     titulo: string;
-    tipo: 'TEXTO' | 'CHECKBOX' | 'SELECT';
+    tipo: 'TEXTO' | 'CHECKBOX';
     formId?: number;
-}
-
-export interface RespostaRequest {
-    texto: string;
-    checkbox: CheckBox;
-    select: Select;
-    visitaId: number;
 }
 
 export interface RespostaResponse {
@@ -215,7 +199,6 @@ export interface RespostaResponse {
     campoId: number;
     texto: string;
     checkbox: CheckBox;
-    select: Select;
     visitaId: number;
 }
 
@@ -225,12 +208,6 @@ enum CheckBox {
     NOT_GIVEN = 'NOT_GIVEN'
 }
 
-export enum Select {
-    CONFORME = 'CONFORME',
-    PARCIAL = 'PARCIAL',
-    NAO_CONFORME = 'NAO_CONFORME',
-    NAO_AVALIADO = 'NAO_AVALIADO',
-}
 
 export type Flag = "GREEN" | "YELLOW" | "RED" | null;
 
@@ -240,7 +217,6 @@ export interface Midia {
     base64DataUrl: string | null;
     dataUpload: string;
     idVisita: number | null;
-    idCategoria: number | null;
     flag?: Flag;
 }
 
@@ -250,8 +226,33 @@ export interface RelatoDTO {
     mensagem: string;
     autor: string;
     data: string;
-    resolvido: boolean;
-    gestorResponsavel?: string;
     baseId: number;
     visitas: number;
 }
+
+export interface CategoryData {
+    conforme?: string | number;
+    parcial?: string | number;
+    naoConforme?: string | number;
+    naoAvaliado?: string | number;
+    total?: number;
+}
+
+export interface Preenchimentos {
+    dia: string;
+    nomes: string;
+}
+
+export interface Veiculo {
+    identificacao: string;
+    km: string;
+    preenchimentos: Preenchimentos[]
+}
+
+export const PREDEFINED_SUMMARIES: Summary[] = [
+    { id: 1, titulo: "MANUTENÇÃO DA PADRONIZAÇÃO DA ESTRUTURA FÍSICA DA BASE DESCENTRALIZADA" },
+    { id: 3, titulo: "CONDIÇÕES DE FUNCIONAMENTO DO SERVIÇO" },
+    { id: 4, titulo: "CHEK LIST DAS UNIDADES MOVÉIS" },
+    { id: 2, titulo: "PADRONIZAÇÃO VISUAL DOS UNIFORMES DAS EQUIPES E DA BASE DESCENTRALIZADA" },
+
+];

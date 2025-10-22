@@ -7,18 +7,12 @@ export default async function AdminPage() {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     const claims = decodeJwtPayload(token as string | undefined);
+    const expired = claims && claims.exp * 1000 < Date.now();
 
-    if (!claims || claims.role !== 'ADMIN') {
+
+    if (!claims || claims.role !== 'ADMIN' || expired) {
         redirect('/login');
     }
-
-    // Exemplo: buscar dados do backend passando Authorization (server-side fetch)
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
-    const r = await fetch(`${backendUrl}/admin/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store'
-    });
-    const data = r.ok ? await r.json() : null;
 
     return (
         <>

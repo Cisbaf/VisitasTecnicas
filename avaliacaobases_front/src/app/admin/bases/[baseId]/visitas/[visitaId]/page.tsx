@@ -7,9 +7,9 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 import { CategoriaAgrupada, RelatoDTO, VisitaDetails } from "@/components/types";
-import ChecklistService from "@/components/base/service/ChecklistService";
 import DetalhesVisitaTab from "@/components/admin/visita/DetalhesVisitaTab";
 import ChecklistsTab from "@/components/admin/visita/form/ChecklistsTab";
+import dayjs from "dayjs";
 import PadronizacaoVizualTab from "@/components/admin/visita/form/PadronizacaoVizualTab";
 
 
@@ -60,7 +60,6 @@ export default function VisitaDetailPage() {
         if (visitaId) {
             fetchVisita();
             fetchRelatos();
-            fetchChecklists();
         }
     }, [visitaId]);
 
@@ -92,18 +91,6 @@ export default function VisitaDetailPage() {
         }
     };
 
-    const fetchChecklists = async () => {
-        try {
-            setChecklistLoading(true);
-            const data = ChecklistService.getCategoriasAgrupadas(baseId);
-            data.then(setCategoriasAgrupadas);
-            console.log(data);
-        } catch (err: any) {
-            console.error("Erro ao buscar checklists:", err);
-        } finally {
-            setChecklistLoading(false);
-        }
-    };
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
@@ -219,7 +206,7 @@ export default function VisitaDetailPage() {
                         <BackIcon />
                     </IconButton>
                     <Typography variant="h4">
-                        Visita de {new Date(visita.dataVisita).toLocaleDateString("pt-BR")}
+                        Visita de {dayjs(visita.dataVisita).format("DD/MM/YYYY")}
                     </Typography>
                 </Box>
 
@@ -251,14 +238,12 @@ export default function VisitaDetailPage() {
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={1}>
-                    <PadronizacaoVizualTab visitaId={visitaId} onChecklistAdded={fetchChecklists} />
+                    <PadronizacaoVizualTab visitaId={visitaId} />
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={2}>
                     <ChecklistsTab
-                        visitaId={visitaId}
-                        onChecklistAdded={fetchChecklists} // Para recarregar os checklists após adicionar um novo
-                    />
+                        visitaId={visitaId} />
                 </TabPanel>
             </Box>
         </LocalizationProvider>

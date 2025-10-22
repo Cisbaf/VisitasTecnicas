@@ -15,6 +15,10 @@ public class BaseRankingDTO implements Comparable<BaseRankingDTO> {
     private double mediaConformidade;
     private LocalDate dataUltimaVisita;
     private int posicaoRanking;
+    private Double porcentagemVtrAtiva;
+    private String tempoMedioProntidao;
+    private String tempoMedioAtendimento;
+    private Double score;
 
     public BaseRankingDTO(String nomeBase, Long idBase, double mediaConformidade, LocalDate dataUltimaVisita) {
         this.nomeBase = nomeBase;
@@ -23,9 +27,15 @@ public class BaseRankingDTO implements Comparable<BaseRankingDTO> {
         this.dataUltimaVisita = dataUltimaVisita;
     }
 
-
     @Override
     public int compareTo(BaseRankingDTO outra) {
+        if (outra == null) {
+            return -1;
+        }
+        if (this.score != null  && outra.getScore() != null) {
+            return Double.compare(outra.getScore(), this.score);
+        }
+
         return Double.compare(outra.mediaConformidade, this.mediaConformidade);
     }
 }

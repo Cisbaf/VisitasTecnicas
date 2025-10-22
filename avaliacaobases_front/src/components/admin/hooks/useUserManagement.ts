@@ -4,6 +4,7 @@ export interface UserResponse {
     id: number;
     user: string;
     role: string;
+    password: string;
     baseId: number | null;
 }
 
@@ -92,15 +93,18 @@ export const useUserManagement = () => {
         }
     };
 
-    const handleUpdateUser = async (userData: Partial<UserResponse>) => {
+    const handleUpdateUser = async (userData: Partial<UserRequest>) => {
         if (!currentUser) return false;
 
         try {
             const requestBody: Partial<UserRequest> = {
                 user: currentUser.user,
                 role: userData.role || currentUser.role,
-                baseId: userData.baseId !== undefined ? Number(userData.baseId) : currentUser.baseId
+                baseId: userData.baseId !== undefined ? Number(userData.baseId) : currentUser.baseId,
+                password: userData.password ? userData.password : undefined
             };
+            console.log(requestBody);
+
 
             const res = await fetch(`/api/auth/user/${currentUser.id}`, {
                 method: 'PUT',

@@ -9,8 +9,6 @@ interface AddRelatoInlineProps {
         autor: string;
         mensagem: string;
         tema?: string;
-        gestorResponsavel: string;
-        resolvido: boolean;
         visitaId?: number;
     }) => void;
     onCancel?: () => void;
@@ -19,8 +17,6 @@ interface AddRelatoInlineProps {
         autor: string;
         mensagem: string;
         tema?: string;
-        gestorResponsavel: string;
-        resolvido: boolean;
     };
     isEditing?: boolean;
 }
@@ -35,16 +31,12 @@ export default function AddRelatoInline({
     const [autor, setAutor] = useState(initialData?.autor || members[0]?.nome || "");
     const [mensagem, setMensagem] = useState(initialData?.mensagem || "");
     const [tema, setTema] = useState(initialData?.tema || "");
-    const [gestorResponsavel, setGestorResponsavel] = useState(initialData?.gestorResponsavel || "");
-    const [resolvido, setResolvido] = useState(initialData?.resolvido || false);
 
     useEffect(() => {
         if (initialData) {
             setAutor(initialData.autor);
             setMensagem(initialData.mensagem);
-            setTema(initialData.tema || "");
-            setGestorResponsavel(initialData.gestorResponsavel);
-            setResolvido(initialData.resolvido);
+            setTema(initialData.tema || "");;
         }
     }, [initialData]);
 
@@ -55,15 +47,11 @@ export default function AddRelatoInline({
             autor,
             mensagem,
             tema: tema.trim() || undefined,
-            gestorResponsavel,
-            resolvido
         });
 
         if (!isEditing) {
             setMensagem("");
             setTema("");
-            setGestorResponsavel("");
-            setResolvido(false);
         }
     };
 
@@ -85,29 +73,13 @@ export default function AddRelatoInline({
                     ))}
                 </Select>
             </FormControl>
-            <TextField
-                label="Gestor Responsável"
-                size="small"
-                value={gestorResponsavel}
-                onChange={(e) => setGestorResponsavel(e.target.value)}
-            />
+
             <TextField
                 label="Tema"
                 size="small"
                 value={tema}
                 onChange={(e) => setTema(e.target.value)}
             />
-            <FormControl size="small">
-                <InputLabel>Resolvido</InputLabel>
-                <Select
-                    value={resolvido ? 'sim' : 'não'}
-                    label="Resolvido"
-                    onChange={(e) => setResolvido(e.target.value === 'sim')}
-                >
-                    <MenuItem value="sim">Sim</MenuItem>
-                    <MenuItem value="não">Não</MenuItem>
-                </Select>
-            </FormControl>
             <TextField
                 label="Mensagem"
                 size="small"

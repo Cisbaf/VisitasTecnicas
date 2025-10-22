@@ -26,7 +26,6 @@ public class FormServiceImp implements FormService {
 
     @Override
     public FormResponse createForm(FormRequest request) {
-        System.out.println(request);
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be null");
         }
@@ -42,7 +41,8 @@ public class FormServiceImp implements FormService {
 
     public ArrayList<FormEntity> getByVisitaId(Long visitaId) {
         var respostas = respostaRepository.findAllByVisitaId(visitaId);
-        return respostas.stream()
+
+        return respostas.stream().filter(m -> m.getCampo() != null)
                 .map(resposta -> resposta.getCampo().getForm())
                 .distinct().collect(Collectors.toCollection(ArrayList::new));
     }
@@ -53,6 +53,7 @@ public class FormServiceImp implements FormService {
                 .map(mapper::toFromResponse)
                 .toList();
     }
+
     @Override
     public List<FormResponse> getAllByTipo(TipoForm tipoForm) {
         var tipo = TipoForm.valueOf(String.valueOf(tipoForm));
@@ -72,8 +73,9 @@ public class FormServiceImp implements FormService {
                 .toList();
         form.getCampos().clear();
         form.setCampos(campos);
-
+        form.setSummaryId(request.summaryId());
         form.setCategoria(request.categoria());
+        form.setTipoForm(request.summaryId() == 2 ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO);
 
         return mapper.toFromResponse(formRepository.save(form));
     }

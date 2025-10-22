@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +27,7 @@ public class ViaturaUpdateService {
     private final ViaturaRepository viaturaRepository;
     private final BaseService baseRepository; // Para relacionar com a base/cidade
 
-    @Scheduled(cron = "0 0 6 * * ?")
+    @Scheduled(fixedRate = 87000000 ,  initialDelay = 10000) // a cada 24 horas e 10 minutos
     @Transactional
     public void atualizarViaturasDiariamente() {
         log.info("Iniciando atualização diária de viaturas...");
@@ -106,6 +105,7 @@ public class ViaturaUpdateService {
 
             assert veiculoApi.getKM() != null;
             String kmAtual = veiculoApi.getKM().replaceAll("\\D", "");
+            kmAtual = kmAtual.startsWith("0" ) || kmAtual.isEmpty() ?  "0" : kmAtual;
             if (!kmAtual.equals(viatura.getDataUltimaAlteracao())) {
                 viatura.setKm(kmAtual);
                 houveAlteracao = true;
@@ -115,7 +115,7 @@ public class ViaturaUpdateService {
         // Se houve alteração, atualizar data de modificação
         if (houveAlteracao) {
             viatura.setDataUltimaAlteracao(veiculoApi.getPreenchimentos() != null && !veiculoApi.getPreenchimentos().isEmpty()
-                    ? veiculoApi.getPreenchimentos().getLast().getDia()
+                    ? veiculoApi.getPreenchimentos().getFirst().getDia()
                     : null);
             viaturaRepository.save(viatura);
             log.info("Viatura atualizada: {}", viatura.getPlaca());
@@ -130,14 +130,13 @@ public class ViaturaUpdateService {
         var ultimaAlteracao = veiculoApi.getPreenchimentos() != null && !veiculoApi.getPreenchimentos().isEmpty()
                 ? veiculoApi.getPreenchimentos().getLast().getDia()
                 : null;
-        var km = veiculoApi.getKM().equals("Não encontrado!") ? "0" : veiculoApi.getKM().replaceAll("\\D", "").concat(" km");
+        var km = veiculoApi.getKM().equals("Não encontrado!") ? "0" : veiculoApi.getKM().replaceAll("\\D", "");
         ViaturaEntity novaViatura = ViaturaEntity.builder()
                 .placa(placa)
                 .tipoViatura(veiculoApi.getIdentificacao())
-                .statusOperacional("Em Operação") // Status padrão
+                .statusOperacional(!veiculoApi.getPreenchimentos().isEmpty() ? "Operacional" : "Indefinido")
                 .idBase(base.id())
-                .km(km)
-                .itens(new ArrayList<>()) // Lista vazia de itens
+                .km(km.startsWith("0") || km.isEmpty() ? "0" : km)
                 .dataInclusao(LocalDate.now())
                 .dataUltimaAlteracao(ultimaAlteracao)
                 .build();

@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class RelatoDTO {
     private String tema;
     private String mensagem;
-    private boolean resolvido;
 }

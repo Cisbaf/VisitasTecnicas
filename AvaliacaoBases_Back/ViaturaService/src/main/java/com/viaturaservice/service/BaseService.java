@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,5 +20,11 @@ public interface BaseService {
 
     @GetMapping("/name")
     Optional<BaseResponse> getByName(@RequestParam("name") String name);
+
+    @GetMapping("/{id}")
+    BaseResponse getById(@PathVariable("id") Long id);
+
+    @GetMapping()
+    List<BaseResponse> getAllBases();
 
 }

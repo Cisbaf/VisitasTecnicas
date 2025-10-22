@@ -19,9 +19,7 @@ public class RelatoEntity {
     private String autor;
     private String mensagem;
     private String tema;
-    private String gestorResponsavel;
     private Date data;
-    private Boolean resolvido;
     @ManyToOne
     @JoinColumn(name = "visita_id")
     private VisitaEntity visitas;

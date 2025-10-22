@@ -5,6 +5,7 @@ import com.relatorioservice.entity.fora.viatura.ViaturaEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ public interface ViaturaServiceClient {
     @GetMapping("/base/{baseId}")
     List<ViaturaEntity> getViaturasByBase(@PathVariable Long baseId);
 
-    @GetMapping("/{id}")
-    ViaturaEntity getViaturaById(@PathVariable Long id);
+    @GetMapping("/api")
+    List<ViaturaEntity> findByPeriodo(@RequestParam Long baseId, @RequestParam String data_inicio, @RequestParam String data_final);
+
 }

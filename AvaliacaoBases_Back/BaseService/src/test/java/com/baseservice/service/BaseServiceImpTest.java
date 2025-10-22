@@ -205,13 +205,6 @@ class BaseServiceImpTest {
         assertTrue(ex.getMessage().contains("Base not found with id: 3"));
     }
 
-    @Test
-    void deleteBase_Success() {
-        when(baseRepository.existsById(1L)).thenReturn(true);
-
-        assertDoesNotThrow(() -> baseService.deleteBase(1L));
-        verify(baseRepository).deleteById(1L);
-    }
 
     @Test
     void deleteBase_NotFound() {

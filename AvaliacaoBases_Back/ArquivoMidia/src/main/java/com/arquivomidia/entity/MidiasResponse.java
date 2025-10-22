@@ -15,7 +15,6 @@ public record MidiasResponse(
         String base64DataUrl,
         LocalDate dataUpload,
         Long idVisita,
-        Long idCategoria,
         String flag
 ) implements Serializable {
 }

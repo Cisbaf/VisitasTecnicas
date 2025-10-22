@@ -4,9 +4,21 @@ import { cookies } from "next/headers";
 
 export default async function Home() {
   const cookieStore = await cookies();
+
   const token = cookieStore.get('token')?.value;
   const claims = decodeJwtPayload(token as string | undefined);
-  const isAllowed = claims && (claims.role === 'ADMIN' || claims.role === 'FUNCIONARIO');
+  const expired = claims && claims.exp < Date.now();
+  console.log('Claims:', claims);
+  console.log('Expired:', expired);
+  console.log('Token:', token);
+  const allCookies = cookieStore.getAll();
+
+  console.log('All Cookies:', allCookies);
+  if (!token) {
+    redirect('/login');
+  }
+
+  const isAllowed = claims && (claims.role === 'ADMIN' || claims.role === 'FUNCIONARIO') || !expired;
 
   if (!isAllowed) {
     redirect('/login');

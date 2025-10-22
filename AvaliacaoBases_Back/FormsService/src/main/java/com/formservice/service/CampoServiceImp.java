@@ -9,12 +9,19 @@ import com.formservice.service.capsule.CampoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CampoServiceImp implements CampoService {
     private final CamposFormRepository camposRepository;
     private final FormRepository formRepository;
     private final FormMapper mapper;
+
+    @Override
+    public List<CamposFormResponse> findAll() {
+        return camposRepository.findAll().stream().map(mapper::toCampoResponse).toList();
+    }
 
     @Override
     public FormResponse addCampoToForm(Long checkListId, CamposFormRequest campo) {
@@ -30,8 +37,7 @@ public class CampoServiceImp implements CampoService {
 
     public CamposFormResponse findById(Long id) {
         var campo = camposRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + id));
-        var novo = mapper.toCampoResponse(campo);
-        System.out.println(novo.toString());
-        return novo;
+        return mapper.toCampoResponse(campo);
     }
+
 }

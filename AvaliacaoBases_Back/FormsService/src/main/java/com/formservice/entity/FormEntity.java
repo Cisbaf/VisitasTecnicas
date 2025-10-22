@@ -21,6 +21,8 @@ public class FormEntity {
 
     private String categoria;
 
+    private Long summaryId;
+
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default

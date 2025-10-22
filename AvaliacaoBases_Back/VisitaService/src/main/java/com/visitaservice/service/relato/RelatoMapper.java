@@ -20,9 +20,7 @@ public class RelatoMapper {
                 .mensagem(request.mensagem())
                 .tema(request.tema())
                 .data(request.data())
-                .gestorResponsavel(request.gestorResponsavel())
                 .visitas(visita)
-                .resolvido(request.resolvido())
                 .build();
     }
 
@@ -31,9 +29,7 @@ public class RelatoMapper {
                 .autor(relato.getAutor())
                 .mensagem(relato.getMensagem())
                 .tema(relato.getTema())
-                .gestorResponsavel(relato.getGestorResponsavel())
                 .data(relato.getData())
-                .resolvido(relato.getResolvido())
                 .visitas(relato.getVisitas())
                 .baseId(relato.getVisitas().getIdBase())
                 .id(relato.getId())

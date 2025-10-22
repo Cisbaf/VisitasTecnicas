@@ -2,7 +2,6 @@ package com.relatorioservice.service.client;
 
 import com.relatorioservice.config.FeignClientConfig;
 import com.relatorioservice.entity.fora.Visita.EquipeTecnica;
-import com.relatorioservice.entity.fora.Visita.RelatoEntity;
 import com.relatorioservice.entity.fora.Visita.VisitaEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,13 +20,11 @@ public interface VisitaServiceClient {
     @GetMapping("/membros/{visitaId}")
     List<EquipeTecnica> getAllMembrosByVisitaId(@PathVariable Long visitaId);
 
-    @GetMapping("/relatos/visita/{visitaId}")
-    List<RelatoEntity> getRelatosByVisita(@PathVariable Long visitaId);
-
     @GetMapping("/periodo/{idBase}")
     List<VisitaEntity> getBaseByPeriodAndBaseId(@PathVariable Long idBase,
                                                 @RequestParam() LocalDate dataInicio,
                                                 @RequestParam() LocalDate dataFim);
+
     @GetMapping("/periodo")
     List<VisitaEntity> getAllByPeriod(@RequestParam() LocalDate dataInicio, @RequestParam() LocalDate dataFim);
 }

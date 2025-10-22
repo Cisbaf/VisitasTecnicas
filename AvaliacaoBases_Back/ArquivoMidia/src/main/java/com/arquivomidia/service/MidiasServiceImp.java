@@ -4,7 +4,6 @@ import com.arquivomidia.entity.MidiasEntity;
 import com.arquivomidia.entity.MidiasRequest;
 import com.arquivomidia.entity.MidiasResponse;
 import com.arquivomidia.repository.MidiasRepository;
-import com.arquivomidia.service.client.DescriptionClient;
 import com.arquivomidia.service.client.VisitaClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MidiasServiceImp implements MidiaService {
     private final MidiasRepository midiasRepository;
-    private final DescriptionClient descriptionClient;
     private final VisitaClient visitaClient;
     private final FileStorageService fileStorageService;
     private final MidiaMapper midiaMapper;
@@ -39,41 +37,25 @@ public class MidiasServiceImp implements MidiaService {
         }
     }
 
-    public List<MidiasResponse> getMediaByCategoryId(Long categoryId) {
-        if (categoryId == null) {
-            throw new IllegalArgumentException("Non-conformity ID cannot be null");
-        }
-        try {
-            return midiasRepository.findByIdCategoria(categoryId).stream().map(midiaMapper::toResponse).collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving media by non-conformity ID: " + categoryId, e);
-        }
-    }
-
     public MidiasResponse saveMedia(MidiasRequest midia, MultipartFile file) {
         if (midia == null || file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Media request cannot be null and file must be provided" + midia);
         }
         try {
             Long idVisita = midia.idVisita();
-            Long idCategoria = midia.idCategoria();
 
             if (idVisita != null) {
                 visitaClient.existsVisitaById(idVisita);
             }
 
-            if (idCategoria != null) {
-                descriptionClient.existsDescricaoById(idCategoria);
-            }
-
-            if (idVisita == null && idCategoria == null) {
+            if (idVisita == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Midia e arquivo devem ser informados");
             }
 
             var newMidia = midiasRepository.save(midiaMapper.toEntity(midia, file));
             return midiaMapper.toResponse(newMidia);
         } catch (Exception e) {
-            log.error("Erro ao salvar midia: {}. causa: {}", midia, e.toString(), e);
+            log.error("Erro ao salvar midia: {}. causa: {}", midia, e, e);
             Throwable root = e;
             while (root.getCause() != null) root = root.getCause();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,

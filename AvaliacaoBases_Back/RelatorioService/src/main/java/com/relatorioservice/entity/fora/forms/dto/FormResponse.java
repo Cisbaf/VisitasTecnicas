@@ -6,6 +6,7 @@ import java.util.List;
 public record FormResponse(
         Long id,
         String categoria,
+        Long summaryId,
         List<CamposFormResponse> campos
 ) implements Serializable {
 }

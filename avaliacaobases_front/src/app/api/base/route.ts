@@ -5,6 +5,8 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 async function proxyFetch(path: string, init?: RequestInit) {
     try {
+        console.log("BACKEND", BACKEND);
+
         const res = await fetch(`${BACKEND}${path}`, init);
         const status = res.status;
         const contentType = res.headers.get("content-type") || "";

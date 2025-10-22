@@ -30,8 +30,10 @@ public class JwtUtils {
 
     public boolean isValid(String token) {
         try {
-            Claims claims = getClaimsFromToken(token);
-            return claims != null && !isTokenExpired(token);
+
+            String cleanToken = token.trim();
+            Claims claims = getClaimsFromToken(cleanToken);
+            return claims != null && !isTokenExpired(cleanToken);
         } catch (Exception e) {
             return false;
         }

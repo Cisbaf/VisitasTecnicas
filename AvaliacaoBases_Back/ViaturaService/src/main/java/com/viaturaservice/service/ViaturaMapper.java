@@ -18,7 +18,6 @@ class ViaturaMapper {
                     .tipoViatura(viaturaRequest.tipoViatura())
                     .statusOperacional(viaturaRequest.statusOperacional())
                     .idBase(viaturaRequest.idBase())
-                    .itens(viaturaRequest.itens())
                     .build();
         }
         throw new IllegalArgumentException("Base ID does not exist: " + viaturaRequest.idBase());
@@ -28,12 +27,11 @@ class ViaturaMapper {
         return ViaturaResponse.builder()
                 .id(viaturaEntity.getId())
                 .placa(viaturaEntity.getPlaca())
-                .km(viaturaEntity.getKm())
+                .km(viaturaEntity.getKm().startsWith("0") ? "0" : viaturaEntity.getKm())
                 .tipoViatura(viaturaEntity.getTipoViatura())
                 .statusOperacional(viaturaEntity.getStatusOperacional())
                 .idBase(viaturaEntity.getIdBase())
-                .itens(viaturaEntity.getItens())
-                .dataInclusao(viaturaEntity.getDataInclusao())
+                .dataInclusao(viaturaEntity.getDataInclusao().toString())
                 .dataUltimaAlteracao(viaturaEntity.getDataUltimaAlteracao())
                 .build();
     }

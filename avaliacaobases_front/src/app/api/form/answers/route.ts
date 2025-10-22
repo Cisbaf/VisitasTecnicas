@@ -33,12 +33,15 @@ export async function GET(request: NextRequest) {
         const campoId = searchParams.get('campoId');
         const visitaId = searchParams.get('visitaId');
 
+        let backendUrl;
+
         if (!campoId || !visitaId) {
-            return NextResponse.json({ message: "campoId and visitaId are required" }, { status: 400 });
+            backendUrl = `/form/answers/all`;
+        } else {
+            backendUrl = `/form/answers?campoId=${campoId}&visitId=${visitaId}`;
         }
 
         // Construa a URL do backend com os parâmetros
-        const backendUrl = `/form/answers?campoId=${campoId}&visitId=${visitaId}`;
 
         return await proxyFetch(backendUrl, {
             headers: { Authorization: `Bearer ${token}` },

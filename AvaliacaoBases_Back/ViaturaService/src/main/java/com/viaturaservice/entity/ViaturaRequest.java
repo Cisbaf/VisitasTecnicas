@@ -8,7 +8,6 @@ import lombok.Builder;
 import org.hibernate.validator.constraints.Length;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * DTO for {@link ViaturaEntity}
@@ -20,7 +19,7 @@ public record ViaturaRequest(
         @Pattern(regexp = "^\\d{4}$", message = "Ano deve ter 4 dígitos") @NotNull(message = "O campo ano não pode ser vazio") String ano,
         @NotBlank(message = "O tipo de viatura é requerido") String tipoViatura,
         @NotBlank(message = "O status operacional é requerido") String statusOperacional,
-        @NotNull(message = "O campo base não pode ser vazio") @Positive(message = "Esta base não existe") Long idBase,
-        @NotNull(message = "O campo base não pode ser vazio") List<Itens> itens) implements Serializable {
+        @NotNull(message = "O campo base não pode ser vazio") @Positive(message = "Esta base não existe") Long idBase
+) implements Serializable {
 
 }

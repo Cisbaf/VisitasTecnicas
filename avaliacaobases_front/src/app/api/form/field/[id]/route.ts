@@ -25,14 +25,15 @@ async function proxyFetch(path: string, init?: RequestInit) {
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form/field/${params.id}`, {
+        return await proxyFetch(`/form/field/${id}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,

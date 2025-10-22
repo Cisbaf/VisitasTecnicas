@@ -31,9 +31,7 @@ public class ViaturaController {
     @Operation(summary = "Get all Viaturas", description = "Retrieve a list of all viaturas.")
     @GetMapping
     public ResponseEntity<List<ViaturaResponse>> findAll() {
-        var viaturas = viaturaService.getAllViaturas();
-        System.out.println(viaturas);
-        return ResponseEntity.ok(viaturas);
+        return ResponseEntity.ok(viaturaService.getAllViaturas());
     }
 
     @Operation(summary = "Get Viatura by ID", description = "Retrieve a viatura by its unique identifier.")
@@ -49,8 +47,24 @@ public class ViaturaController {
 
     @Operation(summary = "Get Viatura details from external API by plate", description = "Retrieve viatura details from an external API using the vehicle's plate number.")
     @GetMapping("/api/{placa}")
-    public ResponseEntity<VeiculoDto> findByPlaca(@PathVariable String placa) {
+    public ResponseEntity<VeiculoDto> findByPeriodo(@PathVariable String placa) {
         var viaturaResponse = viaturaService.getVeiculoFromApi(placa);
+        if (viaturaResponse != null) {
+            return ResponseEntity.ok(viaturaResponse);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/api")
+    @Operation(summary = "Get Viatura details from external API by period", description = "Retrieve viatura details from an external API using a specified time period.")
+    public ResponseEntity<List<ViaturaResponse>> findByPeriodo(@RequestParam Long baseId, @RequestParam String data_inicio, @RequestParam String data_final) {
+        List<ViaturaResponse> viaturaResponse;
+        if (baseId > 0) {
+             viaturaResponse = viaturaService.getVeiculoFromApiByPeriodo(baseId, data_inicio, data_final);
+        }else{
+            viaturaResponse = viaturaService.getVeiculoFromApiByPeriodo(data_inicio, data_final);
+        }
         if (viaturaResponse != null) {
             return ResponseEntity.ok(viaturaResponse);
         } else {

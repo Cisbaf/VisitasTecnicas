@@ -16,4 +16,7 @@ public interface RegistroApiService {
 
     @GetMapping()
     Veiculo getVeiculos(@RequestParam String placa_vtr);
+
+    @GetMapping
+    RegistroApi getVeiculosPeriodo(@RequestParam String data_inicio, @RequestParam String data_final);
 }

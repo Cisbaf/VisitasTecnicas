@@ -27,12 +27,7 @@ public class RespostaController {
     @Operation(summary = "Get answers by field and visit", description = "Retrieve answers for a specific field in a form based on visit ID")
     public ResponseEntity<List<RespostaResponse>> findAllRespostas(@RequestBody Map<String, List<Long>> request) {
         List<Long> visitIds = request.get("visitIds");
-        System.out.println(visitIds);
-
-        var result = service.getAllResposta(visitIds);
-        System.out.println("Respsotas: " + result);
-
-        return ResponseEntity.ok().body(result);
+        return ResponseEntity.ok().body(service.getAllResposta(visitIds));
     }
 
     @GetMapping("/answers/visit/{visitaId}")
@@ -44,7 +39,12 @@ public class RespostaController {
     @PostMapping("/answers/saveAnswers/{campoId}")
     @Operation(summary = "Add answers to field", description = "Add answers to a specific field in a form")
     public ResponseEntity<List<RespostaResponse>> addRespostasToCampo(@RequestBody @Valid List<RespostaRequest> respostas, @PathVariable Long campoId) {
-        return ResponseEntity.ok().body(service.addRespostas(respostas, campoId));
+        return ResponseEntity.ok().body(service.addRespostasToCampo(respostas, campoId));
+    }
+    @PostMapping("/answers/saveAnswers")
+    @Operation(summary = "Add answers to field", description = "Add answers")
+    public ResponseEntity<List<RespostaResponse>> addRespostas(@RequestBody @Valid List<RespostaRequest> respostas) {
+        return ResponseEntity.ok().body(service.addRespostas(respostas));
     }
 
     @DeleteMapping("/answers/visit/{visitaId}")

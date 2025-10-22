@@ -20,6 +20,11 @@ public class CampoController {
     public ResponseEntity<CamposFormResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.findById(id));
     }
+    @GetMapping("/fields")
+    @Operation(summary = "Get all fields", description = "Retrieve all fields")
+    public ResponseEntity<java.util.List<CamposFormResponse>> findAll() {
+        return ResponseEntity.ok().body(service.findAll());
+    }
 
     @PostMapping("/saveField")
     @Operation(summary = "Add field to form", description = "Add a new field to an existing form")

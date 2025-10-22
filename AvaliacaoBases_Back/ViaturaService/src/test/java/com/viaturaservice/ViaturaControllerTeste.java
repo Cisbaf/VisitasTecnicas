@@ -1,7 +1,6 @@
 package com.viaturaservice;
 
 import com.viaturaservice.controller.ViaturaController;
-import com.viaturaservice.entity.Itens;
 import com.viaturaservice.entity.ViaturaRequest;
 import com.viaturaservice.entity.ViaturaResponse;
 import com.viaturaservice.service.BaseService;
@@ -40,14 +39,12 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build(), ViaturaResponse.builder()
                 .id(2L)
                 .placa("ABC5678")
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build());
         when(viaturaService.getAllViaturas()).thenReturn(viaturas);
 
@@ -65,7 +62,6 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build();
         when(viaturaService.getViaturaById(1L)).thenReturn(viatura);
 
@@ -100,7 +96,6 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build();
         when(exists.existsById(viatura.idBase())).thenReturn(false);
 
@@ -136,7 +131,6 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build());
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -158,7 +152,6 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build();
         ViaturaResponse updatedViatura = ViaturaResponse.builder()
                 .id(1L)
@@ -166,7 +159,6 @@ class ViaturaControllerTest {
                 .tipoViatura("Patrulha")
                 .statusOperacional("Ativo")
                 .idBase(1L)
-                .itens(List.of(new Itens()))
                 .build();
         when(viaturaService.updateViatura(1L, viatura)).thenReturn(updatedViatura);
 

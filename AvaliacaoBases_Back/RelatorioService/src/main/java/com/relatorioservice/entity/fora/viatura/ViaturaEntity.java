@@ -1,8 +1,10 @@
 package com.relatorioservice.entity.fora.viatura;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -11,11 +13,11 @@ public class ViaturaEntity {
 
     private Long id;
     private String placa;
-    private String modelo;
-    private String ano;
+    private String km;
     private String tipoViatura;
     private String statusOperacional;
     private Long idBase;
-    private List<Itens> itens;
+    private LocalDate dataInclusao;
+    private String dataUltimaAlteracao;
 
 }

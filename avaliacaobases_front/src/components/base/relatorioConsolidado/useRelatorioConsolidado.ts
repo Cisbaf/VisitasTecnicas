@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { BaseResponse, RelatorioConsolidadoResponse, ViaturaDTO } from "@/components/types";
-import { useParams } from "next/navigation";
+import { format } from "date-fns";
 
 // Hook personalizado para gerenciar a lógica do relatório
 export default function useRelatorioConsolidado(baseId: number) {
@@ -19,7 +19,7 @@ export default function useRelatorioConsolidado(baseId: number) {
         setIsClient(true);
         const fim = new Date();
         const inicio = new Date();
-        inicio.setDate(inicio.getDate() - 9000);
+        inicio.setDate(inicio.getDate() - 9000); // 30 dias atrás
         setDataInicio(inicio);
         setDataFim(fim);
     }, []);
@@ -47,7 +47,8 @@ export default function useRelatorioConsolidado(baseId: number) {
             setLoading(true);
             setError(null);
 
-            const formatoData = (data: Date) => data.toISOString().split('T')[0];
+            // Usar date-fns format em vez de dayjs
+            const formatoData = (data: Date) => format(data, "yyyy-MM-dd");
             const inicioStr = formatoData(dataInicio);
             const fimStr = formatoData(dataFim);
 
@@ -94,9 +95,7 @@ export default function useRelatorioConsolidado(baseId: number) {
             if (!viatura.placa) return acc;
 
             if (!acc[viatura.placa]) {
-                acc[viatura.placa] = { ...viatura, itensCriticos: [...(viatura.itensCriticos || [])] };
-            } else {
-                acc[viatura.placa].itensCriticos.push(...(viatura.itensCriticos || []));
+                acc[viatura.placa] = { ...viatura };
             }
             return acc;
         }, {} as Record<string, ViaturaDTO>);

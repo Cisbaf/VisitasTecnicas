@@ -1,38 +1,21 @@
 "use client";
 import React from "react";
 import {
+    Alert,
     Box,
-    Typography,
+    Button,
     Card,
     CardContent,
-    Chip,
     CircularProgress,
-    Alert,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Button,
-    alpha,
-    useTheme
+    Typography,
 } from "@mui/material";
-import {
-    TrendingUp,
-    Warning,
-    CalendarToday,
-    Refresh,
-    EmojiEvents
-} from "@mui/icons-material";
+import { CalendarToday, Refresh } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ptBR } from 'date-fns/locale';
-import { format } from "date-fns";
-import { RelatorioConsolidadoResponse } from "@/components/types";
 import useRelatorioConsolidado from "./useRelatorioConsolidado";
+import { RelatorioData } from "./RelatorioData";
 
 // Componente principal do relatório
 export default function RelatorioConsolidado({ baseId }: { baseId: number }) {
@@ -52,6 +35,11 @@ export default function RelatorioConsolidado({ baseId }: { baseId: number }) {
     const getConformidadeColor = (percent: number) => {
         if (percent >= 80) return "success";
         if (percent >= 50) return "warning";
+        return "error";
+    };
+    const getScoreColor = (percent: number) => {
+        if (percent >= 0.8) return "success";
+        if (percent >= 0.5) return "warning";
         return "error";
     };
 
@@ -87,14 +75,16 @@ export default function RelatorioConsolidado({ baseId }: { baseId: number }) {
                             <DatePicker
                                 label="Data Início"
                                 value={dataInicio}
-                                onChange={(newValue) => setDataInicio(newValue)}
+                                //@ts-ignore
+                                onChange={(newValue: Date | null) => setDataInicio(newValue ? newValue : null)}
                                 format="dd/MM/yyyy"
                                 slotProps={{ textField: { size: "small", sx: { minWidth: 200 } } }}
                             />
                             <DatePicker
                                 label="Data Fim"
                                 value={dataFim}
-                                onChange={(newValue) => setDataFim(newValue)}
+                                //@ts-ignore
+                                onChange={(newValue: Date) => setDataFim(newValue)}
                                 format="dd/MM/yyyy"
                                 slotProps={{ textField: { size: "small", sx: { minWidth: 200 } } }}
                             />
@@ -121,7 +111,9 @@ export default function RelatorioConsolidado({ baseId }: { baseId: number }) {
                     <RelatorioData
                         relatorio={relatorio}
                         getConformidadeColor={getConformidadeColor}
+                        getScoreColor={getScoreColor}
                         viaturasCriticasAgrupadas={viaturasCriticasAgrupadas}
+                        baseId={baseId}
                     />
                 ) : !loading && !error ? (
                     <Alert severity="info" sx={{ borderRadius: 2 }}>
@@ -133,184 +125,3 @@ export default function RelatorioConsolidado({ baseId }: { baseId: number }) {
     );
 }
 
-// Sub-componente para exibir os dados do relatório
-const RelatorioData = ({ relatorio, getConformidadeColor, viaturasCriticasAgrupadas }: {
-    relatorio: RelatorioConsolidadoResponse;
-    getConformidadeColor: (percent: number) => 'success' | 'warning' | 'error';
-    viaturasCriticasAgrupadas: any[];
-}) => {
-    const theme = useTheme();
-
-    return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Resumo Geral */}
-            <Box>
-                <Typography variant="h6" fontWeight="500" sx={{ mb: 2 }}>
-                    Resumo do Período
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {/* Cards de Resumo */}
-                    <Card sx={{ flex: '1 1 200px', borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', p: 3 }}>
-                        <TrendingUp sx={{ fontSize: 32, mb: 1, color: 'primary.main' }} />
-                        <Typography variant="h4" fontWeight="700" color="primary.main">
-                            {relatorio.totalVisitas ?? 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Visitas Realizadas
-                        </Typography>
-                    </CardContent></Card>
-                    <Card sx={{ flex: '1 1 200px', borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', p: 3 }}>
-                        <TrendingUp sx={{ fontSize: 32, mb: 1, color: 'success.main' }} />
-                        <Typography variant="h4" fontWeight="700" color="success.main">
-                            {relatorio.pontosFortes?.length ?? 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Pontos Fortes
-                        </Typography>
-                    </CardContent></Card>
-                    <Card sx={{ flex: '1 1 200px', borderRadius: 2 }}><CardContent sx={{ textAlign: 'center', p: 3 }}>
-                        <Warning sx={{ fontSize: 32, mb: 1, color: 'error.main' }} />
-                        <Typography variant="h4" fontWeight="700" color="error.main">
-                            {relatorio.pontosCriticosGerais?.length ?? 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Pontos Críticos
-                        </Typography>
-                    </CardContent></Card>
-                </Box>
-            </Box>
-            {/* Pontos Fortes e Críticos lado a lado */}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                <Card sx={{ flex: '1 1 400px', borderRadius: 2 }}>
-                    <CardContent sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <TrendingUp color="success" sx={{ mr: 1.5 }} />
-                            <Typography variant="h6" fontWeight="500">
-                                Pontos Fortes
-                            </Typography>
-                        </Box>
-                        {relatorio.pontosFortes && relatorio.pontosFortes.length > 0 ? (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {relatorio.pontosFortes.map((ponto, index) => (
-                                    <Chip key={index} label={ponto} color="success" variant="outlined" size="small" sx={{ borderRadius: 1 }} />
-                                ))}
-                            </Box>
-                        ) : (<Box sx={{ textAlign: 'center', py: 2 }}><Typography variant="body2" color="text.secondary">Nenhum ponto forte identificado no período.</Typography></Box>)}
-                    </CardContent>
-                </Card>
-                <Card sx={{ flex: '1 1 400px', borderRadius: 2 }}>
-                    <CardContent sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Warning color="error" sx={{ mr: 1.5 }} />
-                            <Typography variant="h6" fontWeight="500">
-                                Pontos Críticos Recorrentes
-                            </Typography>
-                        </Box>
-                        {relatorio.pontosCriticosGerais && relatorio.pontosCriticosGerais.length > 0 ? (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {relatorio.pontosCriticosGerais.map((ponto, index) => (
-                                    <Chip key={index} label={`${ponto.descricao} (${ponto.ocorrencias}x)`} color="error" variant="outlined" size="small" sx={{ borderRadius: 1 }} />
-                                ))}
-                            </Box>
-                        ) : (<Box sx={{ textAlign: 'center', py: 2 }}><Typography variant="body2" color="text.secondary">Nenhum ponto crítico recorrente identificado.</Typography></Box>)}
-                    </CardContent>
-                </Card>
-            </Box>
-            {/* Médias de Conformidade */}
-            <Card sx={{ borderRadius: 2 }}>
-                <CardContent sx={{ p: 3 }}>
-                    <Typography variant="h6" fontWeight="500" gutterBottom>Médias de Conformidade por Categoria</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        {relatorio.mediasConformidade && Object.entries(relatorio.mediasConformidade).length > 0 ? (
-                            Object.entries(relatorio.mediasConformidade).map(([categoria, media]) => (
-                                <Box key={categoria} sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, textAlign: 'center', minWidth: 120, flex: '1 1 120px' }}>
-                                    <Typography variant="subtitle2" fontWeight="500" gutterBottom>{categoria}</Typography>
-                                    <Chip label={`${(media ?? 0).toFixed(1)}%`} color={getConformidadeColor(media ?? 0)} variant="filled" sx={{ borderRadius: 1, fontWeight: '600' }} />
-                                </Box>
-                            ))
-                        ) : (<Typography variant="body2" color="text.secondary">Nenhuma conformidade disponível.</Typography>)}
-                    </Box>
-                </CardContent>
-            </Card>
-            {/* Viaturas Críticas */}
-            <Card sx={{ borderRadius: 2 }}>
-                <CardContent sx={{ p: 3 }}>
-                    <Typography variant="h6" fontWeight="500" gutterBottom>Viaturas com Itens Críticos</Typography>
-                    {relatorio.viaturasCriticas && relatorio.viaturasCriticas.length > 0 ? (
-                        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                            <Table>
-                                <TableHead><TableRow sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.02) }}>
-                                    <TableCell sx={{ fontWeight: '600' }}>Placa</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Modelo</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Status</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Itens Críticos</TableCell>
-                                </TableRow></TableHead>
-                                <TableBody>
-                                    {viaturasCriticasAgrupadas.map((viatura) => (
-                                        <TableRow key={viatura.placa} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.01) } }}>
-                                            <TableCell><Chip label={viatura.placa} variant="outlined" color="primary" /></TableCell>
-                                            <TableCell>{viatura.modelo}</TableCell>
-                                            <TableCell>
-                                                <Chip label={viatura.status} size="small" color={viatura.status && viatura.status.toLowerCase().includes("operação") ? "success" : "warning"} sx={{ borderRadius: 1 }} />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                    {viatura.itensCriticos && viatura.itensCriticos.map((item: any, itemIndex: number) => (
-                                                        <Chip key={`${item.nome}-${itemIndex}`} label={`${item.nome} (${item.conformidade ?? 0}%)`} color="error" size="small" variant="outlined" sx={{ borderRadius: 1 }} />
-                                                    ))}
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    ) : (
-                        <Box sx={{ textAlign: 'center', py: 4 }}><Warning sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} /><Typography variant="body2" color="text.secondary">Nenhuma viatura com itens críticos no período.</Typography></Box>
-                    )}
-                </CardContent>
-            </Card>
-            {/* Ranking de Bases */}
-            <Card sx={{ borderRadius: 2 }}>
-                <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <EmojiEvents color="primary" sx={{ mr: 1.5 }} />
-                        <Typography variant="h6" fontWeight="500">Ranking de Bases</Typography>
-                    </Box>
-                    {relatorio.rankingBases && relatorio.rankingBases.length > 0 ? (
-                        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                            <Table>
-                                <TableHead><TableRow sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.02) }}>
-                                    <TableCell sx={{ fontWeight: '600' }}>Posição</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Base</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Média Geral</TableCell>
-                                    <TableCell sx={{ fontWeight: '600' }}>Última Visita</TableCell>
-                                </TableRow></TableHead>
-                                <TableBody>
-                                    {relatorio.rankingBases.map((base) => (
-                                        <TableRow key={base.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.01) } }}>
-                                            <TableCell>
-                                                <Chip label={`#${base.posicaoRanking}`} color={base.posicaoRanking === 1 ? "primary" : base.posicaoRanking === 2 ? "secondary" : base.posicaoRanking === 3 ? "warning" : "default"} variant={base.posicaoRanking <= 3 ? "filled" : "outlined"} sx={{ borderRadius: 1, fontWeight: '600' }} />
-                                            </TableCell>
-                                            <TableCell>{base.nomeBase}</TableCell>
-                                            <TableCell>
-                                                {typeof base.mediaConformidade === 'number' ? (
-                                                    <Chip label={`${base.mediaConformidade.toFixed(1)}%`} color={getConformidadeColor(base.mediaConformidade)} variant="outlined" sx={{ borderRadius: 1 }} />
-                                                ) : (<Typography variant="body2">-</Typography>)}
-                                            </TableCell>
-                                            <TableCell>
-                                                {base.dataUltimaVisita ? format(new Date(base.dataUltimaVisita), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    ) : (
-                        <Box sx={{ textAlign: 'center', py: 4 }}><EmojiEvents sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} /><Typography variant="body2" color="text.secondary">Nenhum dado de ranking disponível.</Typography></Box>
-                    )}
-                </CardContent>
-            </Card>
-        </Box>
-    );
-};

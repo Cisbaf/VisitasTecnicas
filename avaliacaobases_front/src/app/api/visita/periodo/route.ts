@@ -22,39 +22,34 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita`, {
+        const url = new URL(req.url);
+        const dataInicio = url.searchParams.get("dataInicio");
+        const dataFim = url.searchParams.get("dataFim");
+        const baseId = url.searchParams.get("baseId"); // Novo parâmetro opcional
+
+        if (!dataInicio || !dataFim) {
+            return NextResponse.json({ message: "Parâmetros dataInicio e dataFim são obrigatórios" }, { status: 400 });
+        }
+
+        let path = `/visita/periodo?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+
+        // Se baseId foi fornecido, busca apenas para essa base
+        if (baseId) {
+            path = `/visita/periodo/${baseId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+        }
+
+        return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/visita GET proxy error:", err);
-        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
-    }
-}
-
-export async function POST(req: Request) {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-        const bodyText = await req.text();
-        return await proxyFetch(`/visita`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": req.headers.get("content-type") ?? "application/json",
-            },
-            body: bodyText,
-        });
-    } catch (err) {
-        console.error("api/visita POST proxy error:", err);
+        console.error("api/visita/periodo GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Item, ViaturaRequest } from "@/components/types";
+import { ViaturaRequest } from "@/components/types";
 
 interface ViaturaDialogProps {
     open: boolean;
@@ -39,7 +39,6 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
         tipoViatura: "USA",
         statusOperacional: "Conforme",
         idBase: baseId ?? null,
-        itens: [{ nome: "", conformidade: 100 }]
     });
 
     const [showCustomType, setShowCustomType] = React.useState(false);
@@ -62,7 +61,6 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
                 tipoViatura: "USA",
                 statusOperacional: "Conforme",
                 idBase: baseId ?? null,
-                itens: [{ nome: "", conformidade: 100 }],
             });
             setShowCustomType(false);
         }
@@ -70,21 +68,6 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
 
     const updateForm = <K extends keyof ViaturaRequest>(key: K, value: ViaturaRequest[K]) => {
         setForm(prev => ({ ...prev, [key]: value }));
-    };
-
-    const updateItemAt = (index: number, patch: Partial<Item>) => {
-        setForm(prev => {
-            const itens = prev.itens.map((it, i) => (i === index ? { ...it, ...patch } : it));
-            return { ...prev, itens };
-        });
-    };
-
-    const addItem = () => {
-        setForm(prev => ({ ...prev, itens: [...prev.itens, { nome: "", conformidade: 100 }] }));
-    };
-
-    const removeItem = (index: number) => {
-        setForm(prev => ({ ...prev, itens: prev.itens.filter((_, i) => i !== index) }));
     };
 
     const handleTipoViaturaChange = (value: string) => {
@@ -182,38 +165,7 @@ export default function ViaturaDialog({ open, mode, viatura, onClose, onSave, lo
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Itens (manutenção / equipamentos)
                         </Typography>
-                        <Stack spacing={1}>
-                            {form.itens.map((it, idx) => (
-                                <Stack direction="row" spacing={1} key={idx} alignItems="center">
-                                    <TextField
-                                        label="Nome do item"
-                                        value={it.nome}
-                                        onChange={e => updateItemAt(idx, { nome: e.target.value })}
-                                        sx={{ flex: 1 }}
-                                        size="small"
-                                    />
-                                    <TextField
-                                        label="% conformidade"
-                                        value={String(it.conformidade)}
-                                        onChange={e =>
-                                            updateItemAt(idx, {
-                                                conformidade: Math.max(0, Math.min(100, Number(e.target.value || 0))),
-                                            })
-                                        }
-                                        type="number"
-                                        size="small"
-                                        sx={{ width: 110 }}
-                                        inputProps={{ min: 0, max: 100 }}
-                                    />
-                                    <IconButton aria-label="remover" onClick={() => removeItem(idx)} size="large">
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </Stack>
-                            ))}
-                            <Button onClick={addItem} size="small" variant="outlined">
-                                Adicionar item
-                            </Button>
-                        </Stack>
+
                     </Box>
                 </Stack>
             </DialogContent>

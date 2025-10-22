@@ -1,21 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
     Box,
     CircularProgress,
-    Chip,
     Typography,
-    Paper,
 } from "@mui/material";
-
-import { useForms } from "@/components/admin/hooks/useForms";
-import { TabHeader } from "./TabHeader";
-import FormEditorModal from "../modal/FormEditorModal";
 
 import MidiaGallery from "./MidiaGallery";
 
-import { FormCategory, Select, Midia, Flag } from "@/components/types";
+import { Midia, Flag } from "@/components/types";
 
 interface PadronizacaoVizualTabProps {
     visitaId: number;
@@ -110,7 +103,7 @@ export default function PadronizacaoVizualTab({ visitaId }: PadronizacaoVizualTa
     return (
         <>
             <Typography variant="h4" fontWeight="600">Padronização Visual </Typography>
-
+            {error && <Typography color="error">{error}</Typography>}
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <MidiaGallery

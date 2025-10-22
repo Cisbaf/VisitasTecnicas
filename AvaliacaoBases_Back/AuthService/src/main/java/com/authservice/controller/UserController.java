@@ -5,6 +5,7 @@ import com.authservice.entity.userDto.UserRequest;
 import com.authservice.entity.userDto.UserResponse;
 import com.authservice.service.capsule.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 
@@ -100,10 +102,14 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<String> login(@RequestBody LoginRequest request,  HttpServletRequest httpRequest) {
         if (request == null) {
             return ResponseEntity.badRequest().build();
         }
+        String origin = httpRequest.getHeader("Origin");
+        String domain = determineCookieDomain(origin);
+
+
         String accessToken = userService.login(request);
         ResponseCookie cookie = ResponseCookie.from("token", accessToken)
                 .httpOnly(true)
@@ -144,5 +150,26 @@ public class UserController {
         }
         UserResponse updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    private String determineCookieDomain(String origin) {
+        if (origin == null) {
+            return ""; // Domínio vazio para requests sem Origin
+        }
+
+        try {
+            URI uri = new URI(origin);
+            String host = uri.getHost();
+
+            // Para IPs locais, use domínio vazio
+            if (host.startsWith("192.168.") || host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
+                return ""; // Domínio vazio funciona para IPs
+            }
+
+            // Para outros domínios, use o domínio base
+            return host;
+        } catch (Exception e) {
+            return ""; // Fallback para domínio vazio
+        }
     }
 }

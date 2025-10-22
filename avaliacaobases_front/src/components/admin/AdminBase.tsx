@@ -12,7 +12,6 @@ import {
     Grid,
     IconButton,
     Paper,
-
     Typography,
 } from "@mui/material";
 import {
@@ -25,7 +24,7 @@ import {
     Visibility as ViewIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import { BaseRequest, BaseResponse } from "../types";
+import { BaseRequest, BaseResponse, UserResponse, Viatura } from "../types";
 import BaseDialog from "./visita/modal/BaseDialog";
 
 interface Base extends BaseResponse {
@@ -37,7 +36,6 @@ export default function AdminBasesPage() {
     const router = useRouter();
     const [bases, setBases] = useState<Base[]>([]);
     const [loading, setLoading] = useState(true);
-    const [countsLoading, setCountsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [editingBase, setEditingBase] = useState<Base | null>(null);
@@ -60,65 +58,71 @@ export default function AdminBasesPage() {
     }
 
     useEffect(() => {
-        const storedData = localStorage.getItem("allBasesData");
-        if (storedData) {
+        const init = async () => {
             try {
-                const parsedData: Base[] = JSON.parse(storedData);
-                setBases(parsedData);
-                setLoading(false);
-            } catch (e) {
-                console.error("Failed to parse bases from localStorage", e);
-                localStorage.removeItem("allBasesData");
+                // tentar carregar do localStorage pra primeira renderização rápida
+                const storedData = localStorage.getItem("allBasesData");
+                if (storedData) {
+                    try {
+                        const parsedData: Base[] = JSON.parse(storedData);
+                        setBases(parsedData);
+                    } catch (e) {
+                        console.error("Failed to parse bases from localStorage", e);
+                        localStorage.removeItem("allBasesData");
+                    }
+                }
+
+                // buscar bases do servidor (fetchBases agora retorna o array)
+                const fetchedBases = await fetchBases();
+
+                if (!fetchedBases || fetchedBases.length === 0) return;
+
+                // ligar indicador de contagens enquanto fazemos os dois fetches em paralelo
+                await Promise.all([
+                    fetchCountsForBases(fetchedBases),
+                    fetchCountsForUsers(fetchedBases),
+                ]);
+            } catch (err) {
+                console.error("Erro no init:", err);
             }
-        }
-        fetchBases();
+        };
+        init();
     }, []);
 
-    const fetchBases = async () => {
+
+    const fetchBases = async (): Promise<Base[]> => {
         try {
             setLoading(true);
             const data = await fetchJsonSafe("/api/base");
             const fetchedBases = Array.isArray(data) ? data : [];
             setBases(fetchedBases);
             localStorage.setItem("allBasesData", JSON.stringify(fetchedBases));
-
+            return fetchedBases;
         } catch (err: any) {
             console.error("fetchBases error:", err);
             setError(err.message ?? String(err));
+            return [];
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (bases.length > 0 && bases[0].viaturasCount === undefined) {
-            fetchCountsForBases(bases);
-        }
-        if (bases.length > 0 && bases[0].userCount === undefined) {
-            fetchCountsForUsers(bases);
-        }
-    }, [bases]);
 
     const fetchCountsForBases = async (currentBases: Base[]) => {
         try {
-            setCountsLoading(true);
             setError(null);
 
-            const requests = currentBases.map(async (base) => {
-                try {
-                    const res = await fetch(`/api/viatura/base/${base.id}`);
-                    if (!res.ok || res.status === 204) return { id: base.id, count: 0 };
+            const res = await fetch(`/api/viatura`);
+            if (!res.ok || res.status === 204) {
+                throw new Error("Erro ao buscar viaturas");
+            }
 
-                    const arr = await res.json().catch(() => []);
-                    return { id: base.id, count: Array.isArray(arr) ? arr.length : 0 };
-                } catch {
-                    return { id: base.id, count: 0 };
-                }
+            const arr: Viatura[] = await res.json().catch(() => []);
+            const results = currentBases.map((base) => {
+                const filteredArr = arr.filter((v: Viatura) => v.idBase === base.id);
+                return { id: base.id, count: filteredArr.length };
             });
 
-            const results = await Promise.all(requests);
-
-            // Atualiza apenas a propriedade viaturasCount de cada base
             setBases((prev) =>
                 prev.map((base) => {
                     const found = results.find((r) => r.id === base.id);
@@ -131,29 +135,24 @@ export default function AdminBasesPage() {
         } catch (err: any) {
             console.error("fetchCountsForBases error:", err);
             setError(String(err?.message ?? err));
-        } finally {
-            setCountsLoading(false);
         }
     };
 
     const fetchCountsForUsers = async (currentBases: Base[]) => {
         try {
-            setCountsLoading(true);
             setError(null);
 
-            const requests = currentBases.map(async (base) => {
-                try {
-                    const res = await fetch(`/api/auth/user/base/${base.id}`);
-                    if (!res.ok || res.status === 204) return { id: base.id, count: 0 };
+            const res = await fetch(`/api/auth/user`);
+            if (!res.ok || res.status === 204) {
+                throw new Error("Erro ao buscar usuários");
+            }
 
-                    const arr = await res.json().catch(() => []);
-                    return { id: base.id, count: Array.isArray(arr) ? arr.length : 0 };
-                } catch {
-                    return { id: base.id, count: 0 };
-                }
+            const arr: UserResponse[] = await res.json().catch(() => []);
+
+            const results = currentBases.map((base) => {
+                const filteredArr = arr.filter((u: UserResponse) => u.baseId === base.id);
+                return { id: base.id, count: filteredArr.length };
             });
-
-            const results = await Promise.all(requests);
 
             setBases((prev) =>
                 prev.map((base) => {
@@ -165,10 +164,8 @@ export default function AdminBasesPage() {
                 })
             );
         } catch (err: any) {
-            console.error("fetchCountsForBases error:", err);
+            console.error("fetchCountsForUsers error:", err);
             setError(String(err?.message ?? err));
-        } finally {
-            setCountsLoading(false);
         }
     };
 
@@ -251,10 +248,10 @@ export default function AdminBasesPage() {
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (baseId: number) => {
         if (!confirm("Tem certeza que deseja excluir esta base?")) return;
         try {
-            const res = await fetch(`/api/base/${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/base/${baseId}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Falha ao excluir base");
             await fetchBases();
         } catch (err: any) {
@@ -357,12 +354,7 @@ export default function AdminBasesPage() {
                                 </Typography>
 
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                                    <Chip
-                                        label={base.tipoBase}
-                                        color={base.tipoBase === "Principal" ? "primary" : "default"}
-                                        size="small"
-                                        sx={{ mb: 2 }}
-                                    />
+
                                     <Chip
                                         label={base.telefone}
                                         color={base.telefone === "Principal" ? "primary" : "default"}

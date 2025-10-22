@@ -23,18 +23,22 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ baseId: string }> }) {
+export async function GET(req: Request) {
     try {
-        const { baseId } = await params;
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        return await proxyFetch(`/viatura/base/${encodeURIComponent(baseId)}`, {
+
+        const { searchParams } = new URL(req.url);
+
+        const backendUrl = `/viatura/api?${searchParams.toString()}`;
+
+        return await proxyFetch(backendUrl, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/viatura/base/[id] GET proxy error:", err);
+        console.error("api/viatura/api GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

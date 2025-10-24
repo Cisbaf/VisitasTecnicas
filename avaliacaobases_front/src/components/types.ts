@@ -150,10 +150,10 @@ export interface IndicadoresDTO {
 export interface RelatoDTO {
     id: number;
     tema: string;
+    baseId: number;
     mensagem: string;
     autor: string;
     data: string;
-    baseId: number;
     id_visita: number;
 }
 
@@ -220,15 +220,7 @@ export interface Midia {
     flag?: Flag;
 }
 
-export interface RelatoDTO {
-    id: number;
-    tema: string;
-    mensagem: string;
-    autor: string;
-    data: string;
-    baseId: number;
-    visitas: number;
-}
+
 
 export interface CategoryData {
     conforme?: string | number;

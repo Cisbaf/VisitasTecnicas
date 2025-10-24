@@ -423,7 +423,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                                     {resumo.municipiosVisitados.map((m: string, i: number) => (
                                                         <Chip
-                                                            key={i}
+                                                            key={`municipio-${m}-${i}`}
                                                             label={m}
                                                             size="small"
                                                             sx={{
@@ -457,7 +457,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                                                 {baseEquipe.equipe.map((membro: string, membroIndex: number) => (
                                                                     <Chip
-                                                                        key={membroIndex}
+                                                                        key={`membro-${membro}-${membroIndex}`}
                                                                         label={membro}
                                                                         size="small"
                                                                         sx={{
@@ -511,7 +511,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                 <TableBody>
                                                     {dadosFiltrados.map((item, index) => (
                                                         <TableRow
-                                                            key={item.cidade}
+                                                            key={`${item.cidade}-${index}-${item.tempoRespostaMedio}`}
                                                             sx={{
                                                                 bgcolor: index % 2 === 0 ? 'background.default' : 'grey.50',
                                                                 '&:hover': {
@@ -818,7 +818,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                     <>
                                                                                         {/* Linha principal da base */}
                                                                                         <TableRow
-                                                                                            key={`base-${base.id}`}
+                                                                                            key={`base-${base.id}-${Math.random()}`}
                                                                                             sx={{
                                                                                                 backgroundColor: 'grey.50',
                                                                                                 '&:hover': { backgroundColor: 'grey.100' }
@@ -834,8 +834,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                                     Conformidade Geral: {baseConformidade}%
                                                                                                 </Typography>
                                                                                             </TableCell>
-                                                                                            <TableCell align="right" colSpan={3}>
-
+                                                                                            <TableCell align="right" colSpan={3} sx={{ color: "transparent" }}>
+                                                                                                -
                                                                                             </TableCell>
                                                                                         </TableRow>
 
@@ -937,7 +937,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                             }}>
                                                                                 {bases100.map((b: any) => (
                                                                                     <Chip
-                                                                                        key={b.id}
+                                                                                        key={`base-100-${b.id}-${b.nome}`}
                                                                                         label={b.nome}
                                                                                         color="success"
                                                                                         size="small"
@@ -1397,62 +1397,48 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                             <Typography variant="h6" gutterBottom>Relatos das Equipes</Typography>
 
                                             {(() => {
-                                                const relatosFiltrados = relatos.filter((r: any) => {
-                                                    const dataRelato = new Date(r.data);
-                                                    if (baseId != null) {
-                                                        return dataRelato >= dataInicio! && dataRelato <= dataFim! && r.baseId === baseId;
-                                                    }
-                                                    return dataRelato >= dataInicio! && dataRelato <= dataFim!;
-                                                });
+
 
                                                 return (
                                                     <>
-                                                        <InfoSection title="Palavras Mais Frequentes nos Relatos">
-                                                            <CircularWordCloud
-                                                                relatos={relatosFiltrados}
-                                                                maxWords={40}
-                                                            />
-                                                        </InfoSection>
 
                                                         {/* Opcional: manter os relatos detalhados em um accordion abaixo */}
-                                                        <InfoSection title="Relatos Detalhados">
-                                                            {relatosFiltrados.length > 0 ? (
-                                                                <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                                                                    {relatosFiltrados.map((r: any) => (
-                                                                        <Accordion key={r.id} variant="outlined" sx={{
-                                                                            boxShadow: 'none',
-                                                                            '&:before': { display: 'none' },
-                                                                            my: 0.5,
-                                                                            borderRadius: 3,
-                                                                            borderLeft: '6px solid blue'
-                                                                        }}>
-                                                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                                                <Typography sx={{
-                                                                                    flexShrink: 0,
-                                                                                    mr: 2,
-                                                                                    fontWeight: 500
-                                                                                }}>
-                                                                                    {r.tema} - {basesList.find((base: any) => base.id === r.baseId)?.nome || r.baseId}
-                                                                                </Typography>
-                                                                                <Typography sx={{
-                                                                                    color: 'text.secondary',
-                                                                                    ml: 'auto'
-                                                                                }}>
-                                                                                    {r.autor} — {format(new Date(r.data), 'dd/MM/yyyy')}
-                                                                                </Typography>
-                                                                            </AccordionSummary>
-                                                                            <AccordionDetails>
-                                                                                <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-                                                                                    {r.mensagem}
-                                                                                </Typography>
-                                                                            </AccordionDetails>
-                                                                        </Accordion>
-                                                                    ))}
-                                                                </Box>
-                                                            ) : (
-                                                                <Placeholder text="Nenhum relato encontrado." />
-                                                            )}
-                                                        </InfoSection>
+                                                        {relatos.length > 0 ? (
+                                                            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                                                                {relatos.map((r: any) => (
+                                                                    <Accordion key={r.id} variant="outlined" sx={{
+                                                                        boxShadow: 'none',
+                                                                        '&:before': { display: 'none' },
+                                                                        my: 0.5,
+                                                                        borderRadius: 3,
+                                                                        borderLeft: '6px solid #430000'
+                                                                    }}>
+                                                                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                                            <Typography sx={{
+                                                                                flexShrink: 0,
+                                                                                mr: 2,
+                                                                                fontWeight: 500
+                                                                            }}>
+                                                                                {r.tema} - {basesList.find((base: any) => base.id === r.baseId)?.nome || r.baseId}
+                                                                            </Typography>
+                                                                            <Typography sx={{
+                                                                                color: 'text.secondary',
+                                                                                ml: 'auto'
+                                                                            }}>
+                                                                                {r.autor} — {format(new Date(r.data), 'dd/MM/yyyy')}
+                                                                            </Typography>
+                                                                        </AccordionSummary>
+                                                                        <AccordionDetails>
+                                                                            <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                                                                                {r.mensagem}
+                                                                            </Typography>
+                                                                        </AccordionDetails>
+                                                                    </Accordion>
+                                                                ))}
+                                                            </Box>
+                                                        ) : (
+                                                            <Placeholder text="Nenhum relato encontrado." />
+                                                        )}
                                                     </>
                                                 );
                                             })()}

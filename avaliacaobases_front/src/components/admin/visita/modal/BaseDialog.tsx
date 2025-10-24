@@ -95,19 +95,6 @@ export default function BaseDialog({
                                 helperText={emailError || " "}
                             />
                         </div>
-                        <Select
-                            native
-                            onChange={(e) => setFormData({ ...formData, tipoBase: e.target.value })}
-                            label="Tipo da Base"
-                            fullWidth
-                            required
-                            value={formData?.tipoBase || ""}
-                        >
-                            <option value="" disabled>Selecione o Tipo da Base</option>
-                            <option value="DESCENTRALIZADA">Descentralizada</option>
-                            <option value="DOR">Rede DÓR</option>
-                            <option value="OUTRA">Outra</option>
-                        </Select>
 
                     </Stack>
                 </DialogContent>

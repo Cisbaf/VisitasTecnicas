@@ -84,7 +84,7 @@ export default function Layout({ children }: Props) {
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             {/* aqui evitamos mismatch: antes do mount mostramos fallback estável */}
                             {isClient && baseData
-                                ? `${baseData.tipoBase ? baseData.tipoBase + " - " : ''}  ${baseData.nome}`
+                                ? `${baseData.nome}`
                                 : headerFallback}
                         </Typography>
                     </Box>

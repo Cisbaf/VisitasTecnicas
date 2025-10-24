@@ -112,7 +112,6 @@ export interface BaseResponse {
     id: number;
     nome: string;
     endereco: string;
-    tipoBase: string;
     telefone: string;
     email: string;
     bairro: string;
@@ -127,7 +126,6 @@ export type BaseRequest = {
     endereco?: string;
     telefone?: string;
     email?: string;
-    tipoBase?: string;
 };
 
 

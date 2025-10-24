@@ -173,7 +173,7 @@ public class RelatorioTecnicoService {
         // escolher a última visita pela dataVisita
         VisitaEntity ultimaVisita = visitas.stream()
                 .filter(Objects::nonNull)
-                .filter(v -> v.getDataVisita() != null && v.getId() != null)
+                .filter(v -> v.getDataVisita() != null && v.getId() != null ).filter(v ->  v.getTipoVisita() == null  || !v.getTipoVisita().toUpperCase().contains("DOR") || !v.getTipoVisita().toUpperCase().contains("OUTROS"))
                 .max(Comparator.comparing(VisitaEntity::getDataVisita))
                 .orElse(null);
 
@@ -200,7 +200,7 @@ public class RelatorioTecnicoService {
         // agrupa por idBase e pega a última visita de cada base
         Map<Long, Optional<VisitaEntity>> ultimaPorBase = visitas.stream()
                 .filter(Objects::nonNull)
-                .filter(v -> v.getIdBase() != null && v.getDataVisita() != null && v.getId() != null)
+                .filter(v -> v.getIdBase() != null && v.getDataVisita() != null && v.getId() != null && !v.getTipoVisita().toUpperCase().contains("DOR") && !v.getTipoVisita().toUpperCase().contains("OUTROS"))
                 .collect(Collectors.groupingBy(
                         VisitaEntity::getIdBase,
                         Collectors.maxBy(Comparator.comparing(VisitaEntity::getDataVisita))

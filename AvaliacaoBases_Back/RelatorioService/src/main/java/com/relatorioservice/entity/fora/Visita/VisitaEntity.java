@@ -15,6 +15,7 @@ public class VisitaEntity {
     private Long id;
     private LocalDate dataVisita;
     private Long idBase;
+    private String tipoVisita ;
     private List<EquipeTecnica> membros;
 
 

@@ -8,12 +8,7 @@ export default async function Home() {
   const token = cookieStore.get('token')?.value;
   const claims = decodeJwtPayload(token as string | undefined);
   const expired = claims && claims.exp < Date.now();
-  console.log('Claims:', claims);
-  console.log('Expired:', expired);
-  console.log('Token:', token);
-  const allCookies = cookieStore.getAll();
 
-  console.log('All Cookies:', allCookies);
   if (!token) {
     redirect('/login');
   }

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, Button, Icon, Toolbar, Typography } from '@mui/material';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
 
@@ -24,7 +24,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 position="fixed"
                 elevation={0}
                 sx={{
-                    bgcolor: '#342b27',
+                    bgcolor: '#430000',
                     color: 'white',
                     zIndex: (theme) => theme.zIndex.drawer + 1,
                     borderRadius: 10,
@@ -32,7 +32,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 }}
             >
                 <Toolbar sx={{ justifyContent: 'space-between' }}>
-                    <Box>
+
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <img src='/cisbaf.png' alt="Logo" style={{ height: 40 }} />
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             Administração - Sistema SAMU
                         </Typography>
@@ -43,8 +46,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
                             href="/logout"
                             sx={{
                                 textTransform: 'none',
-                                bgcolor: '#5a3d30',
-                                '&:hover': { bgcolor: '#3e281e' },
+                                bgcolor: '#830101',
+                                '&:hover': { bgcolor: '#430000' },
                                 boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
                                 borderRadius: 5,
                             }}

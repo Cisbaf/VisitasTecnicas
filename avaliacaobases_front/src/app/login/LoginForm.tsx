@@ -116,6 +116,7 @@ export default function LoginForm() {
                             variant="contained"
                             disabled={loading}
                             sx={{
+                                bgcolor: "#cd9805",
                                 borderRadius: '30px',
                                 py: 1.5,
                                 fontWeight: 'bold',

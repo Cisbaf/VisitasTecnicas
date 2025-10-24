@@ -94,7 +94,7 @@ export default function Layout({ children }: Props) {
                             href="/logout"
                             sx={{
                                 textTransform: 'none',
-                                bgcolor: '#ff5722',
+                                bgcolor: "#cd9805",
                                 '&:hover': { bgcolor: '#e64a19' },
                                 boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
                                 borderRadius: 5

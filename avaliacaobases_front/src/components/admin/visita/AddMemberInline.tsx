@@ -18,7 +18,7 @@ export default function AddMemberInline({ onAdd }: AddMemberInlineProps) {
                 onAdd(nome, cargo);
                 setNome("");
                 setCargo("");
-            }} sx={{ borderRadius: 4, bgcolor: "#3e281e" }}>Adicionar</Button>
+            }} sx={{ borderRadius: 4 }}>Adicionar</Button>
         </Box>
     );
 }

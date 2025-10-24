@@ -55,7 +55,7 @@ export default function AddBaseMemberInline({ onAdd, equipe }: AddBaseMemberInli
                             size="small"
                             variant="contained"
                             onClick={() => handleAdd(key as keyof typeof nomes, cargo)}
-                            sx={{ borderRadius: 4, bgcolor: "#3e281e" }}
+                            sx={{ borderRadius: 4 }}
                         >
                             Adicionar
                         </Button>

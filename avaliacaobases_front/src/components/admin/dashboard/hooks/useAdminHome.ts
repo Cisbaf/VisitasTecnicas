@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import fetchJsonSafe, { postJsonSafe } from './/fetchJsonSafe';
-import { CategoryData, PREDEFINED_SUMMARIES, RelatoDTO, Viatura } from '@/components/types';
+import { BaseResponse, PREDEFINED_SUMMARIES, RelatoDTO, Viatura } from '@/components/types';
 
 
 export interface ConformidadeSummary {
@@ -55,8 +55,7 @@ export function useAdminHome() {
     const fetchBases = useCallback(async () => {
         try {
             const data = await fetchJsonSafe('/api/base');
-            const basesData = Array.isArray(data) ? data : [];
-
+            const basesData = Array.isArray(data) ? data.filter(item => item.tipoBase === "DESCENTRALIZADA" || item.tipoBase === null || item.tipoBase === "") : [];
             setBasesList(basesData);
             const municipiosUnicos = [...new Set(basesData.map((base: any) => base.nome).filter(Boolean))];
             setBases(municipiosUnicos as string[]);
@@ -77,8 +76,12 @@ export function useAdminHome() {
             const todosRelatos = Array.isArray(relatosData) ? relatosData : [];
             const relatosFiltrados = todosRelatos.filter((relato: RelatoDTO) => {
                 const dataRelato = new Date(relato.data);
-                return dataRelato >= inicio && dataRelato <= fim;
+                if (baseId) return dataRelato >= inicio && dataRelato <= fim && String(relato.baseId) === String(baseId);
+
+                return dataRelato >= inicio && dataRelato <= fim
             });
+
+
             if (!baseId) {
                 setRelatos(relatosFiltrados);
             } else {
@@ -365,11 +368,9 @@ export function useAdminHome() {
             let totalItensConformesPadronizacao = 0;
             let totalItensPadronizacao = 0;
 
-            // Coletar totais de todas as bases para inspeção
-            perBaseConformidade.forEach((base: any) => {
-                const conformidadePorSummary = acumuladores.conformidadePorSummary?.[base.id] || [];
-
-                conformidadePorSummary.forEach((summary: any) => {
+            // Coletar totais de todas as bases para inspeção USANDO OS ACUMULADORES
+            Object.values(acumuladores.conformidadePorSummary || {}).forEach((conformidadeSummaryBase: any) => {
+                conformidadeSummaryBase.forEach((summary: any) => {
                     summary.categorias?.forEach((categoria: any) => {
                         totalItensConformesInspecao += categoria.conforme || 0;
                         totalItensInspecao += categoria.total || 0;
@@ -377,10 +378,11 @@ export function useAdminHome() {
                 });
             });
 
-            // Coletar totais de todas as bases para padronização
-            padronizacaoArrLast.forEach((base: any) => {
-                totalItensConformesPadronizacao += (base.conforme / 100) * base.totalCount;
-                totalItensPadronizacao += base.totalCount;
+            // Coletar totais de todas as bases para padronização USANDO OS ACUMULADORES
+            Object.values(acumuladores.padronizacaoCountsByBase || {}).forEach((base: any) => {
+                // base.conforme já é a quantidade absoluta, não precisa dividir por 100
+                totalItensConformesPadronizacao += base.conforme || 0;
+                totalItensPadronizacao += base.total || 0;
             });
 
             // Calcular médias CORRETAS
@@ -410,8 +412,6 @@ export function useAdminHome() {
                     .sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime()),
                 conformidadePorSummary: acumuladores.conformidadePorSummary || {},
             });
-
-            await buscarRelatos(inicio, fim);
 
         } catch (err: any) {
             console.error('Erro ao buscar dados do período', err);

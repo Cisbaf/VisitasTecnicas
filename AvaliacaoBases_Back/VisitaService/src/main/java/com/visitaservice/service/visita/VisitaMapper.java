@@ -18,6 +18,7 @@ class VisitaMapper {
                     .idBase(request.getIdBase())
                     .dataVisita(request.getDataVisita())
                     .membros(request.getMembros())
+                    .tipoVisita(request.getTipoVisita())
                     .build();
         }
         throw new IllegalArgumentException("Base ID does not exist: " + request.getIdBase());
@@ -29,6 +30,7 @@ class VisitaMapper {
                 .idBase(visita.getIdBase())
                 .dataVisita(visita.getDataVisita())
                 .membros(visita.getMembros())
+                .tipoVisita(visita.getTipoVisita())
                 .build();
     }
 }

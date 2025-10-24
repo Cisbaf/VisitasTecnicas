@@ -12,6 +12,6 @@ import java.util.List;
  * DTO for {@link VisitaEntity}
  */
 @Builder
-public record VisitaResponse(Long id, LocalDate dataVisita, Long idBase,
+public record VisitaResponse(Long id, LocalDate dataVisita, Long idBase, String tipoVisita,
                              List<EquipeTecnica> membros) implements Serializable {
 }

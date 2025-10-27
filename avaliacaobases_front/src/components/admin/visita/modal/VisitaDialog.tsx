@@ -1,6 +1,5 @@
-// components/admin/visita/VisitaDialog.tsx
 "use client";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Select, Stack, TextField } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useState, useEffect } from "react";
 import 'dayjs/locale/pt-br';
@@ -26,12 +25,12 @@ export default function VisitaDialog({
     initialDate = null,
     initialObs = ""
 }: VisitaDialogProps) {
-    const [date, setDate] = useState<dayjs.Dayjs | null>(initialDate ? dayjs(initialDate) : null);
+    const [date, setDate] = useState<dayjs.Dayjs | null>(initialDate ? dayjs(initialDate).add(1, "day") : null);
     const [obs, setObs] = useState(initialObs);
 
     useEffect(() => {
         if (open) {
-            setDate(initialDate ? dayjs(initialDate).startOf("day") : null);
+            setDate(initialDate ? dayjs(initialDate).startOf("day").add(1, "day") : null);
             setObs(initialObs);
         }
     }, [open, initialDate, initialObs]);
@@ -50,7 +49,7 @@ export default function VisitaDialog({
             <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
                 <DialogTitle>{isEditing ? "Editar Visita" : "Nova Visita"}</DialogTitle>
                 <form onSubmit={handleSubmit}>
-                    <DialogContent>
+                    <DialogContent sx={{ gap: 3, display: "flex" }}>
                         <Stack spacing={2} sx={{ mt: 1 }}>
                             <DatePicker
                                 label="Data da Visita"
@@ -60,6 +59,19 @@ export default function VisitaDialog({
                             />
 
                         </Stack>
+                        <Select
+                            native
+                            label="Tipo de Visita"
+                            fullWidth
+                            required
+                            value={obs}
+                            onChange={(e) => setObs((e.target as HTMLSelectElement).value)}
+                        >
+                            <option value="">Selecione um tipo de visita</option>
+                            <option value="REDE DOR">Rede Dór</option>
+                            <option value="Inspecao">Inspeção</option>
+                            <option value="OUTRA">Outra</option>
+                        </Select>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={onClose}>Cancelar</Button>

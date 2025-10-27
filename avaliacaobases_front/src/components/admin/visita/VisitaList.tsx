@@ -79,9 +79,9 @@ export default function VisitaList({ baseId, visitas, loading, handleEditVisita,
                                         </IconButton>
                                     </Box>
                                 </Box>
-                                {v.observacoes && (
+                                {v.tipoVisita && (
                                     <Typography variant="body2" sx={{ mt: 1 }}>
-                                        {v.observacoes}
+                                        {v.tipoVisita}
                                     </Typography>
                                 )}
                             </CardContent>

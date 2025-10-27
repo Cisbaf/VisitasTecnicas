@@ -17,6 +17,7 @@ export interface VisitaResponse {
     dataVisita: string;
     idBase: number;
     membros: EquipeTecnica[];
+    tipoVisita: String;
 }
 
 export interface EquipeTecnica {
@@ -29,17 +30,6 @@ export interface UserResponse {
     user: string;
     role: string;
     baseId: number | null;
-}
-
-export interface CheckDescription {
-    id: number;
-    descricao: string;
-    conformidadePercent: number;
-    observacao: string;
-    tipoConformidade: string;
-    criticidade: string;
-    visitaId: number;
-    viaturaId: number;
 }
 
 export interface RelatorioConsolidadoResponse {
@@ -159,7 +149,7 @@ export interface VisitaDetails {
     id: number;
     dataVisita: string; // YYYY-MM-DD
     membros: EquipeTecnica[];
-    observacoes?: string;
+    tipoVisita?: string;
 }
 
 export interface CategoriaAgrupada {
@@ -169,7 +159,7 @@ export interface CategoriaAgrupada {
     visitas: {
         visitaId: number;
         dataVisita: string;
-        descricoes: CheckDescription[];
+        tipoVisita: String;
     }[];
 }
 

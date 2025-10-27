@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import fetchJsonSafe, { postJsonSafe } from './/fetchJsonSafe';
-import { BaseResponse, PREDEFINED_SUMMARIES, RelatoDTO, Viatura } from '@/components/types';
+import { PREDEFINED_SUMMARIES, RelatoDTO, Viatura } from '@/components/types';
 
 
 export interface ConformidadeSummary {
@@ -55,7 +55,7 @@ export function useAdminHome() {
     const fetchBases = useCallback(async () => {
         try {
             const data = await fetchJsonSafe('/api/base');
-            const basesData = Array.isArray(data) ? data.filter(item => item.tipoBase === "DESCENTRALIZADA" || item.tipoBase === null || item.tipoBase === "") : [];
+            const basesData = Array.isArray(data) ? data : [];
             setBasesList(basesData);
             const municipiosUnicos = [...new Set(basesData.map((base: any) => base.nome).filter(Boolean))];
             setBases(municipiosUnicos as string[]);
@@ -133,7 +133,7 @@ export function useAdminHome() {
                         dataFim: fim.toISOString().split('T')[0],
                     });
                     const todasVisitasData = await fetchJsonSafe(`/api/visita/periodo?${params.toString()}`);
-                    const todasVisitas = Array.isArray(todasVisitasData) ? todasVisitasData : [];
+                    const todasVisitas = Array.isArray(todasVisitasData) ? todasVisitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao') : [];
 
                     const visitIds = todasVisitas.map((visita: any) => visita.id).filter(Boolean);
 
@@ -202,7 +202,7 @@ export function useAdminHome() {
                             dataFim: fim.toISOString().split('T')[0],
                         });
                         const visitasData = await fetchJsonSafe(`/api/visita/periodo/${base.id}?${params.toString()}`) || [];
-                        const visitas = Array.isArray(visitasData) ? visitasData : [];
+                        const visitas = Array.isArray(visitasData) ? visitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao') : [];
 
                         const visitIds = visitas.map((v: any) => v.id).filter(Boolean);
                         let respostasPorVisita: Record<string, any[]> = {};

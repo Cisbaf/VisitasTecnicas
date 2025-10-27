@@ -90,7 +90,7 @@ export default function BaseVisitasPage() {
             const payload = {
                 dataVisita: date ? date.toISOString().split("T")[0] : null,
                 idBase: baseId,
-                observacoes: obs,
+                tipoVisita: obs,
             };
             const res = await fetch(`/api/visita`, {
                 method: "POST",
@@ -111,7 +111,7 @@ export default function BaseVisitasPage() {
         try {
             const payload = {
                 dataVisita: date ? date.toISOString().split("T")[0] : null,
-                observacoes: obs,
+                tipoVisita: obs,
                 idBase: baseId,
             };
             const res = await fetch(`/api/visita/${editingVisita.id}`, {
@@ -194,7 +194,7 @@ export default function BaseVisitasPage() {
                     onCreate={editingVisita ? handleUpdateVisita : handleCreateVisita}
                     isEditing={!!editingVisita}
                     initialDate={editingVisita ? new Date(editingVisita.dataVisita) : new Date()}
-                    initialObs={editingVisita ? editingVisita.observacoes : ""}
+                    initialObs={editingVisita ? editingVisita.tipoVisita : ""}
                 />
 
             </Box>

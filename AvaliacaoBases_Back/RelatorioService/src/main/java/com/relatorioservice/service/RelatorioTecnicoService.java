@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -170,26 +172,38 @@ public class RelatorioTecnicoService {
                 visitaService.getBaseByPeriodAndBaseId(idBase, dataInicio, dataFim)
         ).orElse(List.of());
 
-        // escolher a última visita pela dataVisita
-        VisitaEntity ultimaVisita = visitas.stream()
+        // Filtrar visitas válidas e contar o total
+        List<VisitaEntity> visitasValidas = visitas.stream()
                 .filter(Objects::nonNull)
-                .filter(v -> v.getDataVisita() != null && v.getId() != null ).filter(v ->  v.getTipoVisita() == null  || !v.getTipoVisita().toUpperCase().contains("DOR") || !v.getTipoVisita().toUpperCase().contains("OUTROS"))
+                .filter(v -> v.getDataVisita() != null && v.getId() != null)
+                .filter(v -> v.getTipoVisita() == null ||
+                        v.getTipoVisita().toUpperCase().replace(".", "").contains("INSPECAO"))
+                .toList();
+
+        int totalVisitasPeriodo = visitasValidas.size();
+
+        // Pegar apenas a ÚLTIMA visita para o relatório
+        VisitaEntity ultimaVisita = visitasValidas.stream()
                 .max(Comparator.comparing(VisitaEntity::getDataVisita))
                 .orElse(null);
 
         if (ultimaVisita == null) {
-            // nenhuma visita válida encontrada -> consolidar vazio
-            return consolidarRelatorios(List.of(), dataInicio, dataFim);
+            return consolidarRelatorios(List.of(), dataInicio, dataFim, totalVisitasPeriodo);
         }
 
         RelatorioTecnicoResponse rel;
         try {
             rel = this.gerarRelatorio(ultimaVisita.getId(), dataInicio, dataFim);
         } catch (Exception e) {
-            return consolidarRelatorios(List.of(), dataInicio, dataFim);
+            return consolidarRelatorios(List.of(), dataInicio, dataFim, totalVisitasPeriodo);
         }
 
-        return consolidarRelatorios(rel != null ? List.of(rel) : List.of(), dataInicio, dataFim);
+        // Consolidar apenas a última visita, mas passando a contagem total
+        return consolidarRelatorios(
+                rel != null ? List.of(rel) : List.of(),
+                dataInicio, dataFim,
+                totalVisitasPeriodo
+        );
     }
 
     public List<RelatorioTecnicoResponse> gerarRelatoriosPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
@@ -197,18 +211,19 @@ public class RelatorioTecnicoService {
                 visitaService.getAllByPeriod(dataInicio, dataFim)
         ).orElse(List.of());
 
-        // agrupa por idBase e pega a última visita de cada base
-        Map<Long, Optional<VisitaEntity>> ultimaPorBase = visitas.stream()
+        // Filtrar visitas válidas
+        List<VisitaEntity> visitasValidas = visitas.stream()
                 .filter(Objects::nonNull)
-                .filter(v -> v.getIdBase() != null && v.getDataVisita() != null && v.getId() != null && !v.getTipoVisita().toUpperCase().contains("DOR") && !v.getTipoVisita().toUpperCase().contains("OUTROS"))
-                .collect(Collectors.groupingBy(
-                        VisitaEntity::getIdBase,
-                        Collectors.maxBy(Comparator.comparing(VisitaEntity::getDataVisita))
-                ));
+                .filter(v -> v.getIdBase() != null && v.getDataVisita() != null && v.getId() != null)
+                .filter(v -> v.getTipoVisita() == null ||
+                        v.getTipoVisita().toUpperCase().replace(".", "").contains("INSPECAO"))
+                .toList();
+
+        // Agrupar por base e pegar a ÚLTIMA visita de cada base
+        Map<Long, VisitaEntity> ultimaPorBase = visitasValidas.stream()
+                .collect(Collectors.toMap(VisitaEntity::getIdBase, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(VisitaEntity::getDataVisita))));
 
         return ultimaPorBase.values().stream()
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .map(visita -> {
                     try {
                         return this.gerarRelatorio(visita.getId(), dataInicio, dataFim);
@@ -223,13 +238,16 @@ public class RelatorioTecnicoService {
     private RelatorioConsolidadoResponse consolidarRelatorios(
             List<RelatorioTecnicoResponse> relatorios,
             LocalDate dataInicio,
-            LocalDate dataFim
+            LocalDate dataFim,
+            int totalVisitasPeriodo  // NOVO PARÂMETRO
     ) {
         RelatorioConsolidadoResponse consolidado = new RelatorioConsolidadoResponse();
 
         consolidado.setDataInicio(dataInicio);
         consolidado.setDataFim(dataFim);
-        consolidado.setTotalVisitas(relatorios.size());
+
+        // USAR A CONTAGEM TOTAL em vez do tamanho da lista de relatórios
+        consolidado.setTotalVisitas(totalVisitasPeriodo);
 
         consolidado.setPontosFortes(relatorios.stream()
                 .flatMap(r -> r.getPontosFortes().stream())

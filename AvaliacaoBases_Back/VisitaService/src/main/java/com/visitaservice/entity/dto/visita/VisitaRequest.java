@@ -23,8 +23,9 @@ public class VisitaRequest implements Serializable {
     LocalDate dataVisita;
     @NotNull(message = "A base visitada é requerida")
     @Positive
+    Long idBase;
     @NotNull(message = "O tipo da visita é requerido")
     String tipoVisita ;
-    Long idBase;
+
     List<EquipeTecnica> membros;
     }

@@ -33,11 +33,12 @@ import { PREDEFINED_SUMMARIES } from '@/components/types';
 interface FormEditorModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (formData: { id?: number; categoria: string; summaryId: number; campos: any[]; tipoForm: string }) => void;
+    onSave: (formData: { id?: number; categoria: string; summaryId: number; campos: any[]; tipoForm: string; visitaId?: number }) => void;
     initialData?: FormCategory;
+    visitaId?: number;
 }
 
-export default function FormEditorModal({ open, onClose, onSave, initialData }: FormEditorModalProps) {
+export default function FormEditorModal({ open, onClose, onSave, initialData, visitaId }: FormEditorModalProps) {
     const [id, setId] = useState(initialData?.id || undefined);
     const [categoria, setCategoria] = useState(initialData?.categoria || '');
     const [summaryId, setSummaryId] = useState(initialData?.summaryId || PREDEFINED_SUMMARIES[0].id);
@@ -120,6 +121,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData }: 
             summaryId,
             campos,
             tipoForm,
+            visitaId
 
         });
     };

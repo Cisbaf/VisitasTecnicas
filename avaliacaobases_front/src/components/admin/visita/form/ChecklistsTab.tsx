@@ -85,6 +85,7 @@ export default function ChecklistsTab({ visitaId }: ChecklistsTabProps) {
                 onClose={handleCloseModal}
                 onSave={handleSaveForm}
                 initialData={editingForm}
+                visitaId={visitaId}
             />
         </>
     );

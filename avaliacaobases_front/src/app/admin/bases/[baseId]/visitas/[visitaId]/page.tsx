@@ -53,8 +53,6 @@ export default function VisitaDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [relatos, setRelatos] = useState<RelatoDTO[]>([]);
-    const [categoriasAgrupadas, setCategoriasAgrupadas] = useState<CategoriaAgrupada[]>([]);
-    const [checklistLoading, setChecklistLoading] = useState(false);
 
     useEffect(() => {
         if (visitaId) {
@@ -80,6 +78,7 @@ export default function VisitaDetailPage() {
     const fetchRelatos = async () => {
         try {
             const rRes = await fetch(`/api/visita/relatos/visita/${visitaId}`);
+            console.log("Fetch relatos response:", rRes);
             if (rRes.ok) {
                 const rData: RelatoDTO[] = await rRes.json();
                 setRelatos(rData);
@@ -136,7 +135,7 @@ export default function VisitaDetailPage() {
         try {
             const fullPayload = {
                 ...payload,
-                id_visita: visita.id,
+                visitaId: visita.id,
                 baseId: baseId,
                 data: new Date().toISOString(),
             };

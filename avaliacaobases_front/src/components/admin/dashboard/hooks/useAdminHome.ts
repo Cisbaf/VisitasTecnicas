@@ -133,7 +133,7 @@ export function useAdminHome() {
                         dataFim: fim.toISOString().split('T')[0],
                     });
                     const todasVisitasData = await fetchJsonSafe(`/api/visita/periodo?${params.toString()}`);
-                    const todasVisitas = Array.isArray(todasVisitasData) ? todasVisitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao') : [];
+                    const todasVisitas = Array.isArray(todasVisitasData) ? todasVisitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao' || v.tipoVisita === '') : [];
 
                     const visitIds = todasVisitas.map((visita: any) => visita.id).filter(Boolean);
 
@@ -202,7 +202,7 @@ export function useAdminHome() {
                             dataFim: fim.toISOString().split('T')[0],
                         });
                         const visitasData = await fetchJsonSafe(`/api/visita/periodo/${base.id}?${params.toString()}`) || [];
-                        const visitas = Array.isArray(visitasData) ? visitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao') : [];
+                        const visitas = Array.isArray(visitasData) ? visitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao' || v.tipoVisita === '') : [];
 
                         const visitIds = visitas.map((v: any) => v.id).filter(Boolean);
                         let respostasPorVisita: Record<string, any[]> = {};

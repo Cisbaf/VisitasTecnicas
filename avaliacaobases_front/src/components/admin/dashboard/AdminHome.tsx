@@ -27,7 +27,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { Dayjs } from 'dayjs';
-import { format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import ApartmentIcon from '@mui/icons-material/Apartment';
@@ -352,7 +352,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                             fontSize: '0.7rem'
                                                                         }}
                                                                     >
-                                                                        {visita.data ? format(new Date(visita.data), 'dd/MM') : 'N/D'}
+                                                                        {visita.data ? format(addDays(new Date(visita.data), 1), 'dd/MM/yy') : 'N/D'}
                                                                     </Typography>
 
                                                                     {/* Município */}
@@ -408,7 +408,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                     </Typography>
                                                     <Typography variant="caption" fontWeight="bold">
                                                         {resumo?.visitasDetalhadas && resumo.visitasDetalhadas.length > 0
-                                                            ? `${format(new Date(resumo.visitasDetalhadas[0].data), 'dd/MM/yyyy')} - ${format(new Date(resumo.visitasDetalhadas[resumo.visitasDetalhadas.length - 1].data), 'dd/MM/yyyy')}`
+                                                            ? `${format(addDays(new Date(resumo.visitasDetalhadas[0].data), 1), 'dd/MM/yyyy')} - ${format(addDays(new Date(resumo.visitasDetalhadas[resumo.visitasDetalhadas.length - 1].data), 1), 'dd/MM/yyyy')}`
                                                             : '-'
                                                         }
                                                     </Typography>
@@ -1425,7 +1425,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                 color: 'text.secondary',
                                                                                 ml: 'auto'
                                                                             }}>
-                                                                                {r.autor} — {format(new Date(r.data), 'dd/MM/yyyy')}
+                                                                                {r.autor} — {format(addDays(new Date(r.data), 1), 'dd/MM/yyyy')}
                                                                             </Typography>
                                                                         </AccordionSummary>
                                                                         <AccordionDetails>

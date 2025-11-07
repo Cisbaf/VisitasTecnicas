@@ -172,7 +172,7 @@ public class RelatorioTecnicoService {
         List<VisitaResponse> visitas = Optional.ofNullable(this.visitaService.getBaseByPeriod(idBase, dataInicio, dataFim)).orElse(List.of());
 
 
-        List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null  || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSPECAO"))).toList();
+        List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSPECAO"))).toList();
 
         int totalVisitasPeriodo = visitasValidas.size();
 
@@ -306,10 +306,10 @@ public class RelatorioTecnicoService {
         Map<String, Double> vtrMediaMap = vtrMediaList.stream().filter(Objects::nonNull).collect(Collectors.toMap(v -> normalizarNome(v.cidade()), VtrMediaDto::ativa, (a, b) -> a));
 
 
-        Map<String, String> prontidaoMediaMap =  Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao()).orElse(new HashMap<>()).entrySet().stream().collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
+        Map<String, String> prontidaoMediaMap = Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao()).orElse(new HashMap<>()).entrySet().stream().collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
 
-        Map<String, String> temposMediaMap =  Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia()).orElse(new HashMap<>()).entrySet().stream() .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
+        Map<String, String> temposMediaMap = Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia()).orElse(new HashMap<>()).entrySet().stream().collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
         List<FormResponse> formsAll = Optional.ofNullable(this.formService.getAll()).orElse(List.of());
 
@@ -336,7 +336,7 @@ public class RelatorioTecnicoService {
                 double mediaConformidadeBase = resultados.geral.porcentagem;
                 if (mediaConformidadeBase <= 0.0D)
                     continue;
-                BaseRankingDTO dto = new BaseRankingDTO(base.nome(), base.id(),mediaConformidadeBase ,ultimaVisita.dataVisita() );
+                BaseRankingDTO dto = new BaseRankingDTO(base.nome(), base.id(), mediaConformidadeBase, ultimaVisita.dataVisita());
                 String baseNomeNorm = normalizarNome(base.nome());
 
                 Double vtrRaw = vtrMediaMap.get(baseNomeNorm);

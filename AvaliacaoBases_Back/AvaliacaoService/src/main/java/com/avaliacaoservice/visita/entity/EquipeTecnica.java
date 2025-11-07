@@ -1,6 +1,5 @@
 package com.avaliacaoservice.visita.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString(exclude = "visita") // evita recursão
+@ToString(exclude = "visita")
 @Table(name = "equipe_tecnica")
 public class EquipeTecnica implements Serializable {
     @Id

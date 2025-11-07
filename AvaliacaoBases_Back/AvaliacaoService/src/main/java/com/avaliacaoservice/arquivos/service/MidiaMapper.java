@@ -76,7 +76,6 @@ class MidiaMapper {
                 base64DataUrl = "data:" + mimeType + ";base64," + base64;
             } catch (Exception e) {
                 System.err.println("Erro ao carregar arquivo: " + midia.getCaminhoArquivo());
-                e.printStackTrace();
                 return buildResponseWithoutImage(midia);
             }
         }

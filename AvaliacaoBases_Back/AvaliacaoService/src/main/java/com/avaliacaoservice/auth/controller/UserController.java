@@ -92,7 +92,7 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> findAllByBaseId(@PathVariable Long idBase) {
 
         List<UserResponse> users = this.userService.findAllByBaseId(idBase);
-        log.info( "Fetching all users for base ID: {}, count: {}", idBase, users.size());
+        log.info("Fetching all users for base ID: {}, count: {}", idBase, users.size());
 
         if (users.isEmpty()) {
 

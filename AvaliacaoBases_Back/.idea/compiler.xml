@@ -9,7 +9,7 @@
         <module name="DiscoveryService" />
         <module name="GatewayService" />
       </profile>
-      <profile name="Annotation profile for InspecaoService" enabled="true">
+      <profile name="Annotation profile for AvaliacaoService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -21,14 +21,13 @@
         <module name="ArquivoMidia" />
         <module name="InspecaoService" />
         <module name="AuthService" />
+        <module name="AvaliacaoService" />
         <module name="RelatorioService" />
-        <module name="BaseService" />
         <module name="ViaturaService" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="AvaliacaoBases_Back" target="1.5" />
-      <module name="AvaliacaoService" target="21" />
       <module name="projeto-unificado" target="1.5" />
       <module name="ProjetoUnificado" target="21" />
       <module name="VisitarTecnica" target="21" />
@@ -39,7 +38,6 @@
       <module name="ArquivoMidia" options="-parameters" />
       <module name="AuthService" options="-parameters" />
       <module name="AvaliacaoService" options="-parameters" />
-      <module name="BaseService" options="-parameters" />
       <module name="DiscoveryService" options="-parameters" />
       <module name="FormsService" options="-parameters" />
       <module name="GatewayService" options="-parameters" />

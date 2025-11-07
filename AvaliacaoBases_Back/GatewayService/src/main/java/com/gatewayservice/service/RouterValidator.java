@@ -11,8 +11,8 @@ import java.util.function.Predicate;
 public class RouterValidator {
 
     public static final List<String> openEndpoints = Arrays.asList(
-            "/auth/user/login",
-            "/auth/user/registro"
+            "/avaliacao/user/login",
+            "/avaliacao/user/registro"
     );
 
     public final Predicate<ServerHttpRequest> isSecured = request -> {

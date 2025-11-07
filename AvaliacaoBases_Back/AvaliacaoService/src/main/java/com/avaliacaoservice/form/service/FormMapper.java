@@ -1,0 +1,102 @@
+package com.avaliacaoservice.form.service;
+
+import com.avaliacaoservice.form.entity.CamposFormEntity;
+import com.avaliacaoservice.form.entity.FormEntity;
+import com.avaliacaoservice.form.entity.Resposta;
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormRequest;
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormResponse;
+import com.avaliacaoservice.form.entity.dto.forms.FormRequest;
+import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
+import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
+import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
+import com.avaliacaoservice.form.entity.emuns.CheckBox;
+import com.avaliacaoservice.form.entity.emuns.Tipo;
+import com.avaliacaoservice.form.entity.emuns.TipoForm;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+@Slf4j
+@Service
+public class FormMapper {
+    FormResponse toFromResponse(FormEntity formEntity) {
+        return new FormResponse(
+                formEntity.getId(),
+                formEntity.getCategoria(),
+                formEntity.getSummaryId(),
+                formEntity.getCampos(),
+                formEntity.getTipoForm());
+    }
+
+
+    FormEntity toFormEntity(FormRequest request) {
+        List<CamposFormEntity> campos;
+        FormEntity form = FormEntity.builder().categoria(request.categoria()).summaryId(request.summaryId()).tipoForm((request.summaryId() == 2L) ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO).build();
+
+        if (form.getCampos() == null) {
+            form.setCampos(new ArrayList<>());
+        }
+
+
+        if (request.campos() != null) {
+
+
+            campos = request.campos().stream().map(c -> toCampoEntity(c, form)).toList();
+        } else {
+            campos = List.of();
+        }
+        form.setCampos(campos);
+        return form;
+    }
+
+    public static CamposFormResponse toCampoResponse(CamposFormEntity camposFormEntity) {
+        return CamposFormResponse.builder()
+                .formId(camposFormEntity.getForm().getId())
+                .id(camposFormEntity.getId())
+                .tipo(camposFormEntity.getTipo())
+                .titulo(camposFormEntity.getTitulo())
+                .build();
+    }
+
+
+    CamposFormEntity toCampoEntity(CamposFormRequest request, FormEntity formEntity) {
+        return CamposFormEntity.builder()
+                .titulo(request.titulo())
+                .tipo(Tipo.valueOf(request.tipo()))
+                .form(formEntity)
+                .build();
+    }
+
+    public RespostaResponse toRespostaResponse(Resposta entity) {
+        try {
+            return RespostaResponse.builder()
+                    .texto((entity.getTexto() != null) ? entity.getTexto() : "")
+                    .visitaId(entity.getVisitaId())
+                    .checkbox((entity.getCheckbox() != null) ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
+                    .id(entity.getId())
+                    .campoId((entity.getCampo() != null) ? entity.getCampo().getId() : null)
+                    .build();
+        } catch (Exception e) {
+            System.out.println(entity.toString());
+            throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage());
+        }
+    }
+
+    Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
+        return Resposta.builder()
+                .texto((request.texto() != null) ? request.texto() : "")
+                .visitaId(request.visitaId())
+                .checkbox((request.checkbox() != null) ? request.checkbox() : CheckBox.NOT_GIVEN)
+                .campo(campo)
+                .build();
+    }
+}
+
+
+/* Location:              C:\Users\gfonseca\IdeaProjects\ProjetoJoãoTeste1\AvaliacaoBases_Back\app.jar!\BOOT-INF\classes\com\avaliacaoservice\form\service\FormMapper.class
+ * Java compiler version: 21 (65.0)
+ * JD-Core Version:       1.1.3
+ */

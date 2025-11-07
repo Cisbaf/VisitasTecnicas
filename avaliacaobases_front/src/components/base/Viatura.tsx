@@ -1,7 +1,7 @@
 // src/components/base/Viaturas.tsx
 "use client";
-import React, {useEffect, useMemo, useState} from "react";
-import {useParams} from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import {
     Alert,
     Box,
@@ -15,11 +15,11 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import {Delete, Search, Visibility} from "@mui/icons-material";
-import {BaseResponse, Viatura} from '@/components/types';
+import { Delete, Search, Visibility } from "@mui/icons-material";
+import { BaseResponse, Viatura } from '@/components/types';
 import ViaturaHistoricoModal from "./modal/ViaturaHistoricoModal";
 
-export default function Viaturas({baseId}: { baseId?: number }) {
+export default function Viaturas({ baseId }: { baseId?: number }) {
     const params = useParams();
     const resolvedBaseId = baseId ?? (params?.baseId ? Number(params.baseId) : null);
 
@@ -67,8 +67,8 @@ export default function Viaturas({baseId}: { baseId?: number }) {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const url = resolvedBaseId ? `/api/viatura/base/${resolvedBaseId}` : `/api/viatura`; // Corrigido o endpoint
-            const r = await fetch(url, {cache: "no-store"});
+            const url = resolvedBaseId ? `/api/viatura/base/${resolvedBaseId}` : `/api/viatura`;
+            const r = await fetch(url, { cache: "no-store" });
 
             if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
 
@@ -125,7 +125,7 @@ export default function Viaturas({baseId}: { baseId?: number }) {
         if (!id) return setErrorMsg("ID inválido para remoção.");
 
         try {
-            const r = await fetch(`/api/viatura/${id}`, {method: "DELETE"});
+            const r = await fetch(`/api/viatura/${id}`, { method: "DELETE" });
             if (!r.ok) throw new Error(await r.text().catch(() => r.statusText));
 
             setSuccessMsg("Viatura removida com sucesso.");
@@ -144,7 +144,7 @@ export default function Viaturas({baseId}: { baseId?: number }) {
     }, []);
 
     const viaturaActions = (v: Viatura) => (
-        <Box sx={{display: "flex", justifyContent: "flex-end", gap: 1, mt: 1}}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
             {v.id && !isNaN(v.id) && (
                 <IconButton
                     size="small"
@@ -154,7 +154,7 @@ export default function Viaturas({baseId}: { baseId?: number }) {
                     }}
                     title="Ver checklists"
                 >
-                    <Visibility fontSize="small" color="info"/>
+                    <Visibility fontSize="small" color="info" />
                 </IconButton>
             )}
             <IconButton size="small" onClick={async (e) => {
@@ -162,39 +162,39 @@ export default function Viaturas({baseId}: { baseId?: number }) {
                 if (!v.id) return setErrorMsg("Viatura sem ID");
                 if (confirm("Tem certeza que deseja remover esta viatura?")) await handleDelete(v.id);
             }}>
-                <Delete fontSize="small" color="error"/>
+                <Delete fontSize="small" color="error" />
             </IconButton>
         </Box>
     );
     return (
         <Box>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mb: 2}}>
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                     <Typography variant="h4" fontWeight="600">
                         Viaturas
                     </Typography>
                 </Box>
             </Stack>
 
-            <Paper sx={{p: 2, borderRadius: 2}}>
+            <Paper sx={{ p: 2, borderRadius: 2 }}>
                 <TextField
                     fullWidth
                     placeholder="Buscar viaturas por placa, modelo, tipo ou status..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={{mb: 2}}
+                    sx={{ mb: 2 }}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
-                                <Search/>
+                                <Search />
                             </InputAdornment>
                         ),
                     }}
                 />
 
                 {loading ? (
-                    <Box sx={{display: "flex", justifyContent: "center", py: 6}}>
-                        <CircularProgress/>
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+                        <CircularProgress />
                     </Box>
                 ) : errorMsg ? (
                     <Alert severity="error">{errorMsg}</Alert>
@@ -203,7 +203,7 @@ export default function Viaturas({baseId}: { baseId?: number }) {
                         {searchTerm ? "Nenhuma viatura encontrada" : "Não há viaturas cadastradas"}
                     </Typography>
                 ) : (
-                    <Box sx={{display: "flex", flexWrap: "wrap", gap: 2}}>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
                         {filteredViaturas.map(v => ( // Removido o operador optional chaining
                             <Paper
                                 key={v.id ?? v.placa}
@@ -213,16 +213,16 @@ export default function Viaturas({baseId}: { baseId?: number }) {
                                     borderRadius: 2,
                                     boxShadow: 1,
                                     cursor: "pointer",
-                                    "&:hover": {boxShadow: 3, backgroundColor: "action.hover"},
+                                    "&:hover": { boxShadow: 3, backgroundColor: "action.hover" },
                                 }}
                             >
                                 <Stack spacing={0.5}>
                                     <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                        <Typography variant="subtitle1" sx={{fontWeight: 700}}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                                             {v.placa ?? "—"}
                                         </Typography>
                                         <Chip label={v.statusOperacional ?? "—"}
-                                              color={statusColor(v.statusOperacional)} size="small"/>
+                                            color={statusColor(v.statusOperacional)} size="small" />
                                     </Stack>
 
 
@@ -256,13 +256,13 @@ export default function Viaturas({baseId}: { baseId?: number }) {
             />
 
             <Snackbar open={!!successMsg} autoHideDuration={4000} onClose={() => setSuccessMsg(null)}>
-                <Alert onClose={() => setSuccessMsg(null)} severity="success" sx={{width: "100%"}}>
+                <Alert onClose={() => setSuccessMsg(null)} severity="success" sx={{ width: "100%" }}>
                     {successMsg}
                 </Alert>
             </Snackbar>
 
             <Snackbar open={!!errorMsg && !dialogOpen} autoHideDuration={6000} onClose={() => setErrorMsg(null)}>
-                <Alert onClose={() => setErrorMsg(null)} severity="error" sx={{width: "100%"}}>
+                <Alert onClose={() => setErrorMsg(null)} severity="error" sx={{ width: "100%" }}>
                     {errorMsg}
                 </Alert>
             </Snackbar>

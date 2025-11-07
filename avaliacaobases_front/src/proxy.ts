@@ -23,7 +23,7 @@ function decodeJwtPayload(token?: string) {
     }
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     const token = req.cookies.get('token')?.value;
     const claims = decodeJwtPayload(token);

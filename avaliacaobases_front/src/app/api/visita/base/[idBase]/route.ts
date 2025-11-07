@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ idBase: 
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita/base/${encodeURIComponent(idBase)}`, {
+        return await proxyFetch(`/avaliacao/visitas/base/${encodeURIComponent(idBase)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });

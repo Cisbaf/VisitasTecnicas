@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/auth/user/registro`, {
+        return await proxyFetch(`/avaliacao/user/registro`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

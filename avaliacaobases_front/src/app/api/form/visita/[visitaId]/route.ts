@@ -41,7 +41,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ visitaId
 
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const path = `/form/visita/${encodeURIComponent(visitaId)}`;
+        const path = `/avaliacao/form/visita/${encodeURIComponent(visitaId)}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },

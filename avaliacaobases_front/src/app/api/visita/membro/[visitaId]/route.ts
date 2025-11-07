@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ visitaId
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita/membro/${encodeURIComponent(visitaId)}`, {
+        return await proxyFetch(`/avaliacao/visitas/membro/${encodeURIComponent(visitaId)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
@@ -47,7 +47,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ visitaI
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/visita/membro/${encodeURIComponent(visitaId)}`, {
+        return await proxyFetch(`/avaliacao/visitas/membro/${encodeURIComponent(visitaId)}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ visit
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/visita/membro/${encodeURIComponent(visitaId)}`, {
+        return await proxyFetch(`/avaliacao/visitas/membro/${encodeURIComponent(visitaId)}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": req.headers.get("content-type") ?? "application/json" },
             body: bodyText,

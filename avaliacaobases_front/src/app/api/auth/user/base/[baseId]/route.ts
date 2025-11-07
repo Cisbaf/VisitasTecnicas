@@ -29,14 +29,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ baseId: 
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const path = `/auth/user/base/${encodeURIComponent(baseId)}`;
+        const path = `/avaliacao/user/base/${encodeURIComponent(baseId)}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/auth/user/base/[baseId] GET proxy error:", err);
+        console.error("api/avaliacao/user/base/[baseId] GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

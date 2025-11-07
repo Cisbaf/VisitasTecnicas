@@ -33,7 +33,7 @@ export async function DELETE(
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form/field/${id}`, {
+        return await proxyFetch(`/avaliacao/field/${id}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,

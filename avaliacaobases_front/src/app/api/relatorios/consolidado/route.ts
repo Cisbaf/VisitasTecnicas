@@ -51,11 +51,11 @@ export async function GET(req: Request) {
             );
         }
 
-        let path = `/relatorio/relatorios/consolidado?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
+        let path = `/avaliacao/relatorios/consolidado?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
 
         // Se baseId foi fornecido, busca apenas para essa base
         if (baseId) {
-            path = `/relatorio/relatorios/consolidado/${baseId}?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
+            path = `/avaliacao/relatorios/consolidado/${baseId}?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
         }
 
         return await proxyFetch(path, {

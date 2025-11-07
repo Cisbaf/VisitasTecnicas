@@ -29,7 +29,7 @@ export async function GET() {
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form`, {
+        return await proxyFetch(`/avaliacao/form`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/form/saveForm`, {
+        return await proxyFetch(`/avaliacao/form/saveForm`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

@@ -29,12 +29,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ visitaId
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita/relatos/visita/${encodeURIComponent(visitaId)}`, {
+        return await proxyFetch(`/avaliacao/relatos/visita/${encodeURIComponent(visitaId)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/visita/membros/[visitaId] GET proxy error:", err);
+        console.error("api/avaliacao/membros/[visitaId] GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

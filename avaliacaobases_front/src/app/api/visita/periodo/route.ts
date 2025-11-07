@@ -37,11 +37,11 @@ export async function GET(req: Request) {
             return NextResponse.json({ message: "Parâmetros dataInicio e dataFim são obrigatórios" }, { status: 400 });
         }
 
-        let path = `/visita/periodo?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+        let path = `/avaliacao/visitas/periodo?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
 
         // Se baseId foi fornecido, busca apenas para essa base
         if (baseId) {
-            path = `/visita/periodo/${baseId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+            path = `/avaliacao/visitas/periodo/${baseId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
         }
 
         return await proxyFetch(path, {

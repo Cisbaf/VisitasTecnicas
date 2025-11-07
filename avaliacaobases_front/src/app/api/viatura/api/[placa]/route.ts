@@ -36,7 +36,7 @@ export async function GET(
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const backendUrl = `/viatura/api/${encodeURIComponent(placa)}`;
+        const backendUrl = `/avaliacao/viaturas/api/${encodeURIComponent(placa)}`;
 
         return await proxyFetch(backendUrl, {
             headers: {

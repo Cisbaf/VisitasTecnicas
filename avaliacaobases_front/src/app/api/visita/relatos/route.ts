@@ -28,12 +28,12 @@ export async function GET() {
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/visita/relatos`, {
+        return await proxyFetch(`/avaliacao/relatos`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/visita/relatos GET proxy error:", err);
+        console.error("api/avaliacao/relatos GET proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/visita/relatos`, {
+        return await proxyFetch(`/avaliacao/relatos`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
             body: bodyText,
         });
     } catch (err) {
-        console.error("api/visita/relatos POST proxy error:", err);
+        console.error("api/avaliacao/relatos POST proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

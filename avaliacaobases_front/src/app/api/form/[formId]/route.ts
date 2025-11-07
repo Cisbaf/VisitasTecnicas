@@ -29,7 +29,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ formI
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/form/${encodeURIComponent(formId)}`, {
+        return await proxyFetch(`/avaliacao/form/${encodeURIComponent(formId)}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -48,7 +48,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ formId: 
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/form/${formId}`, { // Use the resolved formId
+        return await proxyFetch(`/avaliacao/form/${formId}`, { // Use the resolved formId
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,

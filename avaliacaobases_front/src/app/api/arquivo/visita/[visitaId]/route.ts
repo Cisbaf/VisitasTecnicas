@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ visitaId
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/arquivo/visita/${encodeURIComponent(visitaId)}`, {
+        return await proxyFetch(`/avaliacao/midias/visita/${encodeURIComponent(visitaId)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         // Envolva os visitIds em um objeto para o backend Spring
         const requestBody = Array.isArray(visitIds) ? { visitIds } : visitIds;
 
-        const backendResponse = await proxyFetch(`/form/answers/all`, {
+        const backendResponse = await proxyFetch(`/avaliacao/answers/all`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

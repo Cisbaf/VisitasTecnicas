@@ -54,7 +54,7 @@ export async function GET(
             );
         }
 
-        const path = `/relatorio/relatorios/consolidado/${encodeURIComponent(idBase)}?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
+        const path = `/avaliacao/relatorios/consolidado/${encodeURIComponent(idBase)}?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },

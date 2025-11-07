@@ -37,7 +37,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ idBase: 
             return NextResponse.json({ message: "Parâmetros dataInicio e dataFim são obrigatórios" }, { status: 400 });
         }
 
-        const path = `/visita/periodo/${encodeURIComponent(idBase)}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+        const path = `/avaliacao/visitas/periodo/${encodeURIComponent(idBase)}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },

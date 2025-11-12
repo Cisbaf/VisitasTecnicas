@@ -67,9 +67,8 @@ export function useAdminHome() {
         }
     }, []);
 
-    const buscarRelatos = (async (inicio?: Date | null, fim?: Date | null, baseId?: number) => {
-        if (!inicio || !fim) return;
-        setRelatos([]);
+    const buscarRelatos = useCallback(async (inicio?: Date | null, fim?: Date | null, baseId?: number) => {
+        if (!inicio || !fim) return [];
 
         try {
             const relatosData = await fetchJsonSafe('/api/visita/relatos');
@@ -77,19 +76,19 @@ export function useAdminHome() {
             const relatosFiltrados = todosRelatos.filter((relato: RelatoDTO) => {
                 const dataRelato = new Date(relato.data);
                 if (baseId) return dataRelato >= inicio && dataRelato <= fim && String(relato.baseId) === String(baseId);
-
-                return dataRelato >= inicio && dataRelato <= fim
+                return dataRelato >= inicio && dataRelato <= fim;
             });
 
-
             if (!baseId) {
-                setRelatos(relatosFiltrados);
+                return relatosFiltrados;
             } else {
-                const relatosFiltradosPorBase = relatosFiltrados.filter(r => String(r.baseId) === String(baseId));
-                setRelatos(relatosFiltradosPorBase);
+                return relatosFiltrados.filter(r => String(r.baseId) === String(baseId));
             }
-        } catch (err: any) { console.error('Erro ao buscar relatos:', err); }
-    });
+        } catch (err: any) {
+            console.error('Erro ao buscar relatos:', err);
+            return [];
+        }
+    }, []);
 
 
 
@@ -104,6 +103,10 @@ export function useAdminHome() {
             const allForms = Array.isArray(allFormsRaw) ? allFormsRaw : [];
             const inspectionForms = allForms.filter((f: any) => f.tipoForm === 'INSPECAO');
             const padronizacaoForms = allForms.filter((f: any) => f.tipoForm === 'PADRONIZACAO');
+
+            // Buscar relatos ANTES de processar as bases
+            const relatosFiltrados = await buscarRelatos(inicio, fim, selectedMunicipio ? Number(selectedMunicipio) : undefined);
+            setRelatos(relatosFiltrados);
 
             const acumuladores: any = {
                 totalBasesVisitadas: 0,
@@ -126,7 +129,6 @@ export function useAdminHome() {
             // BUSCA OTIMIZADA PARA TODAS AS BASES
             if (!selectedMunicipio) {
                 try {
-                    buscarRelatos(inicio, fim);
 
                     const params = new URLSearchParams({
                         dataInicio: inicio.toISOString().split('T')[0],
@@ -175,7 +177,8 @@ export function useAdminHome() {
                             respostasPorVisita,
                             inspectionForms,
                             padronizacaoForms,
-                            acumuladores
+                            acumuladores,
+                            relatosFiltrados // PASSAR RELATOS AQUI
                         );
                     }
                 } catch (err: any) {
@@ -194,7 +197,6 @@ export function useAdminHome() {
                         } catch (err) {
                             console.warn('Erro ao buscar relatório individual para base', base.id, err);
                         }
-                        buscarRelatos(inicio, fim, base.id);
 
 
                         const params = new URLSearchParams({
@@ -238,7 +240,8 @@ export function useAdminHome() {
                             respostasPorVisita,
                             inspectionForms,
                             padronizacaoForms,
-                            acumuladores
+                            acumuladores,
+                            relatosFiltrados
                         );
 
                     } catch (err: any) {
@@ -428,7 +431,9 @@ export function useAdminHome() {
         respostasPorVisita: Record<string, any[]>,
         inspectionForms: any[],
         padronizacaoForms: any[],
-        acumuladores: any
+        acumuladores: any,
+        relatosFiltrados: RelatoDTO[]
+
     ) => {
         const baseKey = String(base.id);
         const baseNome = base.nome || base.baseNome || `Base ${base.id}`;
@@ -507,7 +512,7 @@ export function useAdminHome() {
                     municipio: baseNome,
                     baseId: base.id,
                     baseNome: baseNome,
-                    relatos: relatos.filter(r => String(r.visitaId) === String(visita.id))
+                    relatos: relatosFiltrados.filter(r => String(r.visitaId) === String(visita.id))
                 });
             }
         });

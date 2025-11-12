@@ -21,7 +21,8 @@ import {
     TableHead,
     TableRow,
     TextField,
-    Typography
+    Typography,
+    Tooltip as MuiTooltip
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -163,10 +164,6 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         };
     }, [basesList, baseId]);
 
-
-    const mediaRegional = perBaseConformidade.length > 0
-        ? perBaseConformidade.reduce((s: number, b: any) => s + b.avg, 0) / perBaseConformidade.length
-        : 0;
     const bases100 = perBaseConformidade.filter((b: any) => Math.round(b.avg) >= 100);
     const chartData = viaturaStatusPorBase.map((base: any) => ({
         name: base.baseNome,
@@ -312,7 +309,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                         gap: 1,
                                                         width: '100%',
                                                         px: 1,
-                                                        minHeight: 60 // Garante altura mínima
+                                                        minHeight: 60, // Garante altura mínima
                                                     }}>
                                                         {resumo.visitasDetalhadas
                                                             .sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime())
@@ -332,15 +329,63 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                     {/* Bolinha */}
                                                                     <Box
                                                                         sx={{
-                                                                            width: 12,
-                                                                            height: 12,
+                                                                            width: 12, // Aumentei de 12 para 16
+                                                                            height: 12, // Aumentei de 12 para 16
                                                                             borderRadius: '50%',
                                                                             bgcolor: 'primary.main',
                                                                             border: '2px solid white',
-                                                                            boxShadow: 1,
-                                                                            mb: 0.5
+                                                                            boxShadow: 2, // Aumentei a sombra
+                                                                            mb: 0.5,
+                                                                            ":hover": {
+                                                                                transform: 'scale(1.40)', // Aumentei o scale
+                                                                                transition: 'transform 0.3s',
+                                                                                cursor: 'pointer'
+                                                                            }
                                                                         }}
-                                                                    />
+                                                                    >
+                                                                        <MuiTooltip
+                                                                            title={
+                                                                                <Box sx={{ p: 1.5, minWidth: 200 }}> {/* Aumentei o padding e largura mínima */}
+                                                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+
+                                                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                            <strong style={{ minWidth: 60, fontSize: '14px' }}>Município:</strong>
+                                                                                            <span style={{ fontSize: '14px' }}>{visita.baseNome}</span>
+                                                                                        </Box>
+                                                                                        {visita.relatos != null && visita.relatos.length > 0 && (
+                                                                                            <>
+                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                    <strong style={{ minWidth: 60, fontSize: '14px' }}>Motivo:</strong>
+                                                                                                    <span style={{ fontSize: '14px' }}>{visita.relatos[0]?.tema || 'N/D'}</span>
+                                                                                                </Box>
+                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                    <strong style={{ minWidth: 60, fontSize: '14px' }}>Descrição:</strong>
+                                                                                                    <span style={{ fontSize: '14px' }}>{visita.relatos[0]?.mensagem || 'N/D'}</span>
+                                                                                                </Box>
+                                                                                            </>
+                                                                                        )}
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            }
+                                                                            placement="top"
+                                                                            arrow
+                                                                            componentsProps={{
+                                                                                tooltip: {
+                                                                                    sx: {
+                                                                                        border: '1px solid',
+                                                                                        borderColor: 'divider',
+                                                                                        boxShadow: 3,
+                                                                                        fontSize: '16px', // Aumenta o tamanho da fonte geral
+                                                                                        '& .MuiTooltip-arrow': {
+                                                                                            color: 'white',
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <Box sx={{ width: '100%', height: '100%' }} />
+                                                                        </MuiTooltip>
+                                                                    </Box>
 
                                                                     {/* Data */}
                                                                     <Typography
@@ -394,7 +439,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                         <InfoSection title="Resumo de Visitas">
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
                                                     <Typography variant="caption" color="text.secondary">
                                                         Total de visitas:
                                                     </Typography>
@@ -402,7 +447,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                         {resumo?.visitasDetalhadas?.length || 0}
                                                     </Typography>
                                                 </Box>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
                                                     <Typography variant="caption" color="text.secondary">
                                                         Período:
                                                     </Typography>

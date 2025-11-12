@@ -28,7 +28,7 @@ export default function DetalhesVisitaTab({
     fetchRelatos
 }: DetalhesVisitaTabProps) {
     const [editandoRelatoId, setEditandoRelatoId] = useState<number | null>(null);
-    const [relatoEditando, setRelatoEditando] = useState<RelatoDTO | null>(null);
+    const [relatoEditado, setRelatoEditado] = useState<RelatoDTO | null>(null);
     const CARGOS_ESPECIFICOS = ['COORDENADOR ADM', 'RT DE ENFERMAGEM', 'COORDENADOR MÉDICO'];
 
     const membrosEspecificos = visita.membros.filter(m => CARGOS_ESPECIFICOS.includes(m.cargo!));
@@ -36,12 +36,12 @@ export default function DetalhesVisitaTab({
 
     const iniciarEdicao = (relato: RelatoDTO) => {
         setEditandoRelatoId(relato.id);
-        setRelatoEditando(relato);
+        setRelatoEditado(relato);
     };
 
     const cancelarEdicao = () => {
         setEditandoRelatoId(null);
-        setRelatoEditando(null);
+        setRelatoEditado(null);
     };
 
     const handleUpdateRelato = async (relatoId: number, updates: Partial<RelatoDTO>) => {
@@ -49,7 +49,7 @@ export default function DetalhesVisitaTab({
             // Encontrar o relato atual pelo ID
             const relatoAtual = relatos.find(r => r.id === relatoId);
             if (relatoAtual) {
-                relatoAtual.id_visita = visita.id;
+                relatoAtual.visitaId = visita.id;
             }
 
             if (!relatoAtual) {
@@ -168,14 +168,9 @@ export default function DetalhesVisitaTab({
                 ))}
 
                 {relatos.length === 0 && (
-                    <Typography variant="body2" color="text.secondary">
-                        Nenhum relato registrado
-                    </Typography>
+                    <AddRelatoInline members={visita.membros} onAdd={onAddRelato} />
+
                 )}
-
-                <Divider sx={{ my: 2 }} />
-
-                <AddRelatoInline members={visita.membros} onAdd={onAddRelato} />
             </Box>
         </>
     );

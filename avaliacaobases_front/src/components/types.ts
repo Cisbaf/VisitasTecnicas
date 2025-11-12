@@ -142,7 +142,7 @@ export interface RelatoDTO {
     mensagem: string;
     autor: string;
     data: string;
-    id_visita: number;
+    visitaId: number;
 }
 
 export interface VisitaDetails {

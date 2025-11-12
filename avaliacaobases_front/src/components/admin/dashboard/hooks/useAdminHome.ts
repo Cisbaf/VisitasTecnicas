@@ -25,7 +25,7 @@ export interface ResumoVisitas {
     indiceAprovacao: number;
     indiceInspecao: number;
     indicePadronizacao: number;
-    visitasDetalhadas: { data: string; municipio: string; baseId: number; baseNome: string }[];
+    visitasDetalhadas: { id: number; data: string; baseId: number; baseNome: string; relatos: RelatoDTO[] }[];
     conformidadePorSummary: Record<number, ConformidadeSummary[]>; // NOVO
 }
 
@@ -111,7 +111,7 @@ export function useAdminHome() {
                 datasVisitas: [] as string[],
                 equipeTecnica: [] as string[],
                 equipeTecnicaPorBase: [] as { baseNome: string; equipe: string[] }[], // NOVO
-                visitasDetalhadas: [] as { data: string; municipio: string; baseId: number; baseNome: string }[], // NOVO
+                visitasDetalhadas: [] as { id: number; data: string; baseId: number; baseNome: string; relatos: RelatoDTO[] }[], // NOVO
                 totalInconformidades: 0,
                 mediasConformidade: [] as number[],
                 perBase: [] as { id: any; nome: string; avg: number }[],
@@ -502,13 +502,17 @@ export function useAdminHome() {
             const dataVisita = visita.dataVisita || visita.createdAt || visita.data;
             if (dataVisita) {
                 acumuladores.visitasDetalhadas.push({
+                    id: visita.id,
                     data: dataVisita,
                     municipio: baseNome,
                     baseId: base.id,
-                    baseNome: baseNome
+                    baseNome: baseNome,
+                    relatos: relatos.filter(r => String(r.visitaId) === String(visita.id))
                 });
             }
         });
+        console.log(acumuladores.visitasDetalhadas);
+        console.log(relatos);
 
 
 

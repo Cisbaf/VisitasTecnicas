@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class VisitaMapper {
+ class VisitaMapper {
 
     private final BaseService exists;
 
-    public VisitaEntity toEntity(VisitaRequest request) {
+    protected VisitaEntity toEntity(VisitaRequest request) {
         if (this.exists.existsById(request.getIdBase())) {
             return VisitaEntity.builder()
                     .idBase(request.getIdBase())
@@ -26,7 +26,7 @@ public class VisitaMapper {
         }
         throw new IllegalArgumentException("Base ID does not exist: " + request.getIdBase());
     }
-    public static EquipeTecnicaResponse toEquipeResponse(EquipeTecnica membro) {
+    protected static EquipeTecnicaResponse toEquipeResponse(EquipeTecnica membro) {
         return EquipeTecnicaResponse.builder()
                 .id(membro.getId())
                 .nome(membro.getNome())
@@ -35,7 +35,7 @@ public class VisitaMapper {
                 .build();
     }
 
-    public static VisitaResponse toResponse(VisitaEntity visita) {
+    protected static VisitaResponse toResponse(VisitaEntity visita) {
 
         return VisitaResponse.builder()
                 .id(visita.getId())

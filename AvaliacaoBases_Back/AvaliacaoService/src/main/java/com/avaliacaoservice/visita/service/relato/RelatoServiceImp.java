@@ -46,7 +46,6 @@ public class RelatoServiceImp implements RelatoService {
 
     public List<RelatoResponse> getAll() {
         var relatos = this.repository.findAll();
-        System.out.println(relatos.size());
         return relatos.stream()
                 .map(RelatoMapper::toResponse)
                 .toList();

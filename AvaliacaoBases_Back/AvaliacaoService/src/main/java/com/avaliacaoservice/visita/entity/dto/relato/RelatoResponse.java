@@ -12,7 +12,7 @@ public record RelatoResponse(
         String mensagem,
         String tema,
         Date data,
-        VisitaResponse visitas,
+        Long visitaId,
         Long baseId
 
 

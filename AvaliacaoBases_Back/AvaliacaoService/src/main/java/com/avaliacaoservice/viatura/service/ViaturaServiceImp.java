@@ -79,7 +79,6 @@ public class ViaturaServiceImp implements ViaturaService {
         }
 
         RegistroApi registros = this.registroApiService.getVeiculosPeriodo(data_inicio, data_final);
-        log.info("Registros API recebidos: {}", registros);
 
         List<ViaturaResponse> viaturas = new ArrayList<>();
 

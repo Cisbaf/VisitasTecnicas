@@ -16,15 +16,21 @@
     "@mui/material": "^7.3.4",
     "@mui/x-data-grid": "^8.10.2",
     "@mui/x-date-pickers": "^8.11.3",
+    "chart.js": "^4.5.1",
+    "d3": "^7.9.0",
+    "d3-cloud": "^1.2.7",
+    "d3-scale-chromatic": "^3.1.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "recharts": "^3.2.0"
+    "recharts": "^3.2.0",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/d3": "^7.4.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

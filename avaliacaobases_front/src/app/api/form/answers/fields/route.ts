@@ -32,23 +32,36 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ visitaId: string }> }) {
-
+export async function POST(req: Request) {
     try {
-        const { visitaId } = await params;
+        const campoIds: number[] = await req.json().catch(() => []);
+
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
 
-        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        if (!token) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
 
-        const backendUrl = `/avaliacao/answers/visit/${visitaId}`;
+        if (!Array.isArray(campoIds)) {
+            return NextResponse.json({ message: "campoIds deve ser uma lista" }, { status: 400 });
+        }
 
+        const backendUrl = `/avaliacao/answers/fields`;
+
+        // CORREÇÃO: Garantir que o Content-Type está correto
         return await proxyFetch(backendUrl, {
-            headers: { Authorization: `Bearer ${token}` },
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(campoIds),
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/form/answers/visit/[visitaId] GET proxy error:", err);
+        console.error("api/form/answers/by-campos POST proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }
+

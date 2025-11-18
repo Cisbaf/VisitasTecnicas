@@ -64,24 +64,29 @@ public class CalcularPontos {
 
             Long visitaId = visita.id();
 
+            // Filtra apenas os forms da visita específica
+            List<FormResponse> formsDaVisita = inspectionForms.stream()
+                    .filter(form -> form.visitaId() != null && form.visitaId().equals(visitaId))
+                    .toList();
 
-            List<RespostaResponse> respostasDaVisita = respostasVisita.stream().filter(resposta -> (resposta.visitaId() != null && resposta.visitaId().equals(visitaId))).toList();
-
-
-            for (FormResponse form : inspectionForms) {
-
-
-                List<CamposFormEntity> checkboxFields = (form.campos() != null) ? form.campos().stream().filter(c -> (c.getTipo() == Tipo.CHECKBOX)).toList() : new ArrayList<>();
+            for (FormResponse form : formsDaVisita) {
+                List<CamposFormEntity> checkboxFields = (form.campos() != null) ?
+                        form.campos().stream()
+                                .filter(c -> (c.getTipo() == Tipo.CHECKBOX))
+                                .toList() :
+                        new ArrayList<>();
 
                 if (checkboxFields.isEmpty())
                     continue;
+
                 int totalCampos = checkboxFields.size();
                 int camposConformes = 0;
 
                 for (CamposFormEntity field : checkboxFields) {
-
-
-                    Optional<RespostaResponse> respostaOpt = respostasDaVisita.stream().filter(r -> Objects.equals(r.campoId(), field.getId())).findFirst();
+                    // Busca resposta pelo campoId (agora sem filtro de visitaId)
+                    Optional<RespostaResponse> respostaOpt = respostasVisita.stream()
+                            .filter(r -> Objects.equals(r.campoId(), field.getId()))
+                            .findFirst();
 
                     if (respostaOpt.isPresent()) {
                         RespostaResponse resposta = respostaOpt.get();
@@ -100,13 +105,12 @@ public class CalcularPontos {
                 porForm.summaryId = form.summaryId();
                 resultados.porFormulario.put(form.id(), porForm);
 
-
                 resultados.porSummary
                         .computeIfAbsent(form.summaryId(), id -> new ResultadosHierarquicos.PorSummary())
                         .forms.add(form.id());
             }
 
-
+            // O restante do código para calcular summaries e geral permanece igual
             for (ResultadosHierarquicos.PorSummary summary : resultados.porSummary.values()) {
                 double somaPorcentagens = 0.0D;
                 int formsComDados = 0;
@@ -120,26 +124,26 @@ public class CalcularPontos {
                 }
 
                 summary.porcentagem = (formsComDados > 0) ? (somaPorcentagens / formsComDados) : 0.0D;
-
-
-                summary
-
-                        .totalCampos = summary.forms.stream().mapToInt(formId -> resultados.porFormulario.get(formId).total).sum();
-                summary
-
-                        .totalConforme = summary.forms.stream().mapToInt(formId -> resultados.porFormulario.get(formId).conforme).sum();
+                summary.totalCampos = summary.forms.stream()
+                        .mapToInt(formId -> resultados.porFormulario.get(formId).total)
+                        .sum();
+                summary.totalConforme = summary.forms.stream()
+                        .mapToInt(formId -> resultados.porFormulario.get(formId).conforme)
+                        .sum();
             }
 
+            List<Double> porcentagensSummaries = resultados.porSummary.values().stream()
+                    .map(summary -> summary.porcentagem)
+                    .filter(porcentagem -> (porcentagem > 0.0D))
+                    .toList();
 
-            List<Double> porcentagensSummaries = resultados.porSummary.values().stream().map(summary -> summary.porcentagem).filter(porcentagem -> (porcentagem > 0.0D)).toList();
-
-            resultados.geral
-
-                    .porcentagem = porcentagensSummaries.isEmpty() ? 0.0D : porcentagensSummaries.stream().mapToDouble(Double::doubleValue).average().orElse(0.0D);
+            resultados.geral.porcentagem = porcentagensSummaries.isEmpty() ? 0.0D :
+                    porcentagensSummaries.stream().mapToDouble(Double::doubleValue).average().orElse(0.0D);
 
             return resultados;
         } catch (Exception err) {
             System.err.println("Erro processando conformidade hierárquica: " + err.getMessage());
+            err.printStackTrace(); // Adicione isso para ‘debugging’
             return resultados;
         }
     }

@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
- class VisitaMapper {
+class VisitaMapper {
 
     private final BaseService exists;
 
     protected VisitaEntity toEntity(VisitaRequest request) {
-        if (this.exists.existsById(request.getIdBase())) {
+        if (exists.existsById(request.getIdBase())) {
             return VisitaEntity.builder()
                     .idBase(request.getIdBase())
                     .dataVisita(request.getDataVisita())
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
         }
         throw new IllegalArgumentException("Base ID does not exist: " + request.getIdBase());
     }
+
     protected static EquipeTecnicaResponse toEquipeResponse(EquipeTecnica membro) {
         return EquipeTecnicaResponse.builder()
                 .id(membro.getId())
@@ -41,7 +42,9 @@ import org.springframework.stereotype.Service;
                 .id(visita.getId())
                 .idBase(visita.getIdBase())
                 .dataVisita(visita.getDataVisita())
-                .membros(visita.getMembros().stream().map(VisitaMapper::toEquipeResponse).toList())
+                .membros(visita.getMembros() != null ? visita.getMembros().stream()
+                        .map(VisitaMapper::toEquipeResponse)
+                        .toList() : null)
                 .tipoVisita(visita.getTipoVisita())
                 .build();
     }

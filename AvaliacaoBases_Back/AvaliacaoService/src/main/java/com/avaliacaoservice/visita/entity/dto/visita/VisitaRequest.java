@@ -21,7 +21,7 @@ public class VisitaRequest {
 
     @Positive
     private Long idBase;
-    @NotNull(message = "Os membros da equipe técnica são requeridos")
+
     private java.util.List<EquipeTecnica> membros;
 
     @NotNull(message = "O tipo da visita é requerido")

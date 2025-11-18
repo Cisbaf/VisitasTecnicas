@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Accordion,
     AccordionDetails,
@@ -42,7 +42,7 @@ import { ChartCard, InfoSection, Placeholder, StatCard, } from './utils';
 import { useAdminHome } from './hooks/useAdminHome';
 import { Viatura } from '@/components/types';
 import { useIndicadores } from '../hooks/useIndicadores';
-import { CircularWordCloud } from './WordCloud';
+import { WordcloudRelatos } from './hooks/useWordCloud';
 
 const paperStyles = {
     borderColor: 'rgba(0, 0, 0, 0.08)',
@@ -170,43 +170,6 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         Operacional: base.status.operacional,
         Indefinido: base.status.indefinido
     }));
-
-    const getChipProps = (status: string) => {
-        const st = status;
-        if (st === 'CONFORME') {
-            return { label: 'CONFORME', color: 'success' as const, sx: { bgcolor: '#e8f5e9', color: '#2e7d32' } };
-        }
-        if (st === 'PARCIAL') {
-            return { label: 'PARCIAL', color: 'warning' as const, sx: { bgcolor: '#fffde7', color: '#f57f17' } };
-        }
-        if (st === 'NAO_AVALIADO') {
-            return { label: 'NÃO AVALIADO', color: 'default' as const, sx: { bgcolor: '#f5f5f5', color: '#616161' } };
-        }
-        return { label: 'NÃO CONFORME', color: 'error' as const, sx: { bgcolor: '#ffebee', color: '#c62828' } };
-    };
-
-    const categoriesMap = React.useMemo(() => {
-        const map: Record<string, Array<any>> = {};
-        (padronizacaoByBaseLastVisit || []).forEach((b: any) => {
-            (b.categorias || []).forEach((c: any) => {
-                const nomeCat = c.categoria ?? c.category ?? 'Sem categoria';
-                if (!map[nomeCat]) map[nomeCat] = [];
-                map[nomeCat].push({
-                    baseId: b.id,
-                    baseName: b.name,
-                    status: c.status,
-                    conforme: c.conforme,
-                    parcial: c.parcial,
-                    naoConforme: c.naoConforme,
-                    naoAvaliado: c.naoAvaliado,
-                    total: c.total ?? (c.raw?.total ?? 0),
-                    raw: c.raw ?? null
-                });
-            });
-        });
-        return map;
-    }, [padronizacaoByBaseLastVisit]);
-
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
             <Box sx={{
@@ -335,12 +298,17 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                     {/* Bolinha com Tooltip */}
                                                                     <MuiTooltip
                                                                         title={
-                                                                            <Box sx={{ p: 1.5, minWidth: 200 }}>
+                                                                            <Box sx={{ p: .5, minWidth: 300 }}>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                                                         <strong style={{ minWidth: 60, fontSize: '14px' }}>Município:</strong>
                                                                                         <span style={{ fontSize: '14px' }}>{visita.baseNome}</span>
                                                                                     </Box>
+                                                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                        <strong style={{ minWidth: 60, fontSize: '14px' }}>Tipo:</strong>
+                                                                                        <span style={{ fontSize: '14px' }}>{visita.tipo || 'N/D'}</span>
+                                                                                    </Box>
+
                                                                                     {visita.relatos != null && visita.relatos.length > 0 && (
                                                                                         <>
                                                                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -497,29 +465,35 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                         <InfoSection title="Equipe Técnica por Base">
                                             {resumo?.equipeTecnicaPorBase && resumo.equipeTecnicaPorBase.length > 0 ? (
-                                                <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
+                                                <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                                                     {resumo.equipeTecnicaPorBase.map((baseEquipe: any, index: number) => (
                                                         <Box key={index} sx={{ mb: 2 }}>
-                                                            <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 'bold' }}>
+                                                            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
                                                                 {baseEquipe.baseNome}
                                                             </Typography>
-                                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                {baseEquipe.equipe.map((membro: string, membroIndex: number) => (
-                                                                    <Chip
-                                                                        key={`membro-${membro}-${membroIndex}`}
-                                                                        label={membro}
-                                                                        size="small"
-                                                                        sx={{
-                                                                            fontSize: '0.7rem',
-                                                                            height: 24,
-                                                                            bgcolor: 'primary.50',
-                                                                            color: 'primary.800',
-                                                                            border: '1px solid',
-                                                                            borderColor: 'primary.200'
-                                                                        }}
-                                                                    />
-                                                                ))}
-                                                            </Box>
+
+                                                            {baseEquipe.equipePorData && baseEquipe.equipePorData.map((grupoData: any, dataIndex: number) => (
+                                                                <Box key={dataIndex} sx={{ mb: 1.5 }}>
+                                                                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                                                        {new Date(grupoData.data).toLocaleDateString('pt-BR')}:
+                                                                    </Typography>
+                                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                                        {grupoData.membros.map((membro: string, membroIndex: number) => (
+                                                                            <Chip
+                                                                                key={`membro-${dataIndex}-${membroIndex}`}
+                                                                                label={membro}
+                                                                                size="small"
+                                                                                sx={{
+                                                                                    fontSize: '0.8rem',
+                                                                                    height: 30,
+                                                                                    bgcolor: 'grey.100',
+                                                                                    color: 'text.primary',
+                                                                                }}
+                                                                            />
+                                                                        ))}
+                                                                    </Box>
+                                                                </Box>
+                                                            ))}
                                                         </Box>
                                                     ))}
                                                 </Box>
@@ -537,7 +511,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                         minWidth: { xs: '100%', md: 400 },
                                         p: 3, ...paperStyles
                                     }}>
-                                        <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>Planilha Media Tempo Resposta e Prontidão por Cidade</Typography>
+                                        <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>Planilha Media Tempo Resposta e Prontidão por Município</Typography>
                                         <Typography variant="caption" color="text.secondary" sx={{ p: 1, display: 'block' }}>
                                             * A planilha não segue a data de referência, ela é gerada a partir do ultimo envio.
                                         </Typography>
@@ -547,7 +521,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                 <TableHead >
                                                     <TableRow>
                                                         <TableCell sx={{ fontWeight: "bold" }}>
-                                                            Cidade
+                                                            Município
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: "bold" }}>
                                                             Tempo Resposta Médio
@@ -599,7 +573,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                         minWidth: { xs: '100%', md: 400 },
                                         p: 3, ...paperStyles
                                     }}>
-                                        <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>Planilha Media atividade Viaturas por Cidade</Typography>
+                                        <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>Planilha Media atividade Viaturas por Município</Typography>
                                         <Typography variant="caption" color="text.secondary" sx={{ p: 1, display: 'block' }}>
                                             * A planilha não segue a data de referência, ela é gerada a partir do ultimo envio.
                                         </Typography>
@@ -609,7 +583,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                 <TableHead >
                                                     <TableRow>
                                                         <TableCell sx={{ fontWeight: "bold" }}>
-                                                            Cidade
+                                                            Município
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ fontWeight: "bold" }}>
                                                             Ativa
@@ -709,69 +683,207 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                 <Typography variant="h6" fontWeight="bold" gutterBottom>
                                                                                     Detalhamento por Categoria
                                                                                 </Typography>
-                                                                                <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                                                                                    <Table>
-                                                                                        <TableHead>
-                                                                                            <TableRow>
-                                                                                                <TableCell><strong>Categoria</strong></TableCell>
-                                                                                                <TableCell align="right"><strong>Summary</strong></TableCell>
-                                                                                                <TableCell align="right"><strong>Conformidade</strong></TableCell>
-                                                                                                <TableCell align="right"><strong>Itens Conformes</strong></TableCell>
-                                                                                                <TableCell align="right"><strong>Total de Itens</strong></TableCell>
-                                                                                            </TableRow>
-                                                                                        </TableHead>
-                                                                                        <TableBody>
-                                                                                            {conformidadePorSummary.flatMap((summary: any) =>
-                                                                                                summary.categorias?.map((categoria: any, catIndex: number) => (
-                                                                                                    <TableRow key={`${summary.summaryId}-${catIndex}`}>
-                                                                                                        <TableCell>
-                                                                                                            <Typography variant="body2">
-                                                                                                                {categoria.nome}
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Chip
-                                                                                                                label={summary.summaryNome}
-                                                                                                                size="small"
-                                                                                                                sx={{
-                                                                                                                    bgcolor: getCorPorSummary(summary.summaryId),
-                                                                                                                    color: 'white',
-                                                                                                                    fontSize: '0.7rem',
-                                                                                                                    height: 'auto',
-                                                                                                                    whiteSpace: 'normal',
-                                                                                                                    '& .MuiChip-label': {
-                                                                                                                        whiteSpace: 'normal',
-                                                                                                                        overflow: 'visible',
-                                                                                                                        textOverflow: 'clip',
-                                                                                                                    }
-                                                                                                                }}
-                                                                                                            />
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Typography
-                                                                                                                variant="body2"
-                                                                                                                fontWeight="bold"
-                                                                                                                color={categoria.porcentagem >= 80 ? 'success.main' : categoria.porcentagem >= 50 ? 'warning.main' : 'error.main'}
-                                                                                                            >
-                                                                                                                {categoria.porcentagem.toFixed(1)}%
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Typography variant="body2">
-                                                                                                                {categoria.conforme}
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Typography variant="body2">
-                                                                                                                {categoria.total}
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                    </TableRow>
-                                                                                                ))
-                                                                                            )}
-                                                                                        </TableBody>
-                                                                                    </Table>
-                                                                                </Box>
+
+                                                                                {conformidadePorSummary.length > 0 ? (
+                                                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                                                                        {conformidadePorSummary.map((summary: any) => {
+                                                                                            // Remover categorias duplicadas dentro do mesmo summary
+                                                                                            const categoriasUnicas = summary.categorias?.filter((categoria: any, index: number, self: any[]) =>
+                                                                                                index === self.findIndex((c: any) => c.nome === categoria.nome)
+                                                                                            ) || [];
+
+                                                                                            return (
+                                                                                                <Paper key={`summary-${summary.summaryId}`} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                                                                                    {/* Header do Summary */}
+                                                                                                    <Box sx={{
+                                                                                                        display: 'flex',
+                                                                                                        alignItems: 'center',
+                                                                                                        gap: 1,
+                                                                                                        mb: 2,
+                                                                                                        p: 1,
+                                                                                                        bgcolor: `${getCorPorSummary(summary.summaryId)}20`,
+                                                                                                        borderRadius: 1
+                                                                                                    }}>
+                                                                                                        <Box
+                                                                                                            sx={{
+                                                                                                                width: 12,
+                                                                                                                height: 12,
+                                                                                                                borderRadius: '50%',
+                                                                                                                bgcolor: getCorPorSummary(summary.summaryId)
+                                                                                                            }}
+                                                                                                        />
+                                                                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                                                                            {summary.summaryNome}
+                                                                                                        </Typography>
+                                                                                                        <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
+                                                                                                            {categoriasUnicas.length} categorias • {summary.porcentagem.toFixed(1)}% conformidade
+                                                                                                        </Typography>
+                                                                                                    </Box>
+
+                                                                                                    {/* Categorias do Summary - AGORA SEM DUPLICAÇÕES */}
+                                                                                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                                                                                        {categoriasUnicas.map((categoria: any, index: number) => {
+                                                                                                            // Para inspeção, temos apenas Conforme e Não Conforme
+                                                                                                            const totalCategoria = categoria.total;
+                                                                                                            const naoConforme = categoria.total - categoria.conforme;
+
+                                                                                                            const dadosGrafico = [
+                                                                                                                {
+                                                                                                                    name: 'Conforme',
+                                                                                                                    value: categoria.conforme,
+                                                                                                                    porcentagem: totalCategoria > 0 ? (categoria.conforme / totalCategoria) * 100 : 0,
+                                                                                                                    fill: '#4caf50'
+                                                                                                                },
+                                                                                                                {
+                                                                                                                    name: 'Não Conforme',
+                                                                                                                    value: naoConforme,
+                                                                                                                    porcentagem: totalCategoria > 0 ? (naoConforme / totalCategoria) * 100 : 0,
+                                                                                                                    fill: '#f44336'
+                                                                                                                }
+                                                                                                            ].filter(item => item.value > 0);
+
+                                                                                                            return (
+                                                                                                                <Paper
+                                                                                                                    key={`category-${summary.summaryId}-${categoria.nome}-${index}`}
+                                                                                                                    variant="outlined"
+                                                                                                                    sx={{
+                                                                                                                        p: 2,
+                                                                                                                        borderRadius: 2,
+                                                                                                                        width: '100%'
+                                                                                                                    }}
+                                                                                                                >
+                                                                                                                    {/* Header da Categoria */}
+                                                                                                                    <Box sx={{
+                                                                                                                        display: 'flex',
+                                                                                                                        alignItems: 'center',
+                                                                                                                        gap: 1,
+                                                                                                                        mb: 2,
+                                                                                                                        p: 1,
+                                                                                                                        bgcolor: `${getCorPorSummary(summary.summaryId)}10`,
+                                                                                                                        borderRadius: 1
+                                                                                                                    }}>
+                                                                                                                        <Box
+                                                                                                                            sx={{
+                                                                                                                                width: 12,
+                                                                                                                                height: 12,
+                                                                                                                                borderRadius: '50%',
+                                                                                                                                bgcolor: getCorPorSummary(summary.summaryId)
+                                                                                                                            }}
+                                                                                                                        />
+                                                                                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                                                                                            {categoria.nome}
+                                                                                                                        </Typography>
+                                                                                                                        <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
+                                                                                                                            {categoria.porcentagem.toFixed(1)}% de conformidade
+                                                                                                                        </Typography>
+                                                                                                                    </Box>
+
+                                                                                                                    {/* Gráfico de Barras Horizontal */}
+                                                                                                                    <ResponsiveContainer width="100%" height={80}>
+                                                                                                                        <BarChart
+                                                                                                                            data={dadosGrafico}
+                                                                                                                            layout="vertical"
+                                                                                                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                                                                                                        >
+                                                                                                                            <XAxis
+                                                                                                                                type="number"
+                                                                                                                                domain={[0, 100]}
+                                                                                                                                tick={{ fontSize: 12 }}
+                                                                                                                                tickFormatter={(value) => `${value}%`}
+                                                                                                                            />
+                                                                                                                            <YAxis
+                                                                                                                                type="category"
+                                                                                                                                dataKey="name"
+                                                                                                                                tick={{ fontSize: 12 }}
+                                                                                                                                width={80}
+                                                                                                                            />
+                                                                                                                            <Tooltip
+                                                                                                                                formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Percentual']}
+                                                                                                                                labelFormatter={(label) => `${label}`}
+                                                                                                                            />
+                                                                                                                            <Bar
+                                                                                                                                dataKey="porcentagem"
+                                                                                                                                name="Percentual"
+                                                                                                                                radius={[0, 4, 4, 0]}
+                                                                                                                            >
+                                                                                                                                {dadosGrafico.map((entry, barIndex) => (
+                                                                                                                                    <Cell key={`cell-${barIndex}`} fill={entry.fill} />
+                                                                                                                                ))}
+                                                                                                                            </Bar>
+                                                                                                                        </BarChart>
+                                                                                                                    </ResponsiveContainer>
+
+                                                                                                                    {/* Tabela com Dados Detalhados */}
+                                                                                                                    <Box sx={{ mt: 2, width: '100%' }}>
+                                                                                                                        <Table size="small" sx={{ width: '100%' }}>
+                                                                                                                            <TableHead>
+                                                                                                                                <TableRow>
+                                                                                                                                    <TableCell sx={{ width: '50%' }}><strong>Status</strong></TableCell>
+                                                                                                                                    <TableCell align="center" sx={{ width: '25%' }}><strong>Percentual</strong></TableCell>
+                                                                                                                                    <TableCell align="center" sx={{ width: '25%' }}><strong>Quantidade</strong></TableCell>
+                                                                                                                                </TableRow>
+                                                                                                                            </TableHead>
+                                                                                                                            <TableBody>
+                                                                                                                                {dadosGrafico.map((item, itemIndex) => (
+                                                                                                                                    <TableRow
+                                                                                                                                        key={`row-${itemIndex}`}
+                                                                                                                                        sx={{
+                                                                                                                                            '&:hover': { backgroundColor: 'action.hover' },
+                                                                                                                                            borderLeft: `3px solid ${item.fill}`
+                                                                                                                                        }}
+                                                                                                                                    >
+                                                                                                                                        <TableCell sx={{ width: '50%' }}>
+                                                                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                                                                <Box
+                                                                                                                                                    sx={{
+                                                                                                                                                        width: 12,
+                                                                                                                                                        height: 12,
+                                                                                                                                                        borderRadius: '50%',
+                                                                                                                                                        bgcolor: item.fill
+                                                                                                                                                    }}
+                                                                                                                                                />
+                                                                                                                                                <Typography variant="body2" fontWeight="medium">
+                                                                                                                                                    {item.name}
+                                                                                                                                                </Typography>
+                                                                                                                                            </Box>
+                                                                                                                                        </TableCell>
+                                                                                                                                        <TableCell align="center" sx={{ width: '25%' }}>
+                                                                                                                                            <Typography
+                                                                                                                                                variant="body2"
+                                                                                                                                                fontWeight="bold"
+                                                                                                                                                color="text.primary"
+                                                                                                                                            >
+                                                                                                                                                {item.porcentagem.toFixed(1)}%
+                                                                                                                                            </Typography>
+                                                                                                                                        </TableCell>
+                                                                                                                                        <TableCell align="center" sx={{ width: '25%' }}>
+                                                                                                                                            <Typography
+                                                                                                                                                variant="body2"
+                                                                                                                                                color="text.secondary"
+                                                                                                                                            >
+                                                                                                                                                {item.value} {item.value === 1 ? 'item' : 'itens'}
+                                                                                                                                            </Typography>
+                                                                                                                                        </TableCell>
+                                                                                                                                    </TableRow>
+                                                                                                                                ))}
+                                                                                                                            </TableBody>
+                                                                                                                        </Table>
+                                                                                                                    </Box>
+                                                                                                                </Paper>
+                                                                                                            );
+                                                                                                        })}
+                                                                                                    </Box>
+                                                                                                </Paper>
+                                                                                            );
+                                                                                        })}
+                                                                                    </Box>
+                                                                                ) : (
+                                                                                    <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
+                                                                                        <Typography variant="body1" color="text.secondary">
+                                                                                            Nenhum dado de categoria disponível.
+                                                                                        </Typography>
+                                                                                    </Box>
+                                                                                )}
                                                                             </Paper>
                                                                         </>
                                                                     ) : (
@@ -837,128 +949,168 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                 </BarChart>
                                                             </ResponsiveContainer>
 
-                                                            <Divider sx={{ my: 2 }} />
-
                                                             {/* TABELA DE DETALHAMENTO POR CATEGORIA */}
-                                                            <Paper variant="outlined" sx={{ p: 1, borderRadius: 2 }}>
+
+
+                                                            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
                                                                 <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                                                    Detalhamento por Categoria
+                                                                    Conformidade por Categoria
                                                                 </Typography>
-                                                                <Box sx={{ maxHeight: 500, overflow: 'auto' }}>
-                                                                    <Table>
-                                                                        <TableHead>
-                                                                            <TableRow>
-                                                                                <TableCell><strong>Base</strong></TableCell>
-                                                                                <TableCell><strong>Categoria</strong></TableCell>
-                                                                                <TableCell align="right"><strong>Summary</strong></TableCell>
-                                                                                <TableCell align="right"><strong>Conformidade</strong></TableCell>
-                                                                                <TableCell align="right"><strong>Itens Conformes</strong></TableCell>
-                                                                            </TableRow>
-                                                                        </TableHead>
-                                                                        <TableBody>
-                                                                            {perBaseConformidade.map((base: any) => {
-                                                                                const conformidadePorSummary = resumo?.conformidadePorSummary?.[base.id] || [];
-                                                                                const baseConformidade = Number(base.avg || 0).toFixed(1);
-                                                                                const hasData = conformidadePorSummary.some((summary: any) =>
-                                                                                    summary.categorias && summary.categorias.length > 0
-                                                                                );
+
+                                                                {(() => {
+                                                                    // Transformar os dados para agrupar por summary e depois por categoria
+                                                                    const summariesMap = new Map();
+
+                                                                    perBaseConformidade.forEach((base: any) => {
+                                                                        const conformidadePorSummary = resumo?.conformidadePorSummary?.[base.id] || [];
+
+                                                                        conformidadePorSummary.forEach((summary: any) => {
+                                                                            if (!summariesMap.has(summary.summaryId)) {
+                                                                                summariesMap.set(summary.summaryId, {
+                                                                                    summaryId: summary.summaryId,
+                                                                                    summaryNome: summary.summaryNome,
+                                                                                    categoriasMap: new Map() // Agora usamos um Map para categorias
+                                                                                });
+                                                                            }
+
+                                                                            const summaryData = summariesMap.get(summary.summaryId);
+
+                                                                            // Adicionar cada categoria da base atual ao summary
+                                                                            summary.categorias?.forEach((categoria: any) => {
+                                                                                if (!summaryData.categoriasMap.has(categoria.nome)) {
+                                                                                    summaryData.categoriasMap.set(categoria.nome, {
+                                                                                        categoriaNome: categoria.nome,
+                                                                                        dados: [] // Array para armazenar dados de cada base
+                                                                                    });
+                                                                                }
+
+                                                                                summaryData.categoriasMap.get(categoria.nome).dados.push({
+                                                                                    baseNome: base.nome,
+                                                                                    porcentagem: categoria.porcentagem,
+                                                                                    conforme: categoria.conforme,
+                                                                                    total: categoria.total
+                                                                                });
+                                                                            });
+                                                                        });
+                                                                    });
+
+                                                                    const summariesData = Array.from(summariesMap.values());
+
+                                                                    return summariesData.length > 0 ? (
+                                                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                                            {summariesData.map((summary) => {
+                                                                                const categoriasData = Array.from(summary.categoriasMap.values());
 
                                                                                 return (
-                                                                                    <>
-                                                                                        {/* Linha principal da base */}
-                                                                                        <TableRow
-                                                                                            key={`base-${base.id}-${Math.random()}`}
-                                                                                            sx={{
-                                                                                                backgroundColor: 'grey.50',
-                                                                                                '&:hover': { backgroundColor: 'grey.100' }
-                                                                                            }}
-                                                                                        >
-                                                                                            <TableCell>
-                                                                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                                                                    {base.nome}
-                                                                                                </Typography>
-                                                                                            </TableCell>
-                                                                                            <TableCell colSpan={2}>
-                                                                                                <Typography variant="body2" color="text.secondary">
-                                                                                                    Conformidade Geral: {baseConformidade}%
-                                                                                                </Typography>
-                                                                                            </TableCell>
-                                                                                            <TableCell align="right" colSpan={3} sx={{ color: "transparent" }}>
-                                                                                                -
-                                                                                            </TableCell>
-                                                                                        </TableRow>
+                                                                                    <Paper key={summary.summaryId} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                                                                        {/* Header do Summary */}
+                                                                                        <Box sx={{
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: 1,
+                                                                                            mb: 2,
+                                                                                            p: 1,
+                                                                                            bgcolor: `${getCorPorSummary(summary.summaryId)}20`,
+                                                                                            borderRadius: 1
+                                                                                        }}>
+                                                                                            <Box
+                                                                                                sx={{
+                                                                                                    width: 12,
+                                                                                                    height: 12,
+                                                                                                    borderRadius: '50%',
+                                                                                                    bgcolor: getCorPorSummary(summary.summaryId)
+                                                                                                }}
+                                                                                            />
+                                                                                            <Typography variant="subtitle1" fontWeight="bold">
+                                                                                                {summary.summaryNome}
+                                                                                            </Typography>
+                                                                                        </Box>
 
-                                                                                        {/* Linhas das categorias */}
-                                                                                        {hasData ? (
-                                                                                            conformidadePorSummary.flatMap((summary: any) =>
-                                                                                                summary.categorias?.map((categoria: any, catIndex: number) => (
-                                                                                                    <TableRow
-                                                                                                        key={`${base.id}-${summary.summaryId}-${catIndex}`}
-                                                                                                        sx={{
-                                                                                                            borderLeft: `3px solid ${getCorPorSummary(summary.summaryId)}`,
-                                                                                                            '&:hover': { backgroundColor: 'action.hover' }
-                                                                                                        }}
+                                                                                        {/* Gráficos por Categoria */}
+                                                                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                                                                            {categoriasData.map((categoria: any) => (
+                                                                                                <Box key={categoria.categoriaNome}>
+                                                                                                    {/* Header da Categoria */}
+                                                                                                    <Typography
+                                                                                                        variant="subtitle2"
+                                                                                                        fontWeight="bold"
+                                                                                                        sx={{ mb: 1, ml: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}20`, p: 1, borderRadius: 1 }}
                                                                                                     >
-                                                                                                        <TableCell></TableCell> {/* Célula vazia para alinhar com a base */}
-                                                                                                        <TableCell>
-                                                                                                            <Typography variant="body2" sx={{ pl: 1 }}>
-                                                                                                                {categoria.nome}
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Chip
-                                                                                                                label={summary.summaryNome}
-                                                                                                                size="small"
-                                                                                                                sx={{
-                                                                                                                    bgcolor: getCorPorSummary(summary.summaryId),
-                                                                                                                    color: 'white',
-                                                                                                                    fontSize: '0.7rem',
-                                                                                                                    maxWidth: 120
-                                                                                                                }}
-                                                                                                            />
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Typography
-                                                                                                                variant="body2"
-                                                                                                                fontWeight="bold"
-                                                                                                                color={
-                                                                                                                    categoria.porcentagem >= 80 ? 'success.main' :
-                                                                                                                        categoria.porcentagem >= 50 ? 'warning.main' : 'error.main'
-                                                                                                                }
-                                                                                                            >
-                                                                                                                {categoria.porcentagem.toFixed(1)}%
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-                                                                                                        <TableCell align="right">
-                                                                                                            <Typography variant="body2">
-                                                                                                                {categoria.conforme}
-                                                                                                            </Typography>
-                                                                                                        </TableCell>
-
-                                                                                                    </TableRow>
-                                                                                                ))
-                                                                                            )
-                                                                                        ) : (
-                                                                                            <TableRow>
-                                                                                                <TableCell></TableCell>
-                                                                                                <TableCell colSpan={5}>
-                                                                                                    <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-                                                                                                        Nenhuma categoria disponível
+                                                                                                        {categoria.categoriaNome}
                                                                                                     </Typography>
-                                                                                                </TableCell>
-                                                                                            </TableRow>
-                                                                                        )}
 
-                                                                                        {/* Espaçamento entre bases */}
-                                                                                        <TableRow>
-                                                                                            <TableCell colSpan={6} sx={{ py: 1 }}></TableCell>
-                                                                                        </TableRow>
-                                                                                    </>
+                                                                                                    {/* Gráfico de Barras Vertical para a Categoria */}
+                                                                                                    <ResponsiveContainer width="100%" height={220}>
+                                                                                                        <BarChart
+                                                                                                            data={categoria.dados}
+                                                                                                            margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
+                                                                                                        >
+                                                                                                            <XAxis
+                                                                                                                dataKey="baseNome"
+                                                                                                                angle={-45}
+                                                                                                                textAnchor="end"
+                                                                                                                height={50}
+                                                                                                                tick={{ fontSize: 10 }}
+                                                                                                                interval={0}
+                                                                                                            />
+                                                                                                            <YAxis
+                                                                                                                domain={[0, 100]}
+                                                                                                                tick={{ fontSize: 10 }}
+                                                                                                                tickFormatter={(value) => `${value}%`}
+                                                                                                                width={35}
+                                                                                                            />
+                                                                                                            <Tooltip
+                                                                                                                formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Conformidade']}
+                                                                                                                labelFormatter={(label) => `${label}`}
+                                                                                                            />
+                                                                                                            <Bar
+                                                                                                                dataKey="porcentagem"
+                                                                                                                name="Conformidade"
+                                                                                                                radius={[2, 2, 0, 0]}
+                                                                                                            >
+                                                                                                                {categoria.dados.map((entry: any, index: number) => (
+                                                                                                                    <Cell
+                                                                                                                        key={`cell-${index}`}
+                                                                                                                        fill={
+                                                                                                                            entry.porcentagem >= 80 ? '#4caf50' :
+                                                                                                                                entry.porcentagem >= 50 ? '#ff9800' : '#f44336'
+                                                                                                                        }
+                                                                                                                    />
+                                                                                                                ))}
+                                                                                                            </Bar>
+                                                                                                        </BarChart>
+                                                                                                    </ResponsiveContainer>
+                                                                                                </Box>
+                                                                                            ))}
+                                                                                        </Box>
+
+                                                                                        {/* Legenda de Cores */}
+                                                                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                                <Box sx={{ width: 12, height: 12, bgcolor: '#4caf50', borderRadius: 1 }} />
+                                                                                                <Typography variant="caption">≥ 80%</Typography>
+                                                                                            </Box>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                                <Box sx={{ width: 12, height: 12, bgcolor: '#ff9800', borderRadius: 1 }} />
+                                                                                                <Typography variant="caption">50-79%</Typography>
+                                                                                            </Box>
+                                                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                                                <Box sx={{ width: 12, height: 12, bgcolor: '#f44336', borderRadius: 1 }} />
+                                                                                                <Typography variant="caption">{'< 50%'}</Typography>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Paper>
                                                                                 );
                                                                             })}
-                                                                        </TableBody>
-                                                                    </Table>
-                                                                </Box>
+                                                                        </Box>
+                                                                    ) : (
+                                                                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                                                                            <Typography variant="body1" color="text.secondary">
+                                                                                Nenhum dado de conformidade disponível.
+                                                                            </Typography>
+                                                                        </Box>
+                                                                    );
+                                                                })()}
                                                             </Paper>
 
 
@@ -1274,223 +1426,353 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                             justifyContent: 'center',
                                             gap: 1
                                         }}>
-                                            <Typography variant="h5" >
-                                                <b>Média {perBaseConformidade.length === 1 ? 'da base' : 'regional'}:</b> {resumo?.indicePadronizacao ? `${resumo.indicePadronizacao.toFixed(1)}%` : '—'}
+                                            <Typography variant="h5">
+                                                <b>Média {padronizacaoByBaseLastVisit.length === 1 ? 'da base' : 'regional'}:</b> {resumo?.indicePadronizacao ? `${resumo.indicePadronizacao.toFixed(1)}%` : '—'}
                                             </Typography>
-
                                         </Box>
+
                                         {padronizacaoByBaseLastVisit.length > 0 ? (
                                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
-                                                {/* GRÁFICO CONDICIONAL - PIZZA PARA 1 BASE, BARRAS PARA MÚLTIPLAS BASES */}
                                                 {padronizacaoByBaseLastVisit.length === 1 ? (
-                                                    // GRÁFICO DE PIZZA PARA UMA ÚNICA BASE
+                                                    // VISUALIZAÇÃO PARA UMA ÚNICA BASE - GRÁFICO DE PIZZA E DETALHAMENTO
                                                     (() => {
                                                         const baseUnica = padronizacaoByBaseLastVisit[0];
-                                                        const dataPizza = [
-                                                            { name: 'Conforme', value: Number(baseUnica.conforme), fill: '#4caf50' },
-                                                            { name: 'Não Conforme', value: Number(baseUnica.naoConforme), fill: '#f44336' },
-                                                            { name: 'Não Avaliado', value: Number(baseUnica.naoAvaliado), fill: '#9e9e9e' }
-                                                        ].filter(item => item.value > 0); // Filtra para mostrar apenas categorias com valores > 0
 
                                                         return (
-                                                            <Box sx={{ width: '100%', textAlign: 'center' }}>
-                                                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                                                    {baseUnica.name}
-                                                                </Typography>
-                                                                <ResponsiveContainer width="100%" height={300}>
-                                                                    <PieChart>
-                                                                        <Pie
-                                                                            data={dataPizza}
-                                                                            dataKey="value"
-                                                                            nameKey="name"
-                                                                            cx="50%"
-                                                                            cy="50%"
-                                                                            outerRadius={100}
-                                                                            label={({ name, value }) => `${name}: ${(value as number).toFixed(1)}%`}
-                                                                            labelLine={false}
-                                                                        >
-                                                                            {dataPizza.map((entry, index) => (
-                                                                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                                            ))}
-                                                                        </Pie>
-                                                                        <Tooltip
-                                                                            formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Percentual']}
-                                                                        />
-                                                                        <Legend />
-                                                                    </PieChart>
-                                                                </ResponsiveContainer>
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                                                {/* Gráfico de Pizza Principal */}
+                                                                <Box sx={{ width: '100%', textAlign: 'center' }}>
+                                                                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                                                        {baseUnica.name}
+                                                                    </Typography>
+                                                                    <ResponsiveContainer width="100%" height={300}>
+                                                                        <PieChart>
+                                                                            <Pie
+                                                                                data={[
+                                                                                    { name: 'Conforme', value: Number(baseUnica.conforme), fill: '#4caf50' },
+                                                                                    { name: 'Parcial', value: Number(baseUnica.parcial), fill: '#ff9800' },
+                                                                                    { name: 'Não Conforme', value: Number(baseUnica.naoConforme), fill: '#f44336' },
+                                                                                    { name: 'Não Avaliado', value: Number(baseUnica.naoAvaliado), fill: '#9e9e9e' }
+                                                                                ].filter(item => item.value > 0)}
+                                                                                dataKey="value"
+                                                                                nameKey="name"
+                                                                                cx="50%"
+                                                                                cy="50%"
+                                                                                outerRadius={100}
+                                                                                label={({ name, value }) => `${name}: ${(value as number).toFixed(1)}%`}
+                                                                                labelLine={false}
+                                                                            >
+                                                                                {[
+                                                                                    { name: 'Conforme', value: Number(baseUnica.conforme), fill: '#4caf50' },
+                                                                                    { name: 'Parcial', value: Number(baseUnica.parcial), fill: '#ff9800' },
+                                                                                    { name: 'Não Conforme', value: Number(baseUnica.naoConforme), fill: '#f44336' },
+                                                                                    { name: 'Não Avaliado', value: Number(baseUnica.naoAvaliado), fill: '#9e9e9e' }
+                                                                                ]
+                                                                                    .filter(item => item.value > 0)
+                                                                                    .map((entry, index) => (
+                                                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                                                    ))}
+                                                                            </Pie>
+                                                                            <Tooltip
+                                                                                formatter={(value: any) => [`${Number(value).toFixed(1)}%`, 'Percentual']}
+                                                                            />
+                                                                            <Legend />
+                                                                        </PieChart>
+                                                                    </ResponsiveContainer>
+                                                                </Box>
+
+                                                                {/* Detalhamento por Categoria */}
+                                                                <Paper
+                                                                    variant="outlined"
+                                                                    sx={{
+                                                                        p: 3,
+                                                                        borderRadius: 2,
+                                                                        width: '100%', // Garante largura total
+                                                                        boxSizing: 'border-box' // Importante para padding não quebrar a largura
+                                                                    }}
+                                                                >
+                                                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                                                        Detalhamento por Categoria
+                                                                    </Typography>
+
+                                                                    {baseUnica.categorias?.length > 0 ? (
+                                                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                                                            {baseUnica.categorias.map((categoria: any, index: number) => {
+                                                                                const totalCategoria = categoria.conforme + categoria.parcial + categoria.naoConforme + categoria.naoAvaliado;
+                                                                                const dadosGrafico = [
+                                                                                    { name: 'Conforme', value: categoria.conforme, porcentagem: totalCategoria > 0 ? (categoria.conforme / totalCategoria) * 100 : 0, fill: '#4caf50' },
+                                                                                    { name: 'Parcial', value: categoria.parcial, porcentagem: totalCategoria > 0 ? (categoria.parcial / totalCategoria) * 100 : 0, fill: '#ff9800' },
+                                                                                    { name: 'Não Conforme', value: categoria.naoConforme, porcentagem: totalCategoria > 0 ? (categoria.naoConforme / totalCategoria) * 100 : 0, fill: '#f44336' },
+                                                                                    { name: 'Não Avaliado', value: categoria.naoAvaliado, porcentagem: totalCategoria > 0 ? (categoria.naoAvaliado / totalCategoria) * 100 : 0, fill: '#9e9e9e' }
+                                                                                ].filter(item => item.value > 0);
+
+                                                                                return (
+                                                                                    <Paper
+                                                                                        key={categoria.categoria}
+                                                                                        variant="outlined"
+                                                                                        sx={{
+                                                                                            p: 2,
+                                                                                            borderRadius: 2,
+                                                                                            width: '100%' // Garante que cada categoria ocupe largura total
+                                                                                        }}
+                                                                                    >
+                                                                                        {/* Header da Categoria */}
+                                                                                        <Box sx={{
+                                                                                            display: 'flex',
+                                                                                            alignItems: 'center',
+                                                                                            gap: 1,
+                                                                                            mb: 2,
+                                                                                            p: 1,
+                                                                                            bgcolor: `${getCorPorSummary(2)}20`,
+                                                                                            borderRadius: 1
+                                                                                        }}>
+                                                                                            <Box
+                                                                                                sx={{
+                                                                                                    width: 12,
+                                                                                                    height: 12,
+                                                                                                    borderRadius: '50%',
+                                                                                                    bgcolor: getCorPorSummary(2)
+                                                                                                }}
+                                                                                            />
+                                                                                            <Typography variant="subtitle1" fontWeight="bold">
+                                                                                                {categoria.categoria}
+                                                                                            </Typography>
+
+                                                                                        </Box>
+
+                                                                                        {/* Gráfico de Barras Horizontal - AGORA MAIOR */}
+                                                                                        <ResponsiveContainer width="100%" height={100}>
+                                                                                            <BarChart
+                                                                                                data={dadosGrafico}
+                                                                                                layout="vertical"
+                                                                                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                                                                            >
+                                                                                                <XAxis
+                                                                                                    type="number"
+                                                                                                    domain={[0, 100]}
+                                                                                                    tick={{ fontSize: 12 }}
+                                                                                                    tickFormatter={(value) => `${value}%`}
+                                                                                                />
+                                                                                                <YAxis
+                                                                                                    type="category"
+                                                                                                    dataKey="name"
+                                                                                                    tick={{ fontSize: 12 }}
+                                                                                                    width={80}
+                                                                                                />
+                                                                                                <Tooltip
+                                                                                                    formatter={(value: any, name: string) => {
+                                                                                                        if (name === 'Porcentagem') {
+                                                                                                            return [`${Number(value).toFixed(1)}%`, 'Percentual'];
+                                                                                                        }
+                                                                                                        return [value, name];
+                                                                                                    }}
+                                                                                                />
+                                                                                                <Bar
+                                                                                                    dataKey="porcentagem"
+                                                                                                    name="Porcentagem"
+                                                                                                    radius={[0, 4, 4, 0]}
+                                                                                                >
+                                                                                                    {dadosGrafico.map((entry, barIndex) => (
+                                                                                                        <Cell key={`cell-${barIndex}`} fill={entry.fill} />
+                                                                                                    ))}
+                                                                                                </Bar>
+                                                                                            </BarChart>
+                                                                                        </ResponsiveContainer>
+
+                                                                                        {/* Tabela com Dados Detalhados */}
+                                                                                        <Box sx={{ mt: 2, width: '100%' }}>
+                                                                                            <Table size="small" sx={{ width: '100%' }}>
+                                                                                                <TableHead>
+                                                                                                    <TableRow>
+                                                                                                        <TableCell sx={{ width: '40%' }}><strong>Status</strong></TableCell>
+                                                                                                        <TableCell align="right" sx={{ width: '30%' }}><strong>Percentual</strong></TableCell>
+                                                                                                    </TableRow>
+                                                                                                </TableHead>
+                                                                                                <TableBody>
+                                                                                                    {dadosGrafico.map((item, itemIndex) => (
+                                                                                                        <TableRow
+                                                                                                            key={itemIndex}
+                                                                                                            sx={{
+                                                                                                                '&:hover': { backgroundColor: 'action.hover' },
+                                                                                                                borderLeft: `3px solid ${item.fill}`
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <TableCell sx={{ width: '40%' }}>
+                                                                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                                    <Box
+                                                                                                                        sx={{
+                                                                                                                            width: 12,
+                                                                                                                            height: 12,
+                                                                                                                            borderRadius: '50%',
+                                                                                                                            bgcolor: item.fill
+                                                                                                                        }}
+                                                                                                                    />
+                                                                                                                    <Typography variant="body2">
+                                                                                                                        {item.name}
+                                                                                                                    </Typography>
+                                                                                                                </Box>
+                                                                                                            </TableCell>
+
+                                                                                                            <TableCell align="right" sx={{ width: '30%' }}>
+                                                                                                                <Typography
+                                                                                                                    variant="body2"
+                                                                                                                    fontWeight="bold"
+                                                                                                                    color="text.primary"
+                                                                                                                >
+                                                                                                                    {item.porcentagem.toFixed(1)}%
+                                                                                                                </Typography>
+                                                                                                            </TableCell>
+                                                                                                        </TableRow>
+                                                                                                    ))}
+                                                                                                </TableBody>
+                                                                                            </Table>
+                                                                                        </Box>
+                                                                                    </Paper>
+                                                                                );
+                                                                            })}
+                                                                        </Box>
+                                                                    ) : (
+                                                                        <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
+                                                                            <Typography variant="body1" color="text.secondary">
+                                                                                Nenhum dado de categoria disponível.
+                                                                            </Typography>
+                                                                        </Box>
+                                                                    )}
+                                                                </Paper>
                                                             </Box>
                                                         );
                                                     })()
                                                 ) : (
-                                                    // GRÁFICO DE BARRAS PARA MÚLTIPLAS BASES (ORIGINAL)
-                                                    <ResponsiveContainer width="100%" height={300}>
-                                                        <BarChart data={padronizacaoByBaseLastVisit}
-                                                            margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
-                                                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80}
-                                                                tick={{ fontSize: 12 }} interval={0} />
-                                                            <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 12 }} />
-                                                            <Tooltip />
-                                                            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '50px' }} />
-                                                            <Bar dataKey="conforme" stackId="a" fill="#4caf50"
-                                                                name="Conforme" radius={[4, 4, 0, 0]} />
-                                                            <Bar dataKey="naoConforme" stackId="a" fill="#f44336"
-                                                                name="Não Conforme" />
-                                                            <Bar dataKey="naoAvaliado" stackId="a" fill="#9e9e9e"
-                                                                name="Não Avaliado" radius={[4, 4, 0, 0]} />
-                                                        </BarChart>
-                                                    </ResponsiveContainer>
-                                                )}
+                                                    // VISUALIZAÇÃO PARA MÚLTIPLAS BASES (MANTIDO ORIGINAL)
+                                                    <>
+                                                        <ResponsiveContainer width="100%" height={300}>
 
-                                                <Divider sx={{ my: 2 }} />
+                                                            <BarChart
+                                                                data={padronizacaoByBaseLastVisit}
+                                                                margin={{ top: 5, right: 20, left: -10, bottom: 60 }}
+                                                            >
+                                                                <XAxis
+                                                                    dataKey="name"
+                                                                    angle={-45}
+                                                                    textAnchor="end"
+                                                                    height={80}
+                                                                    tick={{ fontSize: 12 }}
+                                                                    interval={0}
+                                                                />
+                                                                <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 12 }} />
+                                                                <Tooltip />
+                                                                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '50px' }} />
+                                                                <Bar dataKey="conforme" stackId="a" fill="#4caf50" name="Conforme" radius={[4, 4, 0, 0]} />
+                                                                <Bar dataKey="parcial" stackId="a" fill="#ff9800" name="Parcial" />
+                                                                <Bar dataKey="naoConforme" stackId="a" fill="#f44336" name="Não Conforme" />
+                                                                <Bar dataKey="naoAvaliado" stackId="a" fill="#9e9e9e" name="Não Avaliado" />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
 
-                                                {/* SEÇÃO DE PERCENTUAIS - MANTIDA PARA AMBOS OS CASOS */}
-                                                <Box mt={2} sx={{ width: '100%' }}>
-                                                    <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
-                                                        {padronizacaoByBaseLastVisit.length === 1 ? 'Percentuais da base' : 'Percentuais por base (última visita)'}
-                                                    </Typography>
-                                                    <Box sx={{
-                                                        display: 'grid',
-                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                                                        gap: 2
-                                                    }}>
-                                                        {padronizacaoByBaseLastVisit.map((b: any) => (
-                                                            <Box key={b.id} sx={{
-                                                                p: 1.5,
-                                                                border: '1px solid #eee',
-                                                                borderRadius: 2
-                                                            }}>
-                                                                <Typography variant="subtitle2" noWrap
-                                                                    title={b.name}>{b.name}</Typography>
-                                                                <Stack direction="row" flexWrap="wrap" gap={0.5} mt={1}>
-                                                                    <Chip size="small"
-                                                                        label={`${Number(b.conforme).toFixed(1)}%`}
-                                                                        sx={{ bgcolor: '#e8f5e9', color: '#2e7d32' }} />
-                                                                    <Chip size="small"
-                                                                        label={`${Number(b.naoConforme).toFixed(1)}%`}
-                                                                        sx={{ bgcolor: '#ffebee', color: '#c62828' }} />
-                                                                    <Chip size="small"
-                                                                        label={`${Number(b.naoAvaliado).toFixed(1)}%`}
-                                                                        sx={{ bgcolor: '#f5f5f5', color: '#616161' }} />
-                                                                </Stack>
-                                                            </Box>
-                                                        ))}
-                                                    </Box>
-                                                </Box>
+                                                        {/* Gráficos por Categoria para Múltiplas Bases */}
+                                                        {padronizacaoByBaseLastVisit.length > 0 && padronizacaoByBaseLastVisit[0].categorias?.length > 0 ? (
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                                                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                                                        Conformidade por Categoria
+                                                                    </Typography>
+                                                                    <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
 
-                                                <Divider sx={{ my: 2 }} />
+                                                                        {padronizacaoByBaseLastVisit[0].categorias.map((categoria: any, index: number) => {
+                                                                            const dadosCategoria = padronizacaoByBaseLastVisit.map((base: any) => ({
+                                                                                baseName: base.name,
+                                                                                conforme: base.categorias?.[index]?.conforme || 0,
+                                                                                parcial: base.categorias?.[index]?.parcial || 0,
+                                                                                naoConforme: base.categorias?.[index]?.naoConforme || 0,
+                                                                                naoAvaliado: base.categorias?.[index]?.naoAvaliado || 0
+                                                                            })).filter((item: any) => item.conforme + item.parcial + item.naoConforme + item.naoAvaliado > 0);
 
-                                                {/* SEÇÃO DE CATEGORIAS - MANTIDA PARA AMBOS OS CASOS */}
-                                                <Box mt={1} sx={{ width: '100%' }}>
-                                                    {(() => {
-                                                        const entries = Object.entries(categoriesMap);
-                                                        if (entries.length === 0) {
-                                                            return <Typography variant="caption" color="text.secondary">Nenhuma
-                                                                categoria avaliada na última visita.</Typography>;
-                                                        }
+                                                                            return (
+                                                                                <Box key={categoria.categoria}>
+                                                                                    <Box sx={{
+                                                                                        display: 'flex',
+                                                                                        alignItems: 'center',
+                                                                                        gap: 1,
+                                                                                        mb: 2,
+                                                                                        p: 1,
+                                                                                        bgcolor: `${getCorPorSummary(2)}20`,
+                                                                                        borderRadius: 1
+                                                                                    }}>
+                                                                                        <Box
+                                                                                            sx={{
+                                                                                                width: 12,
+                                                                                                height: 12,
+                                                                                                borderRadius: '50%',
+                                                                                                bgcolor: getCorPorSummary(2)
+                                                                                            }}
+                                                                                        />
+                                                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                                                            {categoria.categoria}
+                                                                                        </Typography>
+                                                                                    </Box>
 
-                                                        return entries.map(([catNome, basesArr]) => (
-                                                            <Box key={catNome} sx={{ mb: 3 }}>
-                                                                <Typography variant="subtitle1" fontWeight={600}
-                                                                    sx={{ mb: 1 }}>{catNome}</Typography>
-
-                                                                <Box sx={{
-                                                                    display: 'grid',
-                                                                    gap: 2,
-                                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))'
-                                                                }}>
-                                                                    {basesArr.map((bt: any) => {
-                                                                        const chip = getChipProps(bt.status);
-                                                                        return (
-                                                                            <Paper key={`${catNome}-${bt.baseId}`}
-                                                                                variant="outlined" sx={{
-                                                                                    p: 1.25,
-                                                                                    display: 'flex',
-                                                                                    flexDirection: 'column',
-                                                                                    gap: 1, ...paperStyles
-                                                                                }}>
-                                                                                <Box sx={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: 1,
-                                                                                    justifyContent: 'space-between'
-                                                                                }}>
-                                                                                    <Typography variant="subtitle2"
-                                                                                        noWrap
-                                                                                        title={bt.baseName}>{bt.baseName}</Typography>
-                                                                                    <Chip label={chip.label}
-                                                                                        color={chip.color as any}
-                                                                                        size="small" sx={chip.sx} />
+                                                                                    <ResponsiveContainer width="100%" height={300}>
+                                                                                        <BarChart
+                                                                                            data={dadosCategoria}
+                                                                                            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                                                                                        >
+                                                                                            <XAxis
+                                                                                                dataKey="baseName"
+                                                                                                angle={-45}
+                                                                                                textAnchor="end"
+                                                                                                height={80}
+                                                                                                tick={{ fontSize: 12 }}
+                                                                                                interval={0}
+                                                                                            />
+                                                                                            <YAxis
+                                                                                                domain={[0, 100]}
+                                                                                                tick={{ fontSize: 12 }}
+                                                                                                tickFormatter={(value) => `${value}%`}
+                                                                                            />
+                                                                                            <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                                                                                            <Legend />
+                                                                                            <Bar dataKey="conforme" stackId="a" fill="#4caf50" name="Conforme" />
+                                                                                            <Bar dataKey="parcial" stackId="a" fill="#ff9800" name="Parcial" />
+                                                                                            <Bar dataKey="naoConforme" stackId="a" fill="#f44336" name="Não Conforme" />
+                                                                                            <Bar dataKey="naoAvaliado" stackId="a" fill="#9e9e9e" name="Não Avaliado" />
+                                                                                        </BarChart>
+                                                                                    </ResponsiveContainer>
                                                                                 </Box>
-                                                                            </Paper>
-                                                                        );
-                                                                    })}
-                                                                </Box>
+                                                                            );
+                                                                        })}
+                                                                    </Paper>
+                                                                </Paper>
                                                             </Box>
-                                                        ));
-                                                    })()}
-                                                </Box>
-
+                                                        ) : (
+                                                            <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+                                                                Nenhum dado de categoria disponível.
+                                                            </Typography>
+                                                        )}
+                                                    </>
+                                                )}
                                             </Box>
                                         ) : (
                                             <Placeholder text="Nenhum dado de padronização encontrado na última visita." />
                                         )}
                                     </ChartCard>
-                                    {/* Seção de Relatos - AGORA ABAIXO DA PADRONIZAÇÃO */}
+                                    {/* Seção de Relatos */}
                                     <Box sx={{ width: '100%', mt: 4 }}>
                                         <Paper variant="outlined" sx={{
                                             p: 3,
                                             ...paperStyles
                                         }}>
-                                            <Typography variant="h6" gutterBottom>Relatos das Equipes</Typography>
+                                            <Typography variant="h6" gutterBottom>
+                                                Nuvem de Palavras dos Relatos
+                                                <Typography variant="caption" display="block" color="text.secondary">
+                                                    Palavras mais frequentes nas mensagens das equipes
+                                                </Typography>
+                                            </Typography>
 
-                                            {(() => {
-
-
-                                                return (
-                                                    <>
-
-                                                        {/* Opcional: manter os relatos detalhados em um accordion abaixo */}
-                                                        {relatos.length > 0 ? (
-                                                            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                                                                {relatos.map((r: any) => (
-                                                                    <Accordion key={r.id} variant="outlined" sx={{
-                                                                        boxShadow: 'none',
-                                                                        '&:before': { display: 'none' },
-                                                                        my: 0.5,
-                                                                        borderRadius: 3,
-                                                                        borderLeft: '6px solid #430000'
-                                                                    }}>
-                                                                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                                            <Typography sx={{
-                                                                                flexShrink: 0,
-                                                                                mr: 2,
-                                                                                fontWeight: 500
-                                                                            }}>
-                                                                                {r.tema} - {basesList.find((base: any) => base.id === r.baseId)?.nome || r.baseId}
-                                                                            </Typography>
-                                                                            <Typography sx={{
-                                                                                color: 'text.secondary',
-                                                                                ml: 'auto'
-                                                                            }}>
-                                                                                {r.autor} — {format(addDays(new Date(r.data), 1), 'dd/MM/yyyy')}
-                                                                            </Typography>
-                                                                        </AccordionSummary>
-                                                                        <AccordionDetails>
-                                                                            <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-                                                                                {r.mensagem}
-                                                                            </Typography>
-                                                                        </AccordionDetails>
-                                                                    </Accordion>
-                                                                ))}
-                                                            </Box>
-                                                        ) : (
-                                                            <Placeholder text="Nenhum relato encontrado." />
-                                                        )}
-                                                    </>
-                                                );
-                                            })()}
+                                            <WordcloudRelatos
+                                                relatos={relatos}
+                                                height={530}
+                                                showEstatisticas={true}
+                                            />
                                         </Paper>
                                     </Box>
 
@@ -1503,8 +1785,9 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                         )}
 
                     </>
-                )}
-            </Box>
-        </LocalizationProvider>
+                )
+                }
+            </Box >
+        </LocalizationProvider >
     );
 }

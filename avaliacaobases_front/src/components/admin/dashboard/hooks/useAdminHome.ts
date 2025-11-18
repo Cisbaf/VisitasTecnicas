@@ -114,7 +114,7 @@ export function useAdminHome() {
                 datasVisitas: [] as string[],
                 equipeTecnica: [] as string[],
                 equipeTecnicaPorBase: [] as { baseNome: string; equipe: string[] }[], // NOVO
-                visitasDetalhadas: [] as { id: number; data: string; baseId: number; baseNome: string; relatos: RelatoDTO[] }[], // NOVO
+                visitasDetalhadas: [] as { id: number; data: string; baseId: number; baseNome: string; tipo: string; relatos: RelatoDTO[] }[], // NOVO
                 totalInconformidades: 0,
                 mediasConformidade: [] as number[],
                 perBase: [] as { id: any; nome: string; avg: number }[],
@@ -123,7 +123,6 @@ export function useAdminHome() {
                 lastRespostasByBase: {} as Record<string, any[]>,
                 lastVisitaTimestampByBase: {} as Record<string, number>,
                 conformidadePorSummary: {} as Record<number, ConformidadeSummary[]>, // NOVO
-
             };
 
             // BUSCA OTIMIZADA PARA TODAS AS BASES
@@ -134,8 +133,8 @@ export function useAdminHome() {
                         dataInicio: inicio.toISOString().split('T')[0],
                         dataFim: fim.toISOString().split('T')[0],
                     });
-                    const todasVisitasData = await fetchJsonSafe(`/api/visita/periodo?${params.toString()}`);
-                    const todasVisitas = Array.isArray(todasVisitasData) ? todasVisitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao' || v.tipoVisita === '') : [];
+                    const visitasData = await fetchJsonSafe(`/api/visita/periodo?${params.toString()}`);
+                    const todasVisitas = visitasData && Array.isArray(visitasData) ? visitasData.filter((v: any) => v && (v.tipoVisita === null || v.tipoVisita === 'Inspeção' || v.tipoVisita === '')) : [];
 
                     const visitIds = todasVisitas.map((visita: any) => visita.id).filter(Boolean);
 
@@ -153,6 +152,7 @@ export function useAdminHome() {
                     const respostasPorVisita: Record<string, any[]> = {};
                     todasRespostas.forEach((resposta: any) => {
                         const visitaId = String(resposta.visitaId || resposta.visitId);
+                        if (resposta.checkbox === "NOT_GIVEN") return;
                         if (!respostasPorVisita[visitaId]) respostasPorVisita[visitaId] = [];
                         respostasPorVisita[visitaId].push(resposta);
                     });
@@ -174,6 +174,7 @@ export function useAdminHome() {
                             base,
                             relatoriosPorBase[visitaId] || null,
                             visitasPorBase[baseIdStr] || [],
+                            visitasData,
                             respostasPorVisita,
                             inspectionForms,
                             padronizacaoForms,
@@ -204,7 +205,8 @@ export function useAdminHome() {
                             dataFim: fim.toISOString().split('T')[0],
                         });
                         const visitasData = await fetchJsonSafe(`/api/visita/periodo/${base.id}?${params.toString()}`) || [];
-                        const visitas = Array.isArray(visitasData) ? visitasData.filter(v => v.tipoVisita === null || v.tipoVisita === 'Inspecao' || v.tipoVisita === '') : [];
+                        console.log('visitasData para base específica:', base.id, visitasData);
+                        const visitas = Array.isArray(visitasData) ? visitasData.filter(v => v.tipoVisita === null || v.tipoVisita === "Inspeção" || v.tipoVisita === '') : [];
 
                         const visitIds = visitas.map((v: any) => v.id).filter(Boolean);
                         let respostasPorVisita: Record<string, any[]> = {};
@@ -212,10 +214,15 @@ export function useAdminHome() {
                         if (visitIds.length > 0) {
                             try {
                                 const todasRespostas = await postJsonSafe('/api/form/answers/all', { visitIds: visitIds });
+                                console.log('todasRespostas para base específica:', base.id, todasRespostas);
+
                                 if (Array.isArray(todasRespostas)) {
                                     todasRespostas.forEach((resposta: any) => {
                                         const visitaId = String(resposta.visitaId || resposta.visitId);
+                                        if (resposta.checkbox === "NOT_GIVEN") return;
                                         if (!respostasPorVisita[visitaId]) respostasPorVisita[visitaId] = [];
+
+
                                         respostasPorVisita[visitaId].push(resposta);
                                     });
                                 }
@@ -237,6 +244,7 @@ export function useAdminHome() {
                             base,
                             relatorioData,
                             visitas,
+                            visitasData,
                             respostasPorVisita,
                             inspectionForms,
                             padronizacaoForms,
@@ -399,6 +407,8 @@ export function useAdminHome() {
             const indiceInspecao = mediaInspecao;
             const indicePadronizacao = mediaPadronizacao;
 
+            console.log("Padronização por base (última visita):", padronizacaoArrLast);
+
             setPerBaseConformidade(acumuladores.perBase);
             setPadronizacaoByBaseLastVisit(padronizacaoArrLast);
             setResumo({
@@ -424,43 +434,50 @@ export function useAdminHome() {
         }
     }, [basesList, buscarRelatos]);
 
+    // Substitua a função processarBase pela versão corrigida:
+
     const processarBase = async (
         base: any,
         relatorioData: any,
         visitas: any[],
+        todasVisitas: any[],
         respostasPorVisita: Record<string, any[]>,
         inspectionForms: any[],
         padronizacaoForms: any[],
         acumuladores: any,
         relatosFiltrados: RelatoDTO[]
-
     ) => {
+        // Filtrar visitas específicas desta base
+        const visitasDaBase = todasVisitas.filter((v: any) =>
+            String(v.baseId || v.idBase) === String(base.id)
+        );
+
         const baseKey = String(base.id);
         const baseNome = base.nome || base.baseNome || `Base ${base.id}`;
 
-        // --- INICIALIZAR ACUMULADORES DE EQUIPE POR BASE ---
+        // Inicializar acumuladores
         if (!acumuladores.equipeTecnicaPorBase) {
             acumuladores.equipeTecnicaPorBase = [];
         }
-
-        // --- INICIALIZAR ACUMULADORES DE VISITAS DETALHADAS ---
         if (!acumuladores.visitasDetalhadas) {
             acumuladores.visitasDetalhadas = [];
         }
+        if (!acumuladores.equipeTecnica) {
+            acumuladores.equipeTecnica = [];
+        }
 
-        // --- LÓGICA INICIAL DE ACUMULADORES (sem alterações) ---
-        if ((relatorioData && relatorioData.totalVisitas > 0) || (Array.isArray(visitas) && visitas.length > 0)) {
+        // Verificar se a base foi visitada
+        const baseFoiVisitada = (relatorioData && relatorioData.totalVisitas > 0) || visitasDaBase.length > 0;
+
+        if (baseFoiVisitada) {
             acumuladores.totalBasesVisitadas = (acumuladores.totalBasesVisitadas || 0) + 1;
-            const municipio = base.name || base.nome || base.baseNome;
+            const municipio = base.nome || baseNome;
             if (municipio && !acumuladores.municipiosVisitados.includes(municipio)) {
                 acumuladores.municipiosVisitados.push(municipio);
             }
-            if (relatorioData && Array.isArray(relatorioData.pontosCriticosGerais)) {
-                relatorioData.pontosCriticosGerais.forEach((p: any) => {
-                    acumuladores.totalInconformidades = (acumuladores.totalInconformidades || 0) + (p.ocorrencias || 0);
-                });
-            }
         }
+
+        // Inicializar estruturas de padronização
         if (!acumuladores.padronizacaoCountsByBase[baseKey]) {
             acumuladores.padronizacaoCountsByBase[baseKey] = {
                 id: base.id,
@@ -474,36 +491,47 @@ export function useAdminHome() {
 
         let avgConformidadeUltimaVisita: number | null = null;
 
-        // --- ACUMULAR EQUIPE ÚNICA (para manter compatibilidade) ---
-        if (!acumuladores.equipeTecnica) {
-            acumuladores.equipeTecnica = [];
-        }
+        // Processar equipe técnica
+        let equipeDaBase: { [data: string]: string[] } = {};
 
-        // --- ACUMULAR EQUIPE POR BASE ---
-        let equipeDaBase: string[] = [];
+        visitasDaBase.forEach(visita => {
+            const dataVisita = visita.dataVisita;
 
-        // --- ADICIONAR VISITAS DETALHADAS ---
-        if (!acumuladores.visitasDetalhadas) {
-            acumuladores.visitasDetalhadas = [];
-        }
+            if (!equipeDaBase[dataVisita]) {
+                equipeDaBase[dataVisita] = [];
+            }
 
-        visitas.forEach(visita => {
-            // Usar a estrutura definida na interface VisitaResponse
             if (visita.membros && Array.isArray(visita.membros)) {
                 visita.membros.forEach((membro: any) => {
-                    if (membro.nome && typeof membro.nome === 'string') {
+                    if (membro.nome && typeof membro.nome === 'string' &&
+                        membro.nome.trim() !== '' &&
+                        membro.cargo != "COORDENADOR MÉDICO" &&
+                        membro.cargo != "COORDENADOR ADM" &&
+                        membro.cargo != "RT DE ENFERMAGEM") {
+
                         const nomeMembro = membro.nome.trim();
-                        if (nomeMembro && !equipeDaBase.includes(nomeMembro)) {
-                            equipeDaBase.push(nomeMembro);
+                        const cargo = membro.cargo;
+                        const membroCompleto = cargo ? `${nomeMembro} (${cargo})` : nomeMembro;
+
+                        if (!equipeDaBase[dataVisita].includes(membroCompleto)) {
+                            equipeDaBase[dataVisita].push(membroCompleto);
                         }
                     }
                 });
             }
         });
 
+        const equipeAgrupadaPorData = Object.entries(equipeDaBase)
+            .filter(([data, membros]) => membros.length > 0)
+            .sort(([dataA], [dataB]) => new Date(dataB).getTime() - new Date(dataA).getTime())
+            .map(([data, membros]) => ({
+                data,
+                membros: membros.filter(membro => membro && membro.trim() !== '')
+            }))
+            .filter(grupo => grupo.membros.length > 0);
 
-        // Processar cada visita para adicionar à timeline
-        visitas.forEach(visita => {
+        // Adicionar visitas detalhadas
+        visitasDaBase.forEach(visita => {
             const dataVisita = visita.dataVisita || visita.createdAt || visita.data;
             if (dataVisita) {
                 acumuladores.visitasDetalhadas.push({
@@ -512,301 +540,299 @@ export function useAdminHome() {
                     municipio: baseNome,
                     baseId: base.id,
                     baseNome: baseNome,
-                    relatos: relatosFiltrados.filter(r => String(r.visitaId) === String(visita.id))
+                    tipo: visita.tipoVisita,
+                    relatos: relatosFiltrados.filter(r => String(r.visitaId) === String(visita.id)),
                 });
             }
         });
-        console.log(acumuladores.visitasDetalhadas);
-        console.log(relatos);
 
-
-
-        // ======================= ENCONTRAR ÚLTIMA VISITA =======================
-        const visitasOrdenadas = [...visitas].sort((a, b) => {
+        // Encontrar última visita
+        const visitasOrdenadas = [...visitasDaBase].sort((a, b) => {
             const dataA = new Date(a.dataVisita || a.createdAt || 0);
             const dataB = new Date(b.dataVisita || b.createdAt || 0);
             return dataB.getTime() - dataA.getTime();
         });
 
         const ultimaVisita = visitasOrdenadas[0];
-        const respostasUltimaVisita = ultimaVisita ? respostasPorVisita[String(ultimaVisita.id)] || [] : [];
+
+        if (!ultimaVisita) {
+            // Se não há visitas, adicionar base com 0% de conformidade
+            acumuladores.perBase.push({
+                id: base.id,
+                nome: base.nome,
+                avg: 0
+            });
+            return;
+        }
+
+        const respostasUltimaVisita = respostasPorVisita[String(ultimaVisita.id)] || [];
 
         // ======================= CÁLCULO INSPEÇÃO - APENAS ÚLTIMA VISITA =======================
-        if (ultimaVisita) {
-            try {
-                const resultadosHierarquicos = {
-                    porFormulario: {} as {
-                        [formId: number]: {
-                            total: number;
-                            conforme: number;
-                            porcentagem: number;
-                            summaryId: number;
-                        }
-                    },
-                    porSummary: {} as {
-                        [summaryId: number]: {
-                            totalCampos: number;
-                            totalConforme: number;
-                            porcentagem: number;
-                            forms: number[];
-                        }
-                    },
-                    geral: {
-                        totalCampos: 0,
-                        totalConforme: 0,
-                        porcentagem: 0
+        try {
+            const resultadosHierarquicos = {
+                porFormulario: {} as {
+                    [formId: number]: {
+                        total: number;
+                        conforme: number;
+                        porcentagem: number;
+                        summaryId: number;
                     }
+                },
+                porSummary: {} as {
+                    [summaryId: number]: {
+                        totalCampos: number;
+                        totalConforme: number;
+                        porcentagem: number;
+                        forms: number[];
+                    }
+                },
+                geral: {
+                    totalCampos: 0,
+                    totalConforme: 0,
+                    porcentagem: 0
+                }
+            };
+
+            // Filtrar forms da última visita específica
+            const formsInspecaoDaVisita = inspectionForms.filter((form: any) =>
+                String(form.visitaId) === String(ultimaVisita.id)
+            );
+            // 1. Calcular por formulário (INSPEÇÃO) - apenas forms da última visita
+            for (const form of formsInspecaoDaVisita) {
+                const checkboxFields = Array.isArray(form.campos) ?
+                    form.campos.filter((c: any) => c.tipo === 'CHECKBOX') : [];
+
+                if (checkboxFields.length === 0) continue;
+
+                let totalCampos = 0;
+                let camposConformes = 0;
+
+                for (const field of checkboxFields) {
+                    if (!field.id) continue;
+
+                    const ans = respostasUltimaVisita.find((r: any) =>
+                        String(r.campoId) === String(field.id) ||
+                        String((r as any).fieldId) === String(field.id)
+                    );
+
+                    totalCampos += 1;
+
+                    if (ans) {
+                        const val = (ans.checkbox ?? (ans as any).value ?? (ans as any).answer);
+                        const isConforme = val === true || String(val).toUpperCase() === 'TRUE';
+
+                        if (isConforme) {
+                            camposConformes += 1;
+                        }
+                    }
+                }
+
+                const porcentagemForm = totalCampos > 0 ? (camposConformes / totalCampos) * 100 : 0;
+
+                resultadosHierarquicos.porFormulario[form.id] = {
+                    total: totalCampos,
+                    conforme: camposConformes,
+                    porcentagem: porcentagemForm,
+                    summaryId: form.summaryId
                 };
 
-                // 1. Calcular por formulário (INSPEÇÃO) - apenas última visita
-                for (const form of inspectionForms) {
-                    const checkboxFields = Array.isArray(form.campos) ?
-                        form.campos.filter((c: any) => c.tipo === 'CHECKBOX') : [];
-
-                    if (checkboxFields.length === 0) continue;
-
-                    let totalCampos = 0;
-                    let camposConformes = 0;
-
-                    for (const field of checkboxFields) {
-                        if (!field.id) continue;
-
-                        const ans = respostasUltimaVisita.find((r: any) =>
-                            String(r.campoId) === String(field.id) ||
-                            String((r as any).fieldId) === String(field.id)
-                        );
-
-                        totalCampos += 1;
-
-                        if (ans) {
-                            const val = (ans.checkbox ?? (ans as any).value ?? (ans as any).answer);
-                            const isConforme = val === true || String(val).toUpperCase() === 'TRUE';
-
-                            if (isConforme) {
-                                camposConformes += 1;
-                            }
-                        }
-                    }
-
-                    const porcentagemForm = totalCampos > 0 ? (camposConformes / totalCampos) * 100 : 0;
-
-                    resultadosHierarquicos.porFormulario[form.id] = {
-                        total: totalCampos,
-                        conforme: camposConformes,
-                        porcentagem: porcentagemForm,
-                        summaryId: form.summaryId
+                if (!resultadosHierarquicos.porSummary[form.summaryId]) {
+                    resultadosHierarquicos.porSummary[form.summaryId] = {
+                        totalCampos: 0,
+                        totalConforme: 0,
+                        porcentagem: 0,
+                        forms: []
                     };
+                }
+                resultadosHierarquicos.porSummary[form.summaryId].forms.push(form.id);
 
-                    if (!resultadosHierarquicos.porSummary[form.summaryId]) {
-                        resultadosHierarquicos.porSummary[form.summaryId] = {
-                            totalCampos: 0,
-                            totalConforme: 0,
-                            porcentagem: 0,
-                            forms: []
+                resultadosHierarquicos.porSummary[form.summaryId].totalCampos += totalCampos;
+                resultadosHierarquicos.porSummary[form.summaryId].totalConforme += camposConformes;
+            }
+
+            // 2. Calcular por summary
+            for (const [summaryId, summary] of Object.entries(resultadosHierarquicos.porSummary)) {
+                const numSummaryId = Number(summaryId);
+                resultadosHierarquicos.porSummary[numSummaryId].porcentagem =
+                    summary.totalCampos > 0 ? (summary.totalConforme / summary.totalCampos) * 100 : 0;
+
+                resultadosHierarquicos.geral.totalCampos += summary.totalCampos;
+                resultadosHierarquicos.geral.totalConforme += summary.totalConforme;
+            }
+
+            // 3. CALCULAR MÉDIA DOS SUMMARIES
+            const summaries = Object.values(resultadosHierarquicos.porSummary);
+            if (summaries.length > 0) {
+                const somaPorcentagens = summaries.reduce((acc, summary: any) => acc + summary.porcentagem, 0);
+                resultadosHierarquicos.geral.porcentagem = somaPorcentagens / summaries.length;
+            } else {
+                resultadosHierarquicos.geral.porcentagem = 0;
+            }
+
+            avgConformidadeUltimaVisita = resultadosHierarquicos.geral.porcentagem;
+
+            if (avgConformidadeUltimaVisita > 0) {
+                if (!acumuladores.mediasConformidade) {
+                    acumuladores.mediasConformidade = [];
+                }
+                acumuladores.mediasConformidade.push(avgConformidadeUltimaVisita);
+            }
+
+            // Preparar dados para exibição detalhada - APENAS DA ÚLTIMA VISITA
+            const conformidadeSummaryBase: ConformidadeSummary[] = [];
+
+            for (const [summaryId, summaryData] of Object.entries(resultadosHierarquicos.porSummary)) {
+                const numSummaryId = Number(summaryId);
+                const summary = PREDEFINED_SUMMARIES.find(s => s.id === numSummaryId);
+
+                // Buscar categorias (forms) deste summary APENAS DA ÚLTIMA VISITA
+                const categoriasDoSummary = formsInspecaoDaVisita
+                    .filter(form => form.summaryId === numSummaryId)
+                    .map(form => {
+                        const formData = resultadosHierarquicos.porFormulario[form.id];
+                        return {
+                            nome: form.categoria || `Form ${form.id}`,
+                            conforme: formData?.conforme || 0,
+                            total: formData?.total || 0,
+                            porcentagem: formData?.porcentagem || 0
                         };
-                    }
-                    resultadosHierarquicos.porSummary[form.summaryId].forms.push(form.id);
+                    });
 
-                    resultadosHierarquicos.porSummary[form.summaryId].totalCampos += totalCampos;
-                    resultadosHierarquicos.porSummary[form.summaryId].totalConforme += camposConformes;
-                }
+                // Remover categorias duplicadas
+                const categoriasUnicas = categoriasDoSummary.filter((categoria, index, self) =>
+                    index === self.findIndex(c => c.nome === categoria.nome)
+                );
 
-                // 2. Calcular por summary
-                for (const [summaryId, summary] of Object.entries(resultadosHierarquicos.porSummary)) {
-                    const numSummaryId = Number(summaryId);
-                    resultadosHierarquicos.porSummary[numSummaryId].porcentagem =
-                        summary.totalCampos > 0 ? (summary.totalConforme / summary.totalCampos) * 100 : 0;
-
-                    resultadosHierarquicos.geral.totalCampos += summary.totalCampos;
-                    resultadosHierarquicos.geral.totalConforme += summary.totalConforme;
-                }
-
-                // 3. CALCULAR MÉDIA DOS SUMMARIES (CORREÇÃO)
-                const summaries = Object.values(resultadosHierarquicos.porSummary);
-                if (summaries.length > 0) {
-                    const somaPorcentagens = summaries.reduce((acc, summary: any) => acc + summary.porcentagem, 0);
-                    resultadosHierarquicos.geral.porcentagem = somaPorcentagens / summaries.length;
-
-                } else {
-                    resultadosHierarquicos.geral.porcentagem = 0;
-                }
-
-                avgConformidadeUltimaVisita = resultadosHierarquicos.geral.porcentagem;
-
-                if (avgConformidadeUltimaVisita > 0) {
-                    if (!acumuladores.mediasConformidade) {
-                        acumuladores.mediasConformidade = [];
-                    }
-                    acumuladores.mediasConformidade.push(avgConformidadeUltimaVisita);
-                }
-
-                // Preparar dados para exibição detalhada
-                const conformidadeSummaryBase: ConformidadeSummary[] = [];
-
-                for (const [summaryId, summaryData] of Object.entries(resultadosHierarquicos.porSummary)) {
-                    const numSummaryId = Number(summaryId);
-                    const summary = PREDEFINED_SUMMARIES.find(s => s.id === numSummaryId);
-
-                    // Buscar categorias (forms) deste summary
-                    const categoriasDoSummary = inspectionForms
-                        .filter(form => form.summaryId === numSummaryId)
-                        .map(form => {
-                            const formData = resultadosHierarquicos.porFormulario[form.id];
-                            return {
-                                nome: form.categoria || `Form ${form.id}`,
-                                conforme: formData?.conforme || 0,
-                                total: formData?.total || 0,
-                                porcentagem: formData?.porcentagem || 0
-                            };
-                        });
-
+                if (categoriasUnicas.length > 0) {
                     conformidadeSummaryBase.push({
                         summaryId: numSummaryId,
                         summaryNome: summary?.titulo || `Summary ${summaryId}`,
                         porcentagem: summaryData.porcentagem,
-                        categorias: categoriasDoSummary
+                        categorias: categoriasUnicas
                     });
                 }
+            }
 
-                // Armazenar no acumulador
+            // Armazenar no acumulador - APENAS SE HOUVER DADOS
+            if (conformidadeSummaryBase.length > 0) {
                 if (!acumuladores.conformidadePorSummary) {
                     acumuladores.conformidadePorSummary = {};
                 }
                 acumuladores.conformidadePorSummary[base.id] = conformidadeSummaryBase;
-
-            } catch (err) {
-                console.warn('Erro processando INSPECAO para última visita', ultimaVisita.id, err);
-                avgConformidadeUltimaVisita = 0;
             }
-        } else {
+
+        } catch (err) {
+            console.warn('Erro processando INSPECAO para última visita', ultimaVisita.id, err);
             avgConformidadeUltimaVisita = 0;
         }
 
         // Processar padronização para a última visita
-        if (ultimaVisita) {
-            try {
-                const respostasUltimaVisita = respostasPorVisita[String(ultimaVisita.id)] || [];
+        try {
+            // Filtrar forms de padronização da última visita específica
+            const formsPadronizacaoDaVisita = padronizacaoForms.filter((form: any) =>
+                String(form.visitaId) === String(ultimaVisita.id)
+            );
 
-                // Inicializar acumuladores para esta base
-                if (!acumuladores.padronizacaoCountsByBase[baseKey]) {
-                    acumuladores.padronizacaoCountsByBase[baseKey] = {
-                        id: base.id,
-                        nome: baseNome,
-                        conforme: 0,
-                        parcial: 0,
-                        naoConforme: 0,
-                        naoAvaliado: 0,
-                        total: 0
+            // Inicializar acumuladores para esta base
+            if (!acumuladores.padronizacaoCountsByBase[baseKey]) {
+                acumuladores.padronizacaoCountsByBase[baseKey] = {
+                    id: base.id,
+                    nome: baseNome,
+                    conforme: 0,
+                    parcial: 0,
+                    naoConforme: 0,
+                    naoAvaliado: 0,
+                    total: 0
+                };
+            }
+
+            const b = acumuladores.padronizacaoCountsByBase[baseKey];
+
+            // Resetar contadores
+            b.conforme = 0;
+            b.parcial = 0;
+            b.naoConforme = 0;
+            b.naoAvaliado = 0;
+            b.total = 0;
+
+            // Inicializar categorias
+            if (!acumuladores.padronizacaoCategoriasByBase[baseKey]) {
+                acumuladores.padronizacaoCategoriasByBase[baseKey] = {};
+            }
+
+            for (const form of formsPadronizacaoDaVisita) {
+                const checkboxFields = Array.isArray(form.campos) ?
+                    form.campos.filter((c: any) => c.tipo === 'CHECKBOX') : [];
+
+                if (checkboxFields.length === 0) continue;
+
+                const categoriaNome = form.categoria ?? form.category ?? 'Sem categoria';
+                if (!acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome]) {
+                    acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome] = {
+                        conforme: 0, parcial: 0, naoConforme: 0, naoAvaliado: 0, total: 0
                     };
                 }
 
-                const b = acumuladores.padronizacaoCountsByBase[baseKey];
+                const cat = acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome];
 
-                // Resetar contadores
-                b.conforme = 0;
-                b.parcial = 0;
-                b.naoConforme = 0;
-                b.naoAvaliado = 0;
-                b.total = 0;
+                for (const field of checkboxFields) {
+                    if (!field.id) continue;
 
-                // Inicializar categorias
-                if (!acumuladores.padronizacaoCategoriasByBase[baseKey]) {
-                    acumuladores.padronizacaoCategoriasByBase[baseKey] = {};
-                }
+                    const ans = respostasUltimaVisita.find((r: any) =>
+                        String(r.campoId) === String(field.id) ||
+                        String(r.fieldId) === String(field.id)
+                    );
 
-                let totalCamposProcessados = 0;
+                    // Contar sempre
+                    b.total += 1;
+                    cat.total += 1;
 
-                for (const form of padronizacaoForms) {
-                    const checkboxFields = Array.isArray(form.campos) ? form.campos.filter((c: any) => c.tipo === 'CHECKBOX') : [];
-
-                    if (checkboxFields.length === 0) continue;
-
-                    const categoriaNome = form.categoria ?? form.category ?? 'Sem categoria';
-                    if (!acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome]) {
-                        acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome] = {
-                            conforme: 0, parcial: 0, naoConforme: 0, naoAvaliado: 0, total: 0
-                        };
+                    if (!ans) {
+                        b.naoAvaliado += 1;
+                        cat.naoAvaliado += 1;
+                        continue;
                     }
 
-                    const cat = acumuladores.padronizacaoCategoriasByBase[baseKey][categoriaNome];
+                    const val = (ans.checkbox ?? ans.value ?? ans.answer ?? null);
 
-                    for (const field of checkboxFields) {
-                        if (!field.id) continue;
+                    if (val === null || val === undefined) {
+                        b.naoAvaliado += 1;
+                        cat.naoAvaliado += 1;
+                    } else {
+                        const isConforme = val === true || String(val).toUpperCase() === 'TRUE';
 
-                        const ans = respostasUltimaVisita.find((r: any) =>
-                            String(r.campoId) === String(field.id) ||
-                            String(r.fieldId) === String(field.id)
-                        );
-
-                        // Contar sempre
-                        b.total += 1;
-                        cat.total += 1;
-                        totalCamposProcessados += 1;
-
-                        if (!ans) {
-                            b.naoAvaliado += 1;
-                            cat.naoAvaliado += 1;
-                            continue;
-                        }
-
-                        const val = (ans.checkbox ?? ans.value ?? ans.answer ?? null);
-
-                        if (val === null || val === undefined) {
-                            b.naoAvaliado += 1;
-                            cat.naoAvaliado += 1;
+                        if (isConforme) {
+                            b.conforme += 1;
+                            cat.conforme += 1;
                         } else {
-                            const isConforme = val === true || String(val).toUpperCase() === 'TRUE';
-
-                            if (isConforme) {
-                                b.conforme += 1;
-                                cat.conforme += 1;
-                            } else {
-                                b.naoConforme += 1;
-                                cat.naoConforme += 1;
-                            }
+                            b.naoConforme += 1;
+                            cat.naoConforme += 1;
                         }
                     }
                 }
-
-            } catch (err) {
-                console.warn('❌ Erro processando PADRONIZACAO para', baseNome, err);
             }
-        } else {
-            console.log(`   ⚠️  Sem última visita para processar padronização em ${baseNome}`);
+
+        } catch (err) {
+            console.warn('❌ Erro processando PADRONIZACAO para', baseNome, err);
         }
 
-
-        // --- ADICIONAR EQUIPE DA BASE AO ACUMULADOR ---
-        if (equipeDaBase.length > 0) {
-            // Remover duplicatas finais
-            equipeDaBase = [...new Set(equipeDaBase)];
-
+        // Adicionar equipe da base ao acumulador
+        if (equipeAgrupadaPorData.length > 0) {
             const existingIndex = acumuladores.equipeTecnicaPorBase.findIndex(
                 (item: any) => item.baseNome === baseNome
             );
 
             if (existingIndex >= 0) {
-                // Se já existe, mesclar as equipes
-                const existingEquipe = acumuladores.equipeTecnicaPorBase[existingIndex].equipe;
-                equipeDaBase.forEach(membro => {
-                    if (!existingEquipe.includes(membro)) {
-                        existingEquipe.push(membro);
-                    }
-                });
-                // Remover duplicatas após o merge
-                acumuladores.equipeTecnicaPorBase[existingIndex].equipe = [...new Set(existingEquipe)];
+                acumuladores.equipeTecnicaPorBase[existingIndex].equipePorData = equipeAgrupadaPorData;
             } else {
-                // Se não existe, criar nova entrada
                 acumuladores.equipeTecnicaPorBase.push({
                     baseNome: baseNome,
-                    equipe: equipeDaBase
+                    equipePorData: equipeAgrupadaPorData
                 });
             }
-        } else {
-            console.log(`⚠️  Nenhuma equipe encontrada para base ${baseNome}`);
         }
 
-        // --- ADICIONAR CONFORMIDADE DA BASE ---
+        // Adicionar conformidade da base
         if (avgConformidadeUltimaVisita !== null) {
             acumuladores.perBase.push({
                 id: base.id,
@@ -814,10 +840,12 @@ export function useAdminHome() {
                 avg: avgConformidadeUltimaVisita
             });
         } else {
-            const visitouMasNaoInspecionou = visitas.length > 0;
-            if (visitouMasNaoInspecionou && !acumuladores.perBase.some((p: any) => p.id === base.id)) {
-                acumuladores.perBase.push({ id: base.id, nome: base.nome, avg: 0 });
-            }
+            // Se visitou mas não inspecionou
+            acumuladores.perBase.push({
+                id: base.id,
+                nome: base.nome,
+                avg: 0
+            });
         }
     };
 
@@ -909,6 +937,78 @@ export function useAdminHome() {
             setLoadingViaturas(false);
         }
     }, [basesList]);
+    const processarDadosInspecao = (visitas: any[], respostasPorVisita: any, inspectionForms: any[]) => {
+        const dadosAgrupados = new Map(); // baseId_summaryId -> dados consolidados
+
+        visitas.forEach(visita => {
+            const formInspecao = inspectionForms.find(f => f.visitaId === visita.id);
+            if (!formInspecao) return;
+
+            const respostas = respostasPorVisita[visita.id] || [];
+            const baseId = visita.baseId;
+            const summaryId = formInspecao.summaryId;
+
+            const chave = `${baseId}_${summaryId}`;
+
+            if (!dadosAgrupados.has(chave)) {
+                dadosAgrupados.set(chave, {
+                    baseId,
+                    baseNome: visita.baseNome,
+                    summaryId,
+                    summaryNome: `Summary ${summaryId}`, // Você pode buscar o nome real se disponível
+                    categorias: new Map(),
+                    totalConforme: 0,
+                    totalItens: 0
+                });
+            }
+
+            const dadosBase = dadosAgrupados.get(chave);
+
+            // Processar categorias e respostas
+            formInspecao.campos.forEach((campo: any) => {
+                const resposta = respostas.find((r: any) => r.campoId === campo.id);
+                const categoria = campo.categoria || 'Geral';
+
+                if (!dadosBase.categorias.has(categoria)) {
+                    dadosBase.categorias.set(categoria, {
+                        nome: categoria,
+                        conforme: 0,
+                        total: 0,
+                        porcentagem: 0
+                    });
+                }
+
+                const dadosCategoria = dadosBase.categorias.get(categoria);
+                dadosCategoria.total++;
+                dadosBase.totalItens++;
+
+                if (resposta && resposta.checkbox === 'TRUE') {
+                    dadosCategoria.conforme++;
+                    dadosBase.totalConforme++;
+                }
+
+                // Recalcular porcentagem
+                dadosCategoria.porcentagem = dadosCategoria.total > 0
+                    ? (dadosCategoria.conforme / dadosCategoria.total) * 100
+                    : 0;
+            });
+        });
+
+        // Converter Map para array e calcular médias finais
+        return Array.from(dadosAgrupados.values()).map(dados => {
+            // Recalcular porcentagens finais após todo o processamento
+            dados.categorias = Array.from(dados.categorias.values()).map((cat: any) => ({
+                ...cat,
+                porcentagem: cat.total > 0 ? (cat.conforme / cat.total) * 100 : 0
+            }));
+
+            dados.porcentagemGeral = dados.totalItens > 0
+                ? (dados.totalConforme / dados.totalItens) * 100
+                : 0;
+
+            return dados;
+        });
+    };
 
     useEffect(() => { fetchBases(); }, [fetchBases]);
     useEffect(() => { }, [basesList, fetchStatusViaturasPorBase]);
@@ -916,6 +1016,6 @@ export function useAdminHome() {
     return {
         basesList, bases, relatos, resumo, perBaseConformidade, padronizacaoByBaseLastVisit,
         viaturaStatusPorBase, viaturasPorBase, basesComChecklist, loading, loadingViaturas, error,
-        fetchBases, buscarDadosPeriodo, fetchStatusViaturasPorBase
+        fetchBases, buscarDadosPeriodo, fetchStatusViaturasPorBase, processarDadosInspecao
     };
 }

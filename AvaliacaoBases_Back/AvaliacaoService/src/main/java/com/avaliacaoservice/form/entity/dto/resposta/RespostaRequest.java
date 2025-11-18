@@ -1,17 +1,15 @@
- package com.avaliacaoservice.form.entity.dto.resposta;
- 
- import com.avaliacaoservice.form.entity.emuns.CheckBox;
- import jakarta.validation.constraints.NotNull;
- import jakarta.validation.constraints.Positive;
- import lombok.Builder;
+package com.avaliacaoservice.form.entity.dto.resposta;
 
- @Builder
- public  record RespostaRequest(
-            String texto,
-            CheckBox checkbox,
-            Long campoId
- ) {
+import com.avaliacaoservice.form.entity.emuns.CheckBox;
+import lombok.Builder;
 
- }
+@Builder
+public record RespostaRequest(
+        String texto,
+        CheckBox checkbox,
+        Long campoId
+) {
+
+}
 
 

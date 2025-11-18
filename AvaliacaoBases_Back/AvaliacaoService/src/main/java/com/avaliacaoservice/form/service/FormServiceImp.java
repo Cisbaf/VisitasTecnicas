@@ -23,8 +23,6 @@ public class FormServiceImp implements FormService {
     private final FormMapper mapper;
     private final FormRepository formRepository;
 
-    private final RespostaRepository respostaRepository;
-
     public FormResponse createForm(FormRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be null");

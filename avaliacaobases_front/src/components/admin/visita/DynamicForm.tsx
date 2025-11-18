@@ -27,48 +27,63 @@ interface DynamicFormProps {
 export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps) {
     const [formData, setFormData] = useState<{ [key: string]: string }>({});
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
+
+
 
     useEffect(() => {
         let aborted = false;
         const controller = new AbortController();
 
         const fetchAnswers = async () => {
+            setLoading(true);
             try {
-                // Inicializa com valores vazios
+                // INICIALIZA COM VALORES VAZIOS
                 const initialData: { [key: string]: string } = {};
                 (form.campos || []).forEach((field: any) => {
-                    const fieldId = field.id ? field.id.toString() : field.titulo;
+                    if (!field.id) return;
+                    const fieldId = field.id.toString();
                     initialData[fieldId] = "";
                 });
 
-                // Busca todas as respostas de uma vez
-                const resp = await fetch(
-                    `/api/form/answers/visit/${visitaId}`,
-                    { signal: controller.signal }
-                );
 
-                if (!resp.ok) {
-                    throw new Error("Erro ao carregar respostas");
+                // BUSCA RESPOSTAS PELOS CAMPOS IDs DESTE FORM
+                const campoIds = (form.campos || [])
+                    .filter((field: any) => field.id)
+                    .map((field: any) => field.id);
+
+
+                if (campoIds.length > 0) {
+                    const resp = await fetch(`/api/form/answers/fields`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(campoIds),
+                        signal: controller.signal
+                    });
+
+                    if (!resp.ok) throw new Error("Erro ao carregar respostas");
+
+                    const answers: RespostaResponse[] = await resp.json();
+
+                    // PREENCHE OS DADOS
+                    answers.forEach((answer) => {
+                        const fieldId = answer.campoId?.toString();
+
+                        if (fieldId && initialData.hasOwnProperty(fieldId)) {
+                            if (answer.texto !== undefined && answer.texto !== null && answer.texto !== "") {
+                                initialData[fieldId] = answer.texto;
+                            } else if (answer.checkbox !== undefined && answer.checkbox !== null) {
+                                initialData[fieldId] = answer.checkbox;
+                            }
+                        } else {
+                            console.warn('CampoId não encontrado ou inválido:', fieldId);
+                        }
+                    });
                 }
 
-                const answers: RespostaResponse[] = await resp.json();
-
-                // Preenche os dados com as respostas obtidas
-                answers.forEach((answer) => {
-                    const field = (form.campos || []).find((c: any) => c.id === answer.campoId);
-                    if (!field) return;
-
-                    const fieldId = field.id!.toString();
-
-                    if (field.tipo === "TEXTO") {
-                        initialData[fieldId] = answer.texto ?? "";
-                    } else if (field.tipo === "CHECKBOX") {
-                        initialData[fieldId] = answer.checkbox ?? "";
-                    }
-                });
 
                 if (!aborted) {
                     setFormData(initialData);
@@ -79,25 +94,28 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                 // Mantém os valores vazios em caso de erro
                 const initialData: { [key: string]: string } = {};
                 (form.campos || []).forEach((field: any) => {
-                    initialData[field.id ? field.id.toString() : field.titulo] = "";
+                    if (field.id) {
+                        initialData[field.id.toString()] = "";
+                    }
                 });
                 if (!aborted) setFormData(initialData);
                 setError("Erro ao carregar respostas existentes.");
+            } finally {
+                if (!aborted) setLoading(false);
             }
         };
 
         if ((form.campos || []).length > 0) {
             fetchAnswers();
         } else {
-            const initialData: { [key: string]: string } = {};
-            setFormData(initialData);
+            setLoading(false);
         }
 
         return () => {
             aborted = true;
             controller.abort();
         };
-    }, [visitaId]);
+    }, [form.campos]);
 
     const handleFieldChange = (fieldId: string, value: string) => {
         setFormData((prev) => ({ ...prev, [fieldId]: value }));
@@ -109,10 +127,11 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
         setSuccess("");
 
         try {
+
             const respostas = (form.campos || [])
                 .filter((field: any) => field.id)
                 .map((field: any) => {
-                    const fieldId = field.id!.toString();
+                    const fieldId = field.id.toString();
                     const value = formData[fieldId] ?? "";
 
                     let texto = "";
@@ -128,35 +147,29 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                         campoId: field.id,
                         texto,
                         checkbox,
-                        visitaId,
                     };
                 });
 
+
             if (respostas.length === 0) {
                 setSuccess("Nenhuma resposta para salvar.");
-                setTimeout(() => {
-                    setSuccess("");
-                    onSave();
-                }, 1000);
                 return;
             }
 
-            const savePromises = [
-                fetch(`/api/form/answers/saveAnswers`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(respostas),
-                })
-            ];
+            const saveResponse = await fetch(`/api/form/answers/saveAnswers`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(respostas),
+            });
 
-            // Aguardar todas as promises
-            await Promise.all(savePromises);
+            if (!saveResponse.ok) {
+                throw new Error("Erro ao salvar respostas");
+            }
+
+            const savedData = await saveResponse.json();
 
             setSuccess("Respostas salvas com sucesso!");
-            setTimeout(() => {
-                setSuccess("");
-                onSave();
-            }, 1200);
+            onSave?.();
         } catch (err) {
             console.error("Erro ao salvar respostas:", err);
             setError("Erro ao salvar respostas: " + (err instanceof Error ? err.message : String(err)));
@@ -179,6 +192,7 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                         onChange={(e) => handleFieldChange(fieldId, e.target.value)}
                         multiline
                         rows={3}
+                        disabled={loading}
                     />
                 );
 
@@ -190,8 +204,18 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                             value={fieldValue}
                             onChange={(e) => handleFieldChange(fieldId, e.target.value)}
                         >
-                            <FormControlLabel value="TRUE" control={<Radio />} label="Sim" />
-                            <FormControlLabel value="FALSE" control={<Radio />} label="Não" />
+                            <FormControlLabel
+                                value="TRUE"
+                                control={<Radio />}
+                                label="Sim"
+                                disabled={loading}
+                            />
+                            <FormControlLabel
+                                value="FALSE"
+                                control={<Radio />}
+                                label="Não"
+                                disabled={loading}
+                            />
                         </RadioGroup>
                     </FormControl>
                 );
@@ -199,7 +223,12 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
             case "SELECT":
                 return (
                     <FormControl fullWidth>
-                        <Select value={fieldValue} onChange={(e) => handleFieldChange(fieldId, e.target.value)} displayEmpty>
+                        <Select
+                            value={fieldValue}
+                            onChange={(e) => handleFieldChange(fieldId, e.target.value)}
+                            displayEmpty
+                            disabled={loading}
+                        >
                             <MenuItem value="">
                                 <em>-- Selecione --</em>
                             </MenuItem>
@@ -215,13 +244,26 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
         }
     };
 
+    if (loading) {
+        return (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ p: 0, display: "flex", flexDirection: "column", gap: 3 }}>
             {error && <Alert severity="error">{error}</Alert>}
             {success && <Alert severity="success">{success}</Alert>}
 
             {(form.campos || []).map((field: any) => {
-                const fieldId = field.id ? field.id.toString() : field.titulo;
+                if (!field.id) {
+                    console.warn("Campo sem ID:", field.titulo);
+                    return null;
+                }
+
+                const fieldId = field.id.toString();
                 const isActive = activeFieldId === fieldId;
 
                 return (
@@ -234,6 +276,7 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                             transition: "all 0.2s ease-in-out",
                             borderLeft: "6px solid",
                             borderColor: isActive ? "primary.main" : "transparent",
+                            cursor: "pointer",
                         }}
                     >
                         <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2 }}>
@@ -249,7 +292,7 @@ export default function DynamicForm({ form, visitaId, onSave }: DynamicFormProps
                 <Button
                     variant="contained"
                     onClick={handleSaveAnswers}
-                    disabled={saving}
+                    disabled={saving || loading}
                     startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                 >
                     {saving ? "Salvando..." : "Salvar Respostas"}

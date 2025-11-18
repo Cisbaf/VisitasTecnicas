@@ -81,6 +81,75 @@ export default function DetalhesVisitaTab({
         <>
 
             <Box sx={{ mb: 3 }}>
+
+                {relatos && relatos.length > 0 && (() => {
+                    // Pega o primeiro item do array (o único que será usado como 'Motivo')
+                    const motivoPrincipal = relatos[0];
+
+                    // Verifica se estamos no modo de edição (se for o caso, renderiza o formulário de edição)
+                    if (editandoRelatoId === motivoPrincipal.id) {
+                        return (
+                            <Paper key={motivoPrincipal.id} sx={{ p: 2, mb: 2 }}>
+                                <AddRelatoInline
+                                    members={visita.membros}
+                                    onAdd={(payload) => handleUpdateRelato(payload.id, payload)}
+                                    onCancel={cancelarEdicao}
+                                    initialData={{
+                                        id: motivoPrincipal.id,
+                                        autor: motivoPrincipal.autor,
+                                        mensagem: motivoPrincipal.mensagem,
+                                        tema: motivoPrincipal.tema || '',
+                                    }}
+                                    isEditing={true}
+                                />
+                            </Paper>
+                        );
+                    }
+
+                    // Se não estiver em edição, renderiza o bloco de destaque Título/Subtítulo (Motivo Principal)
+                    return (
+                        <Box
+                            key={motivoPrincipal.id}
+                            sx={{
+                                mb: 3,
+                                textAlign: 'left',
+                            }}
+                        >
+                            <Box>
+                                {/* Título Principal: PROPÓSITO DA VISITA (ou o tema do relato, se ele for o Título) */}
+                                <Typography
+                                    variant="h4"
+                                    component="h2"
+                                    fontWeight="bold"
+                                    color="text.primary"
+                                    gutterBottom
+                                >
+                                    {/* Se o 'tema' contiver o nome do motivo, use-o; senão, use um título fixo */}
+                                    {motivoPrincipal.tema || 'PROPÓSITO DA VISITA'}
+                                </Typography>
+
+                                {/* Subtítulo/Mensagem: A descrição detalhada do motivo */}
+                                <Typography
+                                    sx={{ fontStyle: 'italic', whiteSpace: "pre-wrap" }}
+                                >
+                                    {motivoPrincipal.mensagem}
+                                </Typography>
+
+                                {/* Informação secundária (Autor e Data) - Opcional, mas útil */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                                    <Typography variant="caption" display="block" color="text.secondary" mt={1}>
+                                        Registrado por: {motivoPrincipal.autor} em {motivoPrincipal.data ? new Date(motivoPrincipal.data).toLocaleDateString('pt-BR') : ""}
+                                    </Typography>
+                                    <IconButton aria-label="editar" onClick={() => iniciarEdicao(motivoPrincipal)}>
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                </div>
+
+                            </Box>
+                        </Box>
+                    );
+                })()}
+
                 <Typography variant="subtitle1">Membros da visita</Typography>
                 {membrosGerais.map((m, idx) => (
                     <Chip
@@ -117,55 +186,6 @@ export default function DetalhesVisitaTab({
             <Divider sx={{ my: 3 }} />
 
             <Box>
-                <Typography variant="subtitle1" gutterBottom>Relatos</Typography>
-
-                {relatos.slice(0, 3).map((relato) => (
-                    editandoRelatoId === relato.id ? (
-                        <Paper key={relato.id} sx={{ p: 2, mb: 2 }}>
-                            <AddRelatoInline
-                                members={visita.membros}
-                                onAdd={(payload) => handleUpdateRelato(payload.id, payload)}
-                                onCancel={cancelarEdicao}
-                                initialData={{
-                                    id: relato.id,
-                                    autor: relato.autor,
-                                    mensagem: relato.mensagem,
-                                    tema: relato.tema || '',
-                                }}
-                                isEditing={true}
-                            />
-                        </Paper>
-                    ) : (
-                        <Paper
-                            key={relato.id}
-                            sx={{
-                                p: 1.5,
-                                mb: 1,
-                                borderRadius: 2,
-                                borderLeft: "6px solid brown",
-                            }}
-                        >
-                            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                                <Box>
-                                    <Typography variant="subtitle2">{relato.tema ?? "Sem tema"}</Typography>
-                                    <Typography variant="body2"
-                                        sx={{ whiteSpace: "pre-wrap" }}>{relato.mensagem}</Typography>
-                                    <Typography variant="caption" display="block" color="text.secondary">
-                                        {relato.autor} • {relato.data ? new Date(relato.data).toLocaleDateString('pt-BR') : ""}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                    <IconButton size="small" onClick={() => iniciarEdicao(relato)}>
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" onClick={() => onDeleteRelato(relato.id)}>
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Box>
-                        </Paper>
-                    )
-                ))}
 
                 {relatos.length === 0 && (
                     <AddRelatoInline members={visita.membros} onAdd={onAddRelato} />

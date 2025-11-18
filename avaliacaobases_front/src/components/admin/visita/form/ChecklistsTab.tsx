@@ -5,18 +5,12 @@ import FormEditorModal from "../modal/FormEditorModal";
 import { useForms } from "@/components/admin/hooks/useForms";
 import { TabHeader } from "./TabHeader";
 import { SummaryAccordion } from "./Accordion/SummaryAccordion";
-import { PREDEFINED_SUMMARIES, Summary } from "@/components/types";
+import { PREDEFINED_SUMMARIES } from "@/components/types";
 
 interface ChecklistsTabProps {
     visitaId: number;
 }
 
-const summaries: Summary[] = [
-    { id: 1, titulo: "Dados Gerais" },
-    { id: 2, titulo: "Segurança" },
-    { id: 3, titulo: "Qualidade" },
-    { id: 4, titulo: "Meio Ambiente" },
-];
 
 export default function ChecklistsTab({ visitaId }: ChecklistsTabProps) {
     const {
@@ -31,7 +25,7 @@ export default function ChecklistsTab({ visitaId }: ChecklistsTabProps) {
         handleDeleteForm,
         handleOpenModal,
         handleCloseModal,
-    } = useForms();
+    } = useForms(visitaId);
 
     const [expandedSummary, setExpandedSummary] = useState<string | false>(false);
 

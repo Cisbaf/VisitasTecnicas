@@ -33,9 +33,16 @@ import { PREDEFINED_SUMMARIES } from '@/components/types';
 interface FormEditorModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (formData: { id?: number; categoria: string; summaryId: number; campos: any[]; tipoForm: string; visitaId?: number }) => void;
+    onSave: (formData: {
+        id?: number;
+        categoria: string;
+        summaryId: number;
+        campos: any[];
+        tipoForm: string;
+        visitaId: number
+    }) => void;
     initialData?: FormCategory;
-    visitaId?: number;
+    visitaId: number;
 }
 
 export default function FormEditorModal({ open, onClose, onSave, initialData, visitaId }: FormEditorModalProps) {
@@ -108,11 +115,9 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
             setErro('Adicione pelo menos um campo ao formulário');
             return;
         }
-        if (summaryId === 2) {
-            setTipoForm('PADRONIZACAO')
-        } else {
-            setTipoForm('INSPECAO')
-        }
+
+        const tipoFormDeterminado = summaryId === 2 ? 'PADRONIZACAO' : 'INSPECAO';
+        setTipoForm(tipoFormDeterminado);
 
         setErro('');
         onSave({
@@ -120,11 +125,11 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
             categoria,
             summaryId,
             campos,
-            tipoForm,
+            tipoForm: tipoFormDeterminado,
             visitaId
-
         });
     };
+
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

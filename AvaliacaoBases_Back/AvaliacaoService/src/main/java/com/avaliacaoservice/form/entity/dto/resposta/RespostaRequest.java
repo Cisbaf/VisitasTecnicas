@@ -9,9 +9,6 @@
  public  record RespostaRequest(
             String texto,
             CheckBox checkbox,
-            @NotNull
-            @Positive
-            Long visitaId,
             Long campoId
  ) {
 

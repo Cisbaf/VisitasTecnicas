@@ -19,7 +19,6 @@ public class Resposta {
 
     @Enumerated(EnumType.STRING)
     private CheckBox checkbox;
-    private Long visitaId;
     @ManyToOne(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
     @JsonIgnore
     private CamposFormEntity campo;

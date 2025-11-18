@@ -1,6 +1,5 @@
 package com.avaliacaoservice.form.controller;
 
-import com.avaliacaoservice.form.entity.FormEntity;
 import com.avaliacaoservice.form.entity.dto.forms.FormRequest;
 import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
 import com.avaliacaoservice.form.entity.emuns.TipoForm;
@@ -11,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -45,8 +43,15 @@ public class FormController {
 
     @GetMapping({"/visita/{visitaId}"})
     @Operation(summary = "Get forms by Visita ID", description = "Retrieve a list of forms associated with a specific Visita ID")
-    public ResponseEntity<List<FormEntity>> findByVisitaId(@PathVariable Long visitaId) {
-        ArrayList<FormEntity> forms = this.service.getByVisitaId(visitaId);
+    public ResponseEntity<List<FormResponse>> findByVisitaId(@PathVariable Long visitaId) {
+        var forms = this.service.getByVisitaId(visitaId);
+        return ResponseEntity.ok().body(forms);
+    }
+
+    @GetMapping({"/visita/{visitaId}/summary/{summaryId}"})
+    @Operation(summary = "Get forms by Visita ID and Summary ID", description = "Retrieve a list of forms associated with a specific Visita ID and Summary ID")
+    public ResponseEntity<List<FormResponse>> findByVisitaIdAndSummaryId(@PathVariable Long visitaId, @PathVariable Long summaryId) {
+        var forms = this.service.getByVisitaIdAndSummaryId(visitaId, summaryId);
         return ResponseEntity.ok().body(forms);
     }
 
@@ -58,7 +63,7 @@ public class FormController {
 
     @PutMapping({"/{id}"})
     @Operation(summary = "Update form by ID", description = "Update an existing form by its ID with the provided details")
-    public ResponseEntity<FormResponse> updateForm(@PathVariable Long id, @RequestBody @Valid FormRequest formRequest ) {
+    public ResponseEntity<FormResponse> updateForm(@PathVariable Long id, @RequestBody @Valid FormRequest formRequest) {
         return ResponseEntity.ok().body(this.service.update(id, formRequest));
     }
 

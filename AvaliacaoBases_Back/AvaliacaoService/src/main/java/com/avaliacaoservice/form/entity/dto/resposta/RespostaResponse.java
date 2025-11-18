@@ -8,8 +8,8 @@ public record RespostaResponse(
                 Long id,
                 String texto,
                 CheckBox checkbox,
-                Long visitaId,
-                Long campoId
+                Long campoId,
+                Long visitaId
 ) {
 
 }

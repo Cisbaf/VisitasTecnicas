@@ -21,10 +21,14 @@ public class FormEntity {
     private Long id;
     private String categoria;
     private Long summaryId;
+
+    @Builder.Default
     @OneToMany(mappedBy = "form", cascade = {CascadeType.ALL}, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<CamposFormEntity> campos = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     private TipoForm tipoForm;
+    private Long visitaId;
 
 }

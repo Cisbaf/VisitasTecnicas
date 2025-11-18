@@ -28,13 +28,20 @@ public class FormMapper {
                 formEntity.getCategoria(),
                 formEntity.getSummaryId(),
                 formEntity.getCampos(),
-                formEntity.getTipoForm());
+                formEntity.getTipoForm(),
+                formEntity.getVisitaId()
+        );
     }
 
 
     FormEntity toFormEntity(FormRequest request) {
         List<CamposFormEntity> campos;
-        FormEntity form = FormEntity.builder().categoria(request.categoria()).summaryId(request.summaryId()).tipoForm((request.summaryId() == 2L) ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO).build();
+        FormEntity form = FormEntity.builder()
+                .categoria(request.categoria())
+                .summaryId(request.summaryId())
+                .tipoForm((request.summaryId() == 2L || request.summaryId() == 3L) ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO)
+                .visitaId(request.visitaId())
+                .build();
 
         if (form.getCampos() == null) {
             form.setCampos(new ArrayList<>());
@@ -74,10 +81,10 @@ public class FormMapper {
         try {
             return RespostaResponse.builder()
                     .texto((entity.getTexto() != null) ? entity.getTexto() : "")
-                    .visitaId(entity.getVisitaId())
                     .checkbox((entity.getCheckbox() != null) ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
                     .id(entity.getId())
                     .campoId((entity.getCampo() != null) ? entity.getCampo().getId() : null)
+                    .visitaId((entity.getCampo() != null && entity.getCampo().getForm() != null) ? entity.getCampo().getForm().getVisitaId() : null)
                     .build();
         } catch (Exception e) {
             System.out.println(entity.toString());
@@ -88,15 +95,8 @@ public class FormMapper {
     Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
         return Resposta.builder()
                 .texto((request.texto() != null) ? request.texto() : "")
-                .visitaId(request.visitaId())
                 .checkbox((request.checkbox() != null) ? request.checkbox() : CheckBox.NOT_GIVEN)
                 .campo(campo)
                 .build();
     }
 }
-
-
-/* Location:              C:\Users\gfonseca\IdeaProjects\ProjetoJoãoTeste1\AvaliacaoBases_Back\app.jar!\BOOT-INF\classes\com\avaliacaoservice\form\service\FormMapper.class
- * Java compiler version: 21 (65.0)
- * JD-Core Version:       1.1.3
- */

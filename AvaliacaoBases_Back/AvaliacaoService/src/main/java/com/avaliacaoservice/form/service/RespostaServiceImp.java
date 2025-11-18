@@ -2,11 +2,13 @@ package com.avaliacaoservice.form.service;
 
 import com.avaliacaoservice.form.entity.CamposFormEntity;
 import com.avaliacaoservice.form.entity.Resposta;
+import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
 import com.avaliacaoservice.form.entity.emuns.CheckBox;
 import com.avaliacaoservice.form.respository.CamposFormRepository;
 import com.avaliacaoservice.form.respository.RespostaRepository;
+import com.avaliacaoservice.form.service.capsule.FormService;
 import com.avaliacaoservice.form.service.capsule.RespostaService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,15 +27,16 @@ public class RespostaServiceImp implements RespostaService {
     private final RespostaRepository respostaRepository;
     private final CamposFormRepository camposRepository;
     private final FormMapper mapper;
+    private final FormService formService;
 
     public List<RespostaResponse> addRespostasToCampo(List<RespostaRequest> request, Long campoId) {
-        CamposFormEntity campo = this.camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
+        CamposFormEntity campo = camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
 
         List<Resposta> respostasParaSalvar = new ArrayList<>();
 
         for (RespostaRequest req : request) {
             Resposta resposta;
-            List<Resposta> respostasExistentes = this.respostaRepository.findByCampoAndVisitaId(campo, req.visitaId());
+            List<Resposta> respostasExistentes = respostaRepository.findByCampo(campo);
 
 
             if (!respostasExistentes.isEmpty()) {
@@ -43,11 +46,11 @@ public class RespostaServiceImp implements RespostaService {
 
                 if (respostasExistentes.size() > 1) {
                     for (int i = 1; i < respostasExistentes.size(); i++) {
-                        this.respostaRepository.delete(respostasExistentes.get(i));
+                        respostaRepository.delete(respostasExistentes.get(i));
                     }
                 }
             } else {
-                resposta = this.mapper.toRespostaEntity(req, campo);
+                resposta = mapper.toRespostaEntity(req, campo);
                 if (req.checkbox() != null) {
                     resposta.setCheckbox(req.checkbox());
                 } else {
@@ -58,8 +61,8 @@ public class RespostaServiceImp implements RespostaService {
             respostasParaSalvar.add(resposta);
         }
 
-        return this.respostaRepository.saveAll(respostasParaSalvar).stream()
-                .map(this.mapper::toRespostaResponse)
+        return respostaRepository.saveAll(respostasParaSalvar).stream()
+                .map(mapper::toRespostaResponse)
                 .toList();
     }
 
@@ -67,73 +70,78 @@ public class RespostaServiceImp implements RespostaService {
     public List<RespostaResponse> addRespostas(List<RespostaRequest> request) {
         List<Resposta> respostasParaSalvar = new ArrayList<>();
 
-
         for (RespostaRequest req : request) {
+            CamposFormEntity campo = camposRepository.findById(req.campoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + req.campoId()));
+
+            List<Resposta> respostaExistente = respostaRepository.findByCampo(campo);
+
             Resposta resposta;
-            CamposFormEntity campo = this.camposRepository.findById(req.campoId()).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + req.campoId()));
-
-            List<Resposta> respostaExistente = this.respostaRepository.findByCampoAndVisitaId(campo, req.visitaId());
-
             if (!respostaExistente.isEmpty()) {
                 resposta = respostaExistente.getFirst();
                 resposta.setTexto(req.texto());
-
                 resposta.setCheckbox(req.checkbox());
             } else {
-                resposta = this.mapper.toRespostaEntity(req, campo);
-
-                if (req.checkbox() != null) {
-                    resposta.setCheckbox(req.checkbox());
-                } else {
-                    resposta.setCheckbox(CheckBox.NOT_GIVEN);
-                }
+                resposta = mapper.toRespostaEntity(req, campo);
+                resposta.setCheckbox(req.checkbox() != null ? req.checkbox() : CheckBox.NOT_GIVEN);
             }
-
 
             respostasParaSalvar.add(resposta);
         }
 
-
-        Objects.requireNonNull(this.mapper);
-        return this.respostaRepository.saveAll(respostasParaSalvar).stream().map(this.mapper::toRespostaResponse)
+        return respostaRepository.saveAll(respostasParaSalvar).stream()
+                .map(mapper::toRespostaResponse)
                 .toList();
     }
 
 
-    public List<RespostaResponse> getAllResposta(List<Long> visitIds) {
-        List<Resposta> respostas = new ArrayList<>();
-        for (Long id : visitIds) {
-            List<Resposta> resp = this.respostaRepository.findAllByVisitaId(id);
+    public List<RespostaResponse> getRespostaByCampo(Long campoId) {
+        CamposFormEntity campo = camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
 
+        return respostaRepository.findAllByAndCampo(campo).stream().map(mapper::toRespostaResponse).toList();
+    }
 
-            Objects.requireNonNull(respostas);
-            resp.stream().filter(r -> (r.getCampo() != null)).forEach(respostas::add);
+    public List<RespostaResponse> getRespostasByCampoIds(List<Long> campoIds) {
+        if (campoIds == null || campoIds.isEmpty()) {
+            return List.of();
         }
-        Objects.requireNonNull(this.mapper);
-        return respostas.stream().map(this.mapper::toRespostaResponse).toList();
-    }
-
-
-    public List<RespostaResponse> getRespostaByCampoAndVisita(Long campoId, Long visitId) {
-        CamposFormEntity campo = this.camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
-
-        Objects.requireNonNull(this.mapper);
-        return this.respostaRepository.findAllByVisitaIdAndCampo(visitId, campo).stream().map(this.mapper::toRespostaResponse).toList();
-    }
-
-
-    public List<RespostaResponse> getRespostasByVisitaId(Long visitaId) {
-        List<Resposta> respostas = this.respostaRepository.findAllByVisitaId(visitaId);
-
-
-        Objects.requireNonNull(this.mapper);
-        return respostas.stream().filter(r -> (r.getCampo() != null)).map(this.mapper::toRespostaResponse)
+        return respostaRepository.findAllByCampoIdIn(campoIds).stream()
+                .map(mapper::toRespostaResponse)
                 .toList();
+    }
+
+    public List<RespostaResponse> getRespostasByFormId(Long formId) {
+        // PRIMEIRO BUSCA OS CAMPOS DO FORM, DEPOIS AS RESPOSTAS
+        List<Long> campoIds = camposRepository.findByFormId(formId).stream()
+                .map(CamposFormEntity::getId)
+                .collect(Collectors.toList());
+
+        return getRespostasByCampoIds(campoIds);
+    }
+
+    public List<RespostaResponse> getRespostasByVisitaId(List<Long> visitaId) {
+        // BUSCA TODOS OS FORMS DA VISITA
+        List<FormResponse> forms = new ArrayList<>();
+        for (Long id : visitaId) {
+            var form = formService.getByVisitaId(id);
+            forms.addAll(form);
+        }
+
+        // COLETA TODOS OS CAMPOS IDs
+        List<Long> todosCampoIds = forms.stream()
+                .flatMap(form -> form.campos().stream())
+                .map(CamposFormEntity::getId)
+                .collect(Collectors.toList());
+
+        return getRespostasByCampoIds(todosCampoIds);
     }
 
 
     @Transactional
-    public void deleteRespostasByVisitaId(Long visitaId) {
-        this.respostaRepository.deleteAllByVisitaId(visitaId);
+    public void deleteRespostasByCampoId(Long campoId) {
+        CamposFormEntity campo = camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
+        respostaRepository.deleteAllByCampo(campo);
     }
+
+
 }

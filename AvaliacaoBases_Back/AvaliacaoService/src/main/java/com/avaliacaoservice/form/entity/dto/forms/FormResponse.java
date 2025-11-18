@@ -10,7 +10,8 @@ public record FormResponse(
         String categoria,
         Long summaryId,
         List<CamposFormEntity> campos,
-        TipoForm tipoForm
+        TipoForm tipoForm,
+        Long visitaId
 ) {
 }
 

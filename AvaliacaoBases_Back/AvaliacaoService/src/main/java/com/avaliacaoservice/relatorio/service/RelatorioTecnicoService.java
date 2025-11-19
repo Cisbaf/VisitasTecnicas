@@ -39,6 +39,7 @@ public class RelatorioTecnicoService {
     private final ViaturaService viaturaService;
     private final CidadeService inspecaoServiceClient;
     private final CsvProcessingService csvProcessingService;
+    private final CalcularPontos calcularPontos;
 
     public RelatorioTecnicoResponse gerarRelatorio(Long visitaId, LocalDate dataInicio, LocalDate dataFim) {
         log.info("Iniciando geração de relatório. visitaId={}, dataInicio={}, dataFim={}", visitaId, dataInicio, dataFim);
@@ -123,15 +124,15 @@ public class RelatorioTecnicoService {
             List<RespostaResponse> safeRespostas = Optional.ofNullable(respostas).orElse(Collections.emptyList());
             List<ViaturaResponse> safeViaturas = Optional.ofNullable(viaturas).orElse(Collections.emptyList());
 
-            CalcularPontos.ResultadosHierarquicos resultadosHierarquicos = CalcularPontos.calcularConformidadeHierarquica(safeForms, safeRespostas, visita);
+            CalcularPontos.ResultadosHierarquicos resultadosHierarquicos = calcularPontos.calcularConformidadeHierarquica(safeForms, safeRespostas, visita);
 
             double mediaConformidadeVisita = resultadosHierarquicos.geral.porcentagem;
             relatorio.setMediaGeralConformidade(mediaConformidadeVisita);
 
-            relatorio.setPontosFortes(CalcularPontos.calcularPontosFortes(safeForms, safeRespostas, visita));
-            relatorio.setPontosCriticos(CalcularPontos.calcularPontosCriticos(safeForms, safeRespostas, visita));
+            relatorio.setPontosFortes(calcularPontos.calcularPontosFortes(safeForms, safeRespostas, visita));
+            relatorio.setPontosCriticos(calcularPontos.calcularPontosCriticos(safeForms, safeRespostas, visita));
 
-            Map<String, CategoryConformanceDTO> confDetalhada = CalcularPontos.calcularConformidadesDetalhadas(safeForms, safeRespostas, visita);
+            Map<String, CategoryConformanceDTO> confDetalhada = calcularPontos.calcularConformidadesDetalhadas(safeForms, safeRespostas, visita);
             relatorio.setConformidadeDetalhada(confDetalhada);
 
             Map<String, Double> conformidadesSimples = new HashMap<>();
@@ -159,7 +160,7 @@ public class RelatorioTecnicoService {
             }
             relatorio.setConformidadesPorSummary(conformidadesPorSummary);
 
-            double percentualFora = CalcularPontos.percentualItensForaConformidadeGlobal(safeForms, safeRespostas);
+            double percentualFora = calcularPontos.percentualItensForaConformidadeGlobal(safeForms, safeRespostas);
             relatorio.setPercentualItensForaConformidade(percentualFora);
 
             relatorio.setViaturas(processarViaturas(safeViaturas));
@@ -205,7 +206,7 @@ public class RelatorioTecnicoService {
         RelatorioTecnicoResponse rel;
         List<VisitaResponse> visitas = Optional.ofNullable(this.visitaService.getBaseByPeriod(idBase, dataInicio, dataFim)).orElse(List.of());
 
-        List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSPECAO"))).toList();
+        List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSP"))).toList();
 
         int totalVisitasPeriodo = visitasValidas.size();
 
@@ -231,10 +232,18 @@ public class RelatorioTecnicoService {
         log.info("Gerando relatorios por periodo. dataInicio={}, dataFim={}", dataInicio, dataFim);
         List<VisitaResponse> visitas = Optional.ofNullable(this.visitaService.getAllByPeriod(dataInicio, dataFim)).orElse(List.of());
 
-        List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSPECAO"))).toList();
+        List<VisitaResponse> visitasValidas =
+                visitas.stream()
+                        .filter(Objects::nonNull)
+                        .filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null))
+                        .filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSPE")))
+                        .toList();
+
+        log.info(" Total de visitas válidas encontradas: {}", visitasValidas.size());
 
         Map<Long, VisitaResponse> ultimaPorBase = visitasValidas.stream().collect(Collectors.toMap(VisitaResponse::idBase, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(VisitaResponse::dataVisita))));
 
+        log.info(" Total de bases com visitas válidas: {}", ultimaPorBase.size());
         return ultimaPorBase.values().stream()
                 .map(visita -> {
                     try {
@@ -377,7 +386,7 @@ public class RelatorioTecnicoService {
                 }
 
                 // Passar apenas os forms da visita específica
-                CalcularPontos.ResultadosHierarquicos resultados = CalcularPontos.calcularConformidadeHierarquica(formsDaVisita, respostasVisita, ultimaVisita);
+                CalcularPontos.ResultadosHierarquicos resultados = calcularPontos.calcularConformidadeHierarquica(formsDaVisita, respostasVisita, ultimaVisita);
 
                 double mediaConformidadeBase = resultados.geral.porcentagem;
                 if (mediaConformidadeBase <= 0.0D) {

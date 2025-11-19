@@ -21,8 +21,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class CalcularPontos {
+    private final FormMapper mapper;
 
-    static class ResultadosHierarquicos {
+    class ResultadosHierarquicos {
         Map<Long, PorFormulario> porFormulario = new HashMap<>();
         Map<Long, PorSummary> porSummary = new HashMap<>();
         Geral geral = new Geral();
@@ -41,12 +42,12 @@ public class CalcularPontos {
             List<Long> forms = new ArrayList<>();
         }
 
-        static class Geral {
+        class Geral {
             double porcentagem = 0;
         }
     }
 
-    private static class GenericPercentResult {
+    private class GenericPercentResult {
         Map<Long, Double> percentTrueByCampo = new HashMap<>();
         Map<Long, Integer> countCheckboxByCampo = new HashMap<>();
         Map<Long, Double> percentConformeByCampo = new HashMap<>();
@@ -54,7 +55,7 @@ public class CalcularPontos {
     }
 
 
-    static ResultadosHierarquicos calcularConformidadeHierarquica(List<FormResponse> inspectionForms, List<RespostaResponse> respostasVisita, VisitaResponse visita) {
+    ResultadosHierarquicos calcularConformidadeHierarquica(List<FormResponse> inspectionForms, List<RespostaResponse> respostasVisita, VisitaResponse visita) {
         ResultadosHierarquicos resultados = new ResultadosHierarquicos();
 
         try {
@@ -149,7 +150,7 @@ public class CalcularPontos {
     }
 
 
-    public static List<String> calcularPontosFortes(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
+    public List<String> calcularPontosFortes(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
         List<String> pontos = new ArrayList<>();
         if (forms == null || respostas == null) {
             return pontos;
@@ -200,7 +201,7 @@ public class CalcularPontos {
     }
 
 
-    public static List<String> calcularPontosCriticos(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
+    public List<String> calcularPontosCriticos(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
         List<String> criticos = new ArrayList<>();
         if (forms == null || respostas == null) {
             criticos.add("Dados insuficientes para identificar pontos críticos");
@@ -263,7 +264,7 @@ public class CalcularPontos {
         return criticos.isEmpty() ? List.of("Nenhum ponto crítico identificado") : criticos;
     }
 
-    public static Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
+    public Map<String, CategoryConformanceDTO> calcularConformidadesDetalhadas(List<FormResponse> forms, List<RespostaResponse> respostas, VisitaResponse visita) {
         Map<String, CategoryConformanceDTO> mapa = new HashMap<>();
         if (forms == null || respostas == null) return mapa;
 
@@ -292,7 +293,7 @@ public class CalcularPontos {
     }
 
 
-    public static double percentualItensForaConformidadeGlobal(List<FormResponse> forms, List<RespostaResponse> respostas) {
+    public double percentualItensForaConformidadeGlobal(List<FormResponse> forms, List<RespostaResponse> respostas) {
         if (forms == null || respostas == null) return 0.0D;
 
         GenericPercentResult gen = calcularPercentuaisGenericosPorCampo(forms, respostas);
@@ -314,7 +315,7 @@ public class CalcularPontos {
     }
 
 
-    private static GenericPercentResult calcularPercentuaisGenericosPorCampo(List<FormResponse> forms, List<RespostaResponse> respostas) {
+    private GenericPercentResult calcularPercentuaisGenericosPorCampo(List<FormResponse> forms, List<RespostaResponse> respostas) {
         GenericPercentResult res = new GenericPercentResult();
         if (forms == null || respostas == null) return res;
 
@@ -353,20 +354,21 @@ public class CalcularPontos {
 
         return res;
     }
-    private static Map<Long, CamposFormResponse> getCamposById(List<FormResponse> forms) {
+
+    private Map<Long, CamposFormResponse> getCamposById(List<FormResponse> forms) {
         if (forms == null) return Map.of();
         return forms.stream()
                 .flatMap(f -> Optional.ofNullable(f.campos()).orElse(List.of()).stream())
-                .collect(Collectors.toMap(CamposFormEntity::getId, FormMapper::toCampoResponse));
+                .collect(Collectors.toMap(CamposFormEntity::getId, mapper::toCampoResponse));
     }
 
-    private static String buildCampoLabel(CamposFormResponse campo, List<FormResponse> forms) {
+    private String buildCampoLabel(CamposFormResponse campo, List<FormResponse> forms) {
         if (campo == null) return "Campo desconhecido";
         String categoria = getCategoriaDoCampo(campo, forms);
         return categoria + " - " + categoria;
     }
 
-    private static String getCategoriaDoCampo(CamposFormResponse campo, List<FormResponse> forms) {
+    private String getCategoriaDoCampo(CamposFormResponse campo, List<FormResponse> forms) {
         if (campo == null) return "Sem categoria";
 
         for (FormResponse form : forms) {

@@ -1,5 +1,6 @@
 package com.avaliacaoservice.form.controller;
 
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormResponse;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
 import com.avaliacaoservice.form.service.capsule.RespostaService;
@@ -22,6 +23,13 @@ public class RespostaController {
     @Operation(summary = "Get all answers", description = "Retrieve all answers in the system")
     public ResponseEntity<List<RespostaResponse>> getAllRespostas(@RequestBody List<Long> visitaIds) {
         return ResponseEntity.ok().body(service.getRespostasByVisitaId(visitaIds));
+    }
+
+    @PostMapping("/fieldsByAnswers")
+    @Operation(summary = "Get fields by answers", description = "Retrieve all fields associated with a list of answers")
+    public ResponseEntity<List<CamposFormResponse>> getCamposByRespostas(@RequestBody List<RespostaResponse> respostas) {
+
+        return ResponseEntity.ok().body(service.getCampoByResposta(respostas));
     }
 
     @GetMapping({"/field/{campoId}"})

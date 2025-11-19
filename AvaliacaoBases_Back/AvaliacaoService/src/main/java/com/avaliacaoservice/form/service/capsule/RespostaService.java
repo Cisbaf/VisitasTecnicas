@@ -1,5 +1,6 @@
 package com.avaliacaoservice.form.service.capsule;
 
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormResponse;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
 
@@ -20,5 +21,7 @@ public interface RespostaService {
     List<RespostaResponse> getRespostasByCampoIds(List<Long> campoIds);
 
     List<RespostaResponse> getRespostasByVisitaId(List<Long> visitaId);
+
+    List<CamposFormResponse> getCampoByResposta(List<RespostaResponse> response);
 
 }

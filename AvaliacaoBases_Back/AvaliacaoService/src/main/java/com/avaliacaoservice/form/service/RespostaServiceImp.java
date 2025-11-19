@@ -2,6 +2,7 @@ package com.avaliacaoservice.form.service;
 
 import com.avaliacaoservice.form.entity.CamposFormEntity;
 import com.avaliacaoservice.form.entity.Resposta;
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormResponse;
 import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
 import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
@@ -134,6 +135,14 @@ public class RespostaServiceImp implements RespostaService {
                 .collect(Collectors.toList());
 
         return getRespostasByCampoIds(todosCampoIds);
+    }
+
+    public List<CamposFormResponse> getCampoByResposta(List<RespostaResponse> response){
+        List<Long> campoIds = response.stream()
+                .map(RespostaResponse::campoId)
+                .collect(Collectors.toList());
+
+        return camposRepository.findAllById(campoIds).stream().map(mapper::toCampoResponse).toList();
     }
 
 

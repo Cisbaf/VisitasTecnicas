@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class VtrRequest {
     private String cidade;
-    private Long ativa;
+    @Builder.Default
+    private Long ativa = 0L;
     private String placa;
     private String CNES;
     private String viatura;

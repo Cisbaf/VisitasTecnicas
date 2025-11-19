@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -25,6 +22,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -112,7 +110,8 @@ public class CsvProcessingService {
     }
 
     public void processarArquivoVTR(MultipartFile file) {
-        List<VtrRequest> dados = new ArrayList<>();
+        // Map para agrupar viaturas por município
+        Map<String, List<VtrRequest>> dadosPorMunicipio = new HashMap<>();
 
         try {
             InputStream inputStream = file.getInputStream();
@@ -121,16 +120,15 @@ public class CsvProcessingService {
 
                 try {
                     Sheet sheet = xSSFWorkbook.getSheetAt(0);
-
-
+                    FormulaEvaluator evaluator = xSSFWorkbook.getCreationHelper().createFormulaEvaluator();
                     List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
-
 
                     Row headerRow = sheet.getRow(0);
                     int municipioCol = -1, ativaCol = -1, placaCol = -1, cnesCol = -1, viaturaCol = -1;
 
+                    // Identificar colunas (seu código atual)
                     for (Cell cell : headerRow) {
-                        String cellValue = getCellValueAsString(cell).toUpperCase();
+                        String cellValue = getCellValueAsString(cell, evaluator).toUpperCase();
                         if (cellValue.contains("MUNICÍPIO") || cellValue.contains("MUNICIPIO")) {
                             municipioCol = cell.getColumnIndex();
                             continue;
@@ -151,51 +149,78 @@ public class CsvProcessingService {
                             viaturaCol = cell.getColumnIndex();
                         }
                     }
-
-
+                    // Processar linhas e agrupar por município
                     for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                         Row row = sheet.getRow(i);
                         if (row != null) {
-
                             VtrRequest dto = new VtrRequest();
 
                             if (municipioCol >= 0) {
-                                String cidade = getMergedCellValue(sheet, mergedRegions, i, municipioCol);
+                                String cidade = getMergedCellValue(sheet, mergedRegions, i, municipioCol, evaluator);
                                 dto.setCidade(cidade);
                             }
 
                             if (placaCol >= 0) {
-                                String placa = getMergedCellValue(sheet, mergedRegions, i, placaCol);
+                                String placa = getMergedCellValue(sheet, mergedRegions, i, placaCol, evaluator);
                                 dto.setPlaca(placa);
                             }
 
                             if (cnesCol >= 0) {
-                                String cnes = getMergedCellValue(sheet, mergedRegions, i, cnesCol);
+                                String cnes = getMergedCellValue(sheet, mergedRegions, i, cnesCol, evaluator);
                                 dto.setCNES(cnes);
                             }
 
                             if (viaturaCol >= 0) {
-                                String viatura = getMergedCellValue(sheet, mergedRegions, i, viaturaCol);
+                                String viatura = getMergedCellValue(sheet, mergedRegions, i, viaturaCol, evaluator);
                                 dto.setViatura(viatura);
                             }
 
                             if (ativaCol >= 0) {
-                                String ativaValue = getMergedCellValue(sheet, mergedRegions, i, ativaCol);
-                                try {
-                                    ativaValue = ativaValue.replaceAll("[^0-9.,]", "").replace(",", ".");
-                                    if (!ativaValue.isEmpty()) {
-                                        double doubleValue = Double.parseDouble(ativaValue);
-                                        dto.setAtiva(Math.round(doubleValue));
+                                Cell ativaCell = getMergedCell(sheet, mergedRegions, i, ativaCol);
+                                if (ativaCell != null) {
+                                    try {
+                                        evaluator.evaluateFormulaCell(ativaCell);
+                                        double numericValue = ativaCell.getNumericCellValue();
+                                        dto.setAtiva(Math.round(numericValue));
+                                    } catch (Exception e) {
+                                        try {
+                                            String ativaValue = getCellValueAsString(ativaCell, evaluator);
+                                            ativaValue = ativaValue.replaceAll("[^0-9.,]", "").replace(",", ".");
+                                            if (!ativaValue.isEmpty()) {
+                                                double doubleValue = Double.parseDouble(ativaValue);
+                                                dto.setAtiva(Math.round(doubleValue));
+                                            } else {
+                                                dto.setAtiva(0L);
+                                            }
+                                        } catch (NumberFormatException ex) {
+                                            dto.setAtiva(0L);
+                                        }
                                     }
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Erro ao converter valor: " + ativaValue);
+                                } else {
+                                    dto.setAtiva(0L);
                                 }
+                            } else {
+                                dto.setAtiva(0L);
                             }
 
-                            dados.add(dto);
+                            // Agrupar por município
+                            if (dto.getCidade() != null && !dto.getCidade().isEmpty() &&
+                                    dto.getViatura() != null && !dto.getViatura().isEmpty()) {
+
+                                dadosPorMunicipio.computeIfAbsent(dto.getCidade(), k -> new ArrayList<>()).add(dto);
+                            }
                         }
                     }
-                    this.cidadeService.processarPlanilhaVTR(dados);
+
+                    // Processar cada município com suas viaturas agrupadas
+                    for (Map.Entry<String, List<VtrRequest>> entry : dadosPorMunicipio.entrySet()) {
+                        String municipio = entry.getKey();
+                        List<VtrRequest> viaturasDoMunicipio = entry.getValue();
+
+
+                        // Chamar o service passando as viaturas agrupadas por município
+                        this.cidadeService.processarPlanilhaVTR(viaturasDoMunicipio);
+                    }
 
                     xSSFWorkbook.close();
                 } catch (Throwable throwable) {
@@ -218,7 +243,6 @@ public class CsvProcessingService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar arquivo VTR: " + e.getMessage(), e);
         }
-
     }
 
     public HashMap<String, String> calcularMediaProntidao() {
@@ -273,13 +297,28 @@ public class CsvProcessingService {
         return -1L;
     }
 
+    private Cell getMergedCell(Sheet sheet, List<CellRangeAddress> mergedRegions, int row, int col) {
+        for (CellRangeAddress mergedRegion : mergedRegions) {
+            if (mergedRegion.isInRange(row, col)) {
+                Row firstRow = sheet.getRow(mergedRegion.getFirstRow());
+                if (firstRow != null) {
+                    return firstRow.getCell(mergedRegion.getFirstColumn());
+                }
+            }
+        }
 
-    private String getMergedCellValue(Sheet sheet, List<CellRangeAddress> mergedRegions, int row, int col) {
+        Row currentRow = sheet.getRow(row);
+        if (currentRow == null) return null;
+
+        return currentRow.getCell(col);
+    }
+
+    private String getMergedCellValue(Sheet sheet, List<CellRangeAddress> mergedRegions, int row, int col, FormulaEvaluator evaluator) {
         for (CellRangeAddress mergedRegion : mergedRegions) {
             if (mergedRegion.isInRange(row, col)) {
                 Row firstRow = sheet.getRow(mergedRegion.getFirstRow());
                 Cell firstCell = firstRow.getCell(mergedRegion.getFirstColumn());
-                return getCellValueAsString(firstCell);
+                return getCellValueAsString(firstCell, evaluator);
             }
         }
 
@@ -287,54 +326,56 @@ public class CsvProcessingService {
         if (currentRow == null) return "";
 
         Cell cell = currentRow.getCell(col);
-        return getCellValueAsString(cell);
+        return getCellValueAsString(cell, evaluator);
     }
 
-    private String getCellValueAsString(Cell cell) {
+    private String getCellValueAsString(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null) return "";
         try {
-            double value;
-            switch (cell.getCellType().ordinal()) {
-                case 2:
+            switch (cell.getCellType()) {
+                case STRING:
                     return cell.getStringCellValue().trim();
-                case 1:
+                case NUMERIC:
                     if (DateUtil.isCellDateFormatted(cell)) {
                         return cell.getDateCellValue().toString();
                     }
-                    value = cell.getNumericCellValue();
+                    double value = cell.getNumericCellValue();
                     if (value == Math.floor(value)) {
                         return String.valueOf((long) value);
                     }
                     return String.valueOf(value);
-
-
-                case 3:
+                case BOOLEAN:
                     return String.valueOf(cell.getBooleanCellValue());
-                case 4:
+                case FORMULA:
+                    // Avaliar a fórmula
                     try {
-                        double formulaValue;
-                        switch (cell.getCachedFormulaResultType().ordinal()) {
-                            case 1:
-                                formulaValue = cell.getNumericCellValue();
-                                if (formulaValue == Math.floor(formulaValue)) {
-                                    return String.valueOf((long) formulaValue);
+                        CellValue cellValue = evaluator.evaluate(cell);
+                        switch (cellValue.getCellType()) {
+                            case NUMERIC:
+                                double numericValue = cellValue.getNumberValue();
+                                if (numericValue == Math.floor(numericValue)) {
+                                    return String.valueOf((long) numericValue);
                                 }
-                                return String.valueOf(formulaValue);
-
-                            case 2:
-                                return cell.getStringCellValue().trim();
-                            case 3:
-                                return String.valueOf(cell.getBooleanCellValue());
+                                return String.valueOf(numericValue);
+                            case STRING:
+                                return cellValue.getStringValue();
+                            case BOOLEAN:
+                                return String.valueOf(cellValue.getBooleanValue());
+                            case ERROR:
+                                return "#ERRO";
+                            default:
+                                return "";
                         }
-                        return "";
                     } catch (Exception e) {
-                        return cell.getStringCellValue().trim();
+                        return cell.getCellFormula();
                     }
+                case ERROR:
+                    return "#ERRO";
+                default:
+                    return "";
             }
-            return "";
         } catch (Exception e) {
-            System.err.println("Erro ao ler célula: " + e.getMessage());
-            return "";
+            throw new RuntimeException("Erro ao ler valor da célula: " + e.getMessage(), e);
         }
     }
 
@@ -404,9 +445,3 @@ public class CsvProcessingService {
         }
     }
 }
-
-
-/* Location:              C:\Users\gfonseca\IdeaProjects\ProjetoJoãoTeste1\AvaliacaoBases_Back\app.jar!\BOOT-INF\classes\com\avaliacaoservice\inspecao\service\CsvProcessingService.class
- * Java compiler version: 21 (65.0)
- * JD-Core Version:       1.1.3
- */

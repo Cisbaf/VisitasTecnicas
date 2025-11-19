@@ -23,7 +23,7 @@ public class CampoServiceImp implements CampoService {
     private final FormMapper mapper;
 
     public List<CamposFormResponse> findAll() {
-        return this.camposRepository.findAll().stream().map(FormMapper::toCampoResponse).toList();
+        return this.camposRepository.findAll().stream().map(mapper::toCampoResponse).toList();
     }
 
 
@@ -40,7 +40,7 @@ public class CampoServiceImp implements CampoService {
 
     public CamposFormResponse findById(Long id) {
         CamposFormEntity campo = this.camposRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + id));
-        return FormMapper.toCampoResponse(campo);
+        return mapper.toCampoResponse(campo);
     }
 }
 

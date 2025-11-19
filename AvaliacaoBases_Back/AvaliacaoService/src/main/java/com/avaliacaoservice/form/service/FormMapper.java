@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class FormMapper {
-    FormResponse toFromResponse(FormEntity formEntity) {
+    public FormResponse toFromResponse(FormEntity formEntity) {
         return new FormResponse(
                 formEntity.getId(),
                 formEntity.getCategoria(),
@@ -34,7 +34,7 @@ public class FormMapper {
     }
 
 
-    FormEntity toFormEntity(FormRequest request) {
+    public FormEntity toFormEntity(FormRequest request) {
         List<CamposFormEntity> campos;
         FormEntity form = FormEntity.builder()
                 .categoria(request.categoria())
@@ -59,7 +59,7 @@ public class FormMapper {
         return form;
     }
 
-    public static CamposFormResponse toCampoResponse(CamposFormEntity camposFormEntity) {
+    public CamposFormResponse toCampoResponse(CamposFormEntity camposFormEntity) {
         return CamposFormResponse.builder()
                 .formId(camposFormEntity.getForm().getId())
                 .id(camposFormEntity.getId())
@@ -69,7 +69,7 @@ public class FormMapper {
     }
 
 
-    CamposFormEntity toCampoEntity(CamposFormRequest request, FormEntity formEntity) {
+    public CamposFormEntity toCampoEntity(CamposFormRequest request, FormEntity formEntity) {
         return CamposFormEntity.builder()
                 .titulo(request.titulo())
                 .tipo(Tipo.valueOf(request.tipo()))
@@ -92,7 +92,7 @@ public class FormMapper {
         }
     }
 
-    Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
+    public Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
         return Resposta.builder()
                 .texto((request.texto() != null) ? request.texto() : "")
                 .checkbox((request.checkbox() != null) ? request.checkbox() : CheckBox.NOT_GIVEN)

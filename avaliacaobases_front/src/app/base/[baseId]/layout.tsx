@@ -60,7 +60,6 @@ export default function Layout({ children }: Props) {
     }, [isClient, baseId]);
 
 
-    const headerFallback = "Base SAMU";
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f4f8fb" }}>
@@ -80,12 +79,13 @@ export default function Layout({ children }: Props) {
                 }}
             >
                 <Toolbar sx={{ justifyContent: "space-between" }}>
-                    <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <img src='/cisbaf.png' alt="Logo" style={{ height: 40 }} />
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             {/* aqui evitamos mismatch: antes do mount mostramos fallback estável */}
                             {isClient && baseData
-                                ? `${baseData.nome}`
-                                : headerFallback}
+                                ? `Base Samu - ${baseData.nome}`
+                                : "Base Samu"}
                         </Typography>
                     </Box>
                     <Box>

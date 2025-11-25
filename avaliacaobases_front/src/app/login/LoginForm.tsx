@@ -50,7 +50,6 @@ export default function LoginForm() {
             setLoading(false);
         }
     }
-
     return (
         <Box sx={{ display: 'flex', height: '100vh' }}>
 

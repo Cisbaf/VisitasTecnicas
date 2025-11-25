@@ -26,7 +26,8 @@ export interface ResumoVisitas {
     indiceInspecao: number;
     indicePadronizacao: number;
     visitasDetalhadas: { id: number; data: string; baseId: number; baseNome: string; relatos: RelatoDTO[] }[];
-    conformidadePorSummary: Record<number, ConformidadeSummary[]>; // NOVO
+    conformidadePorSummary: Record<number, ConformidadeSummary[]>;
+    camposNaoConformes: Record<number, any[]>;
 }
 
 export interface ViaturaStatusPorBase {
@@ -199,7 +200,6 @@ export function useAdminHome() {
                             console.warn('Erro ao buscar relatório individual para base', base.id, err);
                         }
 
-
                         const params = new URLSearchParams({
                             dataInicio: inicio.toISOString().split('T')[0],
                             dataFim: fim.toISOString().split('T')[0],
@@ -210,6 +210,7 @@ export function useAdminHome() {
 
                         const visitIds = visitas.map((v: any) => v.id).filter(Boolean);
                         let respostasPorVisita: Record<string, any[]> = {};
+                        let camposNaoConformesDaBase: any[] = []; // NOVO: Array para campos não conformes desta base
 
                         if (visitIds.length > 0) {
                             try {
@@ -221,10 +222,39 @@ export function useAdminHome() {
                                         const visitaId = String(resposta.visitaId || resposta.visitId);
                                         if (resposta.checkbox === "NOT_GIVEN") return;
                                         if (!respostasPorVisita[visitaId]) respostasPorVisita[visitaId] = [];
-
-
                                         respostasPorVisita[visitaId].push(resposta);
                                     });
+
+                                    // NOVO: Processar campos não conformes
+                                    let filter = todasRespostas.filter((r: any) => r.checkbox === "FALSE");
+                                    console.log('Respostas com checkbox FALSE para base', base.id, ':', filter.length);
+
+                                    if (filter.length > 0) {
+                                        try {
+                                            const camposPorVisita = await postJsonSafe('/api/form/answers/fieldsByAnswers', filter);
+                                            console.log('camposPorVisita para base', base.id, ':', camposPorVisita);
+
+                                            // CORREÇÃO: Associar explicitamente à base atual
+                                            if (Array.isArray(camposPorVisita)) {
+                                                if (!acumuladores.camposNaoConformes) {
+                                                    acumuladores.camposNaoConformes = {};
+                                                }
+
+                                                // CORREÇÃO: Usar a base atual em vez de tentar inferir
+                                                const baseId = base.id;
+                                                if (!acumuladores.camposNaoConformes[baseId]) {
+                                                    acumuladores.camposNaoConformes[baseId] = [];
+                                                }
+
+                                                // Adicionar todos os campos à base atual
+                                                acumuladores.camposNaoConformes[baseId].push(...camposPorVisita);
+
+                                                acumuladores.totalInconformidades = (acumuladores.totalInconformidades || 0) + camposPorVisita.length;
+                                            }
+                                        } catch (err) {
+                                            console.error('Erro ao buscar camposPorVisita para base', base.id, err);
+                                        }
+                                    }
                                 }
                             } catch (err) {
                                 console.error('Erro ao buscar respostas para base específica:', err);
@@ -249,7 +279,8 @@ export function useAdminHome() {
                             inspectionForms,
                             padronizacaoForms,
                             acumuladores,
-                            relatosFiltrados
+                            relatosFiltrados,
+                            camposNaoConformesDaBase // NOVO: Passar campos não conformes
                         );
 
                     } catch (err: any) {
@@ -424,6 +455,7 @@ export function useAdminHome() {
                 visitasDetalhadas: (acumuladores.visitasDetalhadas || [])
                     .sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime()),
                 conformidadePorSummary: acumuladores.conformidadePorSummary || {},
+                camposNaoConformes: acumuladores.camposNaoConformes || {}, // NOVO: Incluir campos não conformes
             });
 
         } catch (err: any) {
@@ -445,7 +477,8 @@ export function useAdminHome() {
         inspectionForms: any[],
         padronizacaoForms: any[],
         acumuladores: any,
-        relatosFiltrados: RelatoDTO[]
+        relatosFiltrados: RelatoDTO[],
+        camposNaoConformes?: any[] // NOVO: Parâmetro opcional para campos não conformes
     ) => {
         // Filtrar visitas específicas desta base
         const visitasDaBase = todasVisitas.filter((v: any) =>
@@ -520,6 +553,21 @@ export function useAdminHome() {
                 });
             }
         });
+        if (camposNaoConformes && camposNaoConformes.length > 0) {
+            if (!acumuladores.camposNaoConformes) {
+                acumuladores.camposNaoConformes = {};
+            }
+
+            // Agrupar por base
+            if (!acumuladores.camposNaoConformes[base.id]) {
+                acumuladores.camposNaoConformes[base.id] = [];
+            }
+
+            acumuladores.camposNaoConformes[base.id].push(...camposNaoConformes);
+
+            // Também podemos contar o total de inconformidades
+            acumuladores.totalInconformidades = (acumuladores.totalInconformidades || 0) + camposNaoConformes.length;
+        }
 
         const equipeAgrupadaPorData = Object.entries(equipeDaBase)
             .filter(([data, membros]) => membros.length > 0)

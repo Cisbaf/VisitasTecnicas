@@ -34,12 +34,14 @@ public class CampoServiceImp implements CampoService {
 
 
     public void deleteCampo(Long id) {
-        CamposFormEntity campo = this.camposRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + id));
+        CamposFormEntity campo = this.camposRepository.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("Campo não encontrado com ID: " + id));
         this.camposRepository.delete(campo);
     }
 
     public CamposFormResponse findById(Long id) {
-        CamposFormEntity campo = this.camposRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + id));
+        CamposFormEntity campo = this.camposRepository.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("Campo não encontrado com ID: " + id));
         return mapper.toCampoResponse(campo);
     }
 }

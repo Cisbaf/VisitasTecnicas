@@ -148,7 +148,8 @@ public class RespostaServiceImp implements RespostaService {
 
     @Transactional
     public void deleteRespostasByCampoId(Long campoId) {
-        CamposFormEntity campo = camposRepository.findById(campoId).orElseThrow(() -> new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
+        CamposFormEntity campo = camposRepository.findById(campoId).orElseThrow(() ->
+                new IllegalArgumentException("Campo não encontrado com ID: " + campoId));
         respostaRepository.deleteAllByCampo(campo);
     }
 

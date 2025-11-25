@@ -6,7 +6,6 @@ import com.avaliacaoservice.form.entity.dto.forms.FormRequest;
 import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
 import com.avaliacaoservice.form.entity.emuns.TipoForm;
 import com.avaliacaoservice.form.respository.FormRepository;
-import com.avaliacaoservice.form.respository.RespostaRepository;
 import com.avaliacaoservice.form.service.capsule.FormService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

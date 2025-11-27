@@ -664,6 +664,114 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                         </TableContainer>
                                     </Paper>
                                 </Box>
+                                {resumo?.camposNaoConformes &&
+                                    resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id] &&
+                                    resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].length > 0 && (
+                                        <Box sx={{ width: '100%', mt: 4, mb: 4 }}>
+                                            <Paper
+                                                variant="outlined"
+                                                sx={{
+                                                    p: 3,
+                                                    ...paperStyles,
+                                                    borderTop: '4px solid',
+                                                    borderTopColor: 'error.main'
+                                                }}
+                                            >
+                                                {/* Cabeçalho da Seção */}
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                        <Box sx={{
+                                                            bgcolor: 'error.50',
+                                                            p: 1,
+                                                            borderRadius: '50%',
+                                                            display: 'flex'
+                                                        }}>
+                                                            <ErrorOutlineIcon color="error" />
+                                                        </Box>
+                                                        <Box>
+                                                            <Typography variant="h6" fontWeight="bold" color="text.primary">
+                                                                Itens Não Conformes
+                                                            </Typography>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                Lista de itens que precisam de atenção nesta base.
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+
+                                                    <Chip
+                                                        label={`${resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].length} pendências`}
+                                                        color="error"
+                                                        variant="outlined"
+                                                        size="small"
+                                                        sx={{ fontWeight: 'bold' }}
+                                                    />
+                                                </Box>
+
+                                                <Divider sx={{ mb: 3 }} />
+
+                                                {/* Container com scroll condicional */}
+                                                <Box sx={{
+                                                    maxHeight: resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].length > 16 ? '400px' : 'none',
+                                                    overflowY: resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].length > 16 ? 'auto' : 'visible',
+                                                    pr: resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].length > 16 ? 1 : 0,
+
+                                                    // Estilo da scrollbar para Webkit
+                                                    '&::-webkit-scrollbar': {
+                                                        width: '8px',
+                                                    },
+                                                    '&::-webkit-scrollbar-track': {
+                                                        background: 'rgba(0, 0, 0, 0.05)',
+                                                        borderRadius: '4px',
+                                                    },
+                                                    '&::-webkit-scrollbar-thumb': {
+                                                        background: 'rgba(244, 67, 54, 0.3)',
+                                                        borderRadius: '4px',
+                                                        '&:hover': {
+                                                            background: 'rgba(244, 67, 54, 0.5)',
+                                                        }
+                                                    },
+
+                                                    // Para Firefox
+                                                    scrollbarWidth: 'thin',
+                                                    scrollbarColor: 'rgba(244, 67, 54, 0.3) rgba(0, 0, 0, 0.05)',
+                                                }}>
+                                                    {/* Grid de Itens */}
+                                                    <Box sx={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: {
+                                                            xs: '1fr',
+                                                            sm: '1fr 1fr',
+                                                            md: '1fr 1fr 1fr 1fr'
+                                                        },
+                                                        gap: 2
+                                                    }}>
+                                                        {resumo.camposNaoConformes[baseId ?? perBaseConformidade?.[0]?.id].map((campo: any, index: number) => (
+                                                            <Paper
+                                                                key={index}
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    p: 1.5,
+                                                                    borderLeft: '3px solid',
+                                                                    borderColor: 'error.main',
+                                                                    bgcolor: 'error.50',
+                                                                    borderRadius: '0 6px 6px 0',
+                                                                    transition: 'all 0.2s ease',
+                                                                    '&:hover': {
+                                                                        bgcolor: 'error.100',
+                                                                        transform: 'translateX(2px)'
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <Typography variant="body2" color="error.800" sx={{ lineHeight: 1.3 }}>
+                                                                    {campo.titulo}
+                                                                </Typography>
+                                                            </Paper>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            </Paper>
+                                        </Box>
+                                    )}
 
                                 <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 4 }}>
                                     <Box
@@ -923,49 +1031,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                                 </Paper>
                                                                                             );
                                                                                         })}
-                                                                                        {resumo?.camposNaoConformes && resumo.camposNaoConformes[baseUnica.id] && resumo.camposNaoConformes[baseUnica.id].length > 0 && (
-                                                                                            <Paper variant="outlined" sx={{
-                                                                                                p: 2,
-                                                                                                borderRadius: 2,
-                                                                                                border: '1px solid',
-                                                                                                borderColor: 'error.light',
-                                                                                                bgcolor: 'error.50',
-                                                                                                mt: 2
-                                                                                            }}>
-                                                                                                <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}>
-                                                                                                    <ErrorOutlineIcon fontSize="small" />
-                                                                                                    Itens Não Conformes
-                                                                                                    <Chip
-                                                                                                        label={`${resumo.camposNaoConformes[baseUnica.id].length} itens`}
-                                                                                                        color="error"
-                                                                                                        size="small"
-                                                                                                        sx={{ ml: 1 }}
-                                                                                                    />
-                                                                                                </Typography>
-                                                                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                                                                    * Marcados como não conformes.
-                                                                                                </Typography>
 
-                                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                                                                    {resumo.camposNaoConformes[baseUnica.id].map((campo: any, index: number) => (
-                                                                                                        <Box
-                                                                                                            key={index}
-                                                                                                            sx={{
-                                                                                                                p: 1,
-                                                                                                                borderLeft: '3px solid',
-                                                                                                                borderColor: 'error.main',
-                                                                                                                bgcolor: 'background.paper',
-                                                                                                                borderRadius: '0 4px 4px 0'
-                                                                                                            }}
-                                                                                                        >
-                                                                                                            <Typography variant="body2" fontWeight="medium">
-                                                                                                                {campo.titulo || campo.campoNome || 'Item não conforme'}
-                                                                                                            </Typography>
-                                                                                                        </Box>
-                                                                                                    ))}
-                                                                                                </Box>
-                                                                                            </Paper>
-                                                                                        )}
                                                                                     </Box>
                                                                                 ) : (
                                                                                     <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>

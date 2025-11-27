@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
         const { searchParams } = new URL(req.url);
 
-        const backendUrl = `/viatura/api?${searchParams.toString()}`;
+        const backendUrl = `/avaliacao/viaturas/api?${searchParams.toString()}`;
 
         return await proxyFetch(backendUrl, {
             headers: { Authorization: `Bearer ${token}` },

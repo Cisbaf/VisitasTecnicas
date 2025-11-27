@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ baseId: 
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const path = `/base/${encodeURIComponent(baseId)}`;
+        const path = `/avaliacao/bases/${encodeURIComponent(baseId)}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },
@@ -49,7 +49,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ baseId: 
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/base/${encodeURIComponent(baseId)}`, {
+        return await proxyFetch(`/avaliacao/bases/${encodeURIComponent(baseId)}`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -74,7 +74,7 @@ export async function DELETE(
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
 
-        return await proxyFetch(`/base/${encodeURIComponent(baseId)}`, {
+        return await proxyFetch(`/avaliacao/bases/${encodeURIComponent(baseId)}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
         });

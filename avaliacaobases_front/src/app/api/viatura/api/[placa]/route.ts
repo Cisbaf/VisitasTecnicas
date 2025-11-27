@@ -23,17 +23,26 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET(req: Request, { params }: { params: { placa: string } }) {
+export async function GET(
+    req: Request,
+    { params }: { params: Promise<{ placa: string }> }
+) {
     try {
-        const { placa } = await params;
+        const { placa } = await params; // Aguarde a Promise
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const backendUrl = `/viatura/api/${encodeURIComponent(placa)}`;
+        if (!token) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const backendUrl = `/avaliacao/viaturas/api/${encodeURIComponent(placa)}`;
 
         return await proxyFetch(backendUrl, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
             cache: "no-store",
         });
     } catch (err) {

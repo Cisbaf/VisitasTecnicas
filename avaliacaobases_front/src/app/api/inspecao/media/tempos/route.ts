@@ -28,7 +28,7 @@ export async function GET() {
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/inspecao/tempos/media`, {
+        return await proxyFetch(`/avaliacao/inspecao/tempos/media`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });

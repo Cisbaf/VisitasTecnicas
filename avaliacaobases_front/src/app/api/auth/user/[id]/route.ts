@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/auth/user/${encodeURIComponent(id)}`, {
+        return await proxyFetch(`/avaliacao/user/${encodeURIComponent(id)}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });
@@ -47,7 +47,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/auth/user/${encodeURIComponent(id)}`, {
+        return await proxyFetch(`/avaliacao/user/${encodeURIComponent(id)}`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/auth/user/${encodeURIComponent(id)}`, {
+        return await proxyFetch(`/avaliacao/user/${encodeURIComponent(id)}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
         });

@@ -1,6 +1,6 @@
 // components/admin/visita/Accordion/SummaryAccordion.tsx
 import React, { useState } from 'react';
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Box } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Summary, FormCategory } from '@/components/types';
 import { FormAccordion } from './FormAccordion';

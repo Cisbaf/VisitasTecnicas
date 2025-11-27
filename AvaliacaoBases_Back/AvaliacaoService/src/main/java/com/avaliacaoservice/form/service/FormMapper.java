@@ -1,0 +1,102 @@
+package com.avaliacaoservice.form.service;
+
+import com.avaliacaoservice.form.entity.CamposFormEntity;
+import com.avaliacaoservice.form.entity.FormEntity;
+import com.avaliacaoservice.form.entity.Resposta;
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormRequest;
+import com.avaliacaoservice.form.entity.dto.campos.CamposFormResponse;
+import com.avaliacaoservice.form.entity.dto.forms.FormRequest;
+import com.avaliacaoservice.form.entity.dto.forms.FormResponse;
+import com.avaliacaoservice.form.entity.dto.resposta.RespostaRequest;
+import com.avaliacaoservice.form.entity.dto.resposta.RespostaResponse;
+import com.avaliacaoservice.form.entity.emuns.CheckBox;
+import com.avaliacaoservice.form.entity.emuns.Tipo;
+import com.avaliacaoservice.form.entity.emuns.TipoForm;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+@Slf4j
+@Service
+public class FormMapper {
+    public FormResponse toFromResponse(FormEntity formEntity) {
+        return new FormResponse(
+                formEntity.getId(),
+                formEntity.getCategoria(),
+                formEntity.getSummaryId(),
+                formEntity.getCampos(),
+                formEntity.getTipoForm(),
+                formEntity.getVisitaId()
+        );
+    }
+
+
+    public FormEntity toFormEntity(FormRequest request) {
+        List<CamposFormEntity> campos;
+        FormEntity form = FormEntity.builder()
+                .categoria(request.categoria())
+                .summaryId(request.summaryId())
+                .tipoForm((request.summaryId() == 2L || request.summaryId() == 3L) ? TipoForm.PADRONIZACAO : TipoForm.INSPECAO)
+                .visitaId(request.visitaId())
+                .build();
+
+        if (form.getCampos() == null) {
+            form.setCampos(new ArrayList<>());
+        }
+
+
+        if (request.campos() != null) {
+
+
+            campos = request.campos().stream().map(c -> toCampoEntity(c, form)).toList();
+        } else {
+            campos = List.of();
+        }
+        form.setCampos(campos);
+        return form;
+    }
+
+    public CamposFormResponse toCampoResponse(CamposFormEntity camposFormEntity) {
+        return CamposFormResponse.builder()
+                .formId(camposFormEntity.getForm().getId())
+                .id(camposFormEntity.getId())
+                .tipo(camposFormEntity.getTipo())
+                .titulo(camposFormEntity.getTitulo())
+                .build();
+    }
+
+
+    public CamposFormEntity toCampoEntity(CamposFormRequest request, FormEntity formEntity) {
+        return CamposFormEntity.builder()
+                .titulo(request.titulo())
+                .tipo(Tipo.valueOf(request.tipo()))
+                .form(formEntity)
+                .build();
+    }
+
+    public RespostaResponse toRespostaResponse(Resposta entity) {
+        try {
+            return RespostaResponse.builder()
+                    .texto((entity.getTexto() != null) ? entity.getTexto() : "")
+                    .checkbox((entity.getCheckbox() != null) ? entity.getCheckbox() : CheckBox.NOT_GIVEN)
+                    .id(entity.getId())
+                    .campoId((entity.getCampo() != null) ? entity.getCampo().getId() : null)
+                    .visitaId((entity.getCampo() != null && entity.getCampo().getForm() != null) ? entity.getCampo().getForm().getVisitaId() : null)
+                    .build();
+        } catch (Exception e) {
+            System.out.println(entity.toString());
+            throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage());
+        }
+    }
+
+    public Resposta toRespostaEntity(RespostaRequest request, CamposFormEntity campo) {
+        return Resposta.builder()
+                .texto((request.texto() != null) ? request.texto() : "")
+                .checkbox((request.checkbox() != null) ? request.checkbox() : CheckBox.NOT_GIVEN)
+                .campo(campo)
+                .build();
+    }
+}

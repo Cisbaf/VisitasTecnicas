@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
         const url = new URL(req.url);
         const baseId = url.searchParams.get("baseId");
-        const path = baseId ? `/viatura?baseId=${encodeURIComponent(baseId)}` : "/viatura";
+        const path = baseId ? `/avaliacao/viaturas?baseId=${encodeURIComponent(baseId)}` : "/avaliacao/viaturas";
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch("/viatura", {
+        return await proxyFetch("/avaliacao/viaturas", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
             body: bodyText,
         });
     } catch (err) {
-        console.error("api/viatura POST proxy error:", err);
+        console.error("api/avaliacao/viaturas POST proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

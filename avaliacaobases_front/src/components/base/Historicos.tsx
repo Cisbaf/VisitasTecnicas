@@ -138,18 +138,12 @@ export default function Historico({ baseId }: { baseId?: number }) {
                                         </Typography>
                                     ) : (
                                         visita.relatos.map(relato => (
-                                            <Paper key={relato.id} elevation={1} sx={{ p: 2, borderRadius: 2, borderLeft: 4, borderColor: relato.resolvido ? 'success.main' : 'warning.main' }} >
+                                            <Paper key={relato.id} elevation={1} sx={{ p: 2, borderRadius: 2, borderLeft: 4, borderColor: 'primary.main' }} >
                                                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} flexWrap="wrap" pl={1}>
                                                     <Typography variant="body1" sx={{ fontWeight: 'medium', mr: 2 }}>
                                                         {relato.tema}
                                                     </Typography>
-                                                    <Chip
-                                                        label={relato.resolvido ? "Resolvido" : "Pendente"}
-                                                        color={relato.resolvido ? "success" : "warning"}
-                                                        variant="filled"
-                                                        size="small"
-                                                        icon={relato.resolvido ? <DoneIcon /> : undefined}
-                                                    />
+
                                                 </Stack>
                                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                                     {relato.mensagem}

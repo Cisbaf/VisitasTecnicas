@@ -1,21 +1,20 @@
-// components/admin/visita/VisitaDialog.tsx
 "use client";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Select, Stack, TextField } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useState, useEffect } from "react";
 import 'dayjs/locale/pt-br';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from 'dayjs';
+import { VisitaDetails } from "@/components/types";
 
 
 interface VisitaDialogProps {
     open: boolean;
     onClose: () => void;
-    onCreate: (date: Date | null, obs: string) => void;
+    onCreate: (visita: VisitaDetails) => void;
     isEditing?: boolean;
-    initialDate?: Date | null;
-    initialObs?: string;
+    visita: VisitaDetails;
 }
 
 export default function VisitaDialog({
@@ -23,24 +22,29 @@ export default function VisitaDialog({
     onClose,
     onCreate,
     isEditing = false,
-    initialDate = null,
-    initialObs = ""
+    visita
 }: VisitaDialogProps) {
-    const [date, setDate] = useState<dayjs.Dayjs | null>(initialDate ? dayjs(initialDate) : null);
-    const [obs, setObs] = useState(initialObs);
+    const [date, setDate] = useState<dayjs.Dayjs | null>(visita ? dayjs(visita.dataVisita).add(0, "day") : null);
+    const [obs, setObs] = useState(visita ? visita.tipoVisita : "");
 
     useEffect(() => {
         if (open) {
-            setDate(initialDate ? dayjs(initialDate).startOf("day") : null);
-            setObs(initialObs);
+            setDate(visita ? dayjs(visita.dataVisita).startOf("day").add(0, "day") : null);
+            setObs(visita ? visita.tipoVisita : "");
         }
-    }, [open, initialDate, initialObs]);
+    }, [open, visita]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onCreate(date ? date.startOf("day").toDate() : null, obs);
+        onCreate({
+            ...visita,
+            dataVisita: date ? date.startOf("day").toDate().toISOString().split("T")[0] : "",
+            tipoVisita: obs ? obs : ""
+        });
+        onClose();
+
         if (!isEditing) {
-            setDate(dayjs().startOf("day"));
+            setDate(null);
             setObs("");
         }
     };
@@ -50,7 +54,7 @@ export default function VisitaDialog({
             <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
                 <DialogTitle>{isEditing ? "Editar Visita" : "Nova Visita"}</DialogTitle>
                 <form onSubmit={handleSubmit}>
-                    <DialogContent>
+                    <DialogContent sx={{ gap: 3, display: "flex" }}>
                         <Stack spacing={2} sx={{ mt: 1 }}>
                             <DatePicker
                                 label="Data da Visita"
@@ -60,6 +64,19 @@ export default function VisitaDialog({
                             />
 
                         </Stack>
+                        <Select
+                            native
+                            label="Tipo de Visita"
+                            fullWidth
+                            required
+                            value={obs}
+                            onChange={(e) => setObs((e.target as HTMLSelectElement).value)}
+                        >
+                            <option value="">Selecione um tipo de visita</option>
+                            <option value="REDE DOR">Rede Dór</option>
+                            <option value="Inspeção">Inspeção</option>
+                            <option value="OUTRA">Outra</option>
+                        </Select>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={onClose}>Cancelar</Button>

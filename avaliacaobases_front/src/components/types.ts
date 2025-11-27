@@ -17,6 +17,7 @@ export interface VisitaResponse {
     dataVisita: string;
     idBase: number;
     membros: EquipeTecnica[];
+    tipoVisita: String;
 }
 
 export interface EquipeTecnica {
@@ -29,17 +30,6 @@ export interface UserResponse {
     user: string;
     role: string;
     baseId: number | null;
-}
-
-export interface CheckDescription {
-    id: number;
-    descricao: string;
-    conformidadePercent: number;
-    observacao: string;
-    tipoConformidade: string;
-    criticidade: string;
-    visitaId: number;
-    viaturaId: number;
 }
 
 export interface RelatorioConsolidadoResponse {
@@ -112,7 +102,6 @@ export interface BaseResponse {
     id: number;
     nome: string;
     endereco: string;
-    tipoBase: string;
     telefone: string;
     email: string;
     bairro: string;
@@ -127,7 +116,6 @@ export type BaseRequest = {
     endereco?: string;
     telefone?: string;
     email?: string;
-    tipoBase?: string;
 };
 
 
@@ -150,18 +138,18 @@ export interface IndicadoresDTO {
 export interface RelatoDTO {
     id: number;
     tema: string;
+    baseId: number;
     mensagem: string;
     autor: string;
     data: string;
-    baseId: number;
-    id_visita: number;
+    visitaId: number;
 }
 
 export interface VisitaDetails {
     id: number;
     dataVisita: string; // YYYY-MM-DD
     membros: EquipeTecnica[];
-    observacoes?: string;
+    tipoVisita?: string;
 }
 
 export interface CategoriaAgrupada {
@@ -171,7 +159,7 @@ export interface CategoriaAgrupada {
     visitas: {
         visitaId: number;
         dataVisita: string;
-        descricoes: CheckDescription[];
+        tipoVisita: String;
     }[];
 }
 
@@ -220,15 +208,7 @@ export interface Midia {
     flag?: Flag;
 }
 
-export interface RelatoDTO {
-    id: number;
-    tema: string;
-    mensagem: string;
-    autor: string;
-    data: string;
-    baseId: number;
-    visitas: number;
-}
+
 
 export interface CategoryData {
     conforme?: string | number;
@@ -251,8 +231,7 @@ export interface Veiculo {
 
 export const PREDEFINED_SUMMARIES: Summary[] = [
     { id: 1, titulo: "MANUTENÇÃO DA PADRONIZAÇÃO DA ESTRUTURA FÍSICA DA BASE DESCENTRALIZADA" },
-    { id: 3, titulo: "CONDIÇÕES DE FUNCIONAMENTO DO SERVIÇO" },
-    { id: 4, titulo: "CHEK LIST DAS UNIDADES MOVÉIS" },
     { id: 2, titulo: "PADRONIZAÇÃO VISUAL DOS UNIFORMES DAS EQUIPES E DA BASE DESCENTRALIZADA" },
-
+    { id: 4, titulo: "CONDIÇÕES DE FUNCIONAMENTO DO SERVIÇO" },
+    { id: 5, titulo: "CHEK LIST DAS UNIDADES MOVÉIS" },
 ];

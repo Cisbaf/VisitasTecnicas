@@ -30,18 +30,19 @@ export async function POST(req: Request) {
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const visitIds = await req.json();
+        const body = await req.json();
 
-        // Envolva os visitIds em um objeto para o backend Spring
-        const requestBody = Array.isArray(visitIds) ? { visitIds } : visitIds;
+        // Extrai o array diretamente
+        const visitIdsArray = Array.isArray(body) ? body : (body.visitIds || []);
 
-        const backendResponse = await proxyFetch(`/form/answers/all`, {
+        // Envia como array puro
+        const backendResponse = await proxyFetch(`/avaliacao/answers/all`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(visitIdsArray) // Array puro, sem objeto
         });
 
         if (!backendResponse.ok) {

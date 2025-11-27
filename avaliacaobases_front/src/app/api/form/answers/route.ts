@@ -36,9 +36,9 @@ export async function GET(request: NextRequest) {
         let backendUrl;
 
         if (!campoId || !visitaId) {
-            backendUrl = `/form/answers/all`;
+            backendUrl = `/avaliacao/answers/all`;
         } else {
-            backendUrl = `/form/answers?campoId=${campoId}&visitId=${visitaId}`;
+            backendUrl = `/avaliacao/answers?campoId=${campoId}&visitId=${visitaId}`;
         }
 
         // Construa a URL do backend com os parâmetros

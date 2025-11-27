@@ -31,7 +31,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ relat
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/visita/relatos/${encodeURIComponent(relatoId)}`, {
+        return await proxyFetch(`/avaliacao/relatos/${encodeURIComponent(relatoId)}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": req.headers.get("content-type") ?? "application/json" },
             body: bodyText,
@@ -49,13 +49,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ relatoId
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const bodyText = await req.text();
-        return await proxyFetch(`/visita/relatos/${encodeURIComponent(relatoId)}`, {
+        return await proxyFetch(`/avaliacao/relatos/${encodeURIComponent(relatoId)}`, {
             method: "PUT",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": req.headers.get("content-type") ?? "application/json" },
             body: bodyText,
         });
     } catch (err) {
-        console.error("api/visita/relatos/[relatoId] PUT proxy error:", err);
+        console.error("api/avaliacao/relatos/[relatoId] PUT proxy error:", err);
         return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
     }
 }

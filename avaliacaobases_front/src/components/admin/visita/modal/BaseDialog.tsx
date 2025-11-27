@@ -1,7 +1,7 @@
 "use client";
-import React, {Dispatch, SetStateAction} from "react";
-import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField,} from "@mui/material";
-import {BaseRequest} from "@/components/types";
+import React, { Dispatch, SetStateAction } from "react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Select, Stack, TextField, } from "@mui/material";
+import { BaseRequest } from "@/components/types";
 
 
 interface BaseDialogProps {
@@ -18,23 +18,23 @@ interface BaseDialogProps {
 }
 
 export default function BaseDialog({
-                                       open,
-                                       onClose,
-                                       onSubmit,
-                                       formData,
-                                       setFormData,
-                                       editingBase = false,
-                                       handlePhoneChange,
-                                       handleEmailChange,
-                                       phoneError,
-                                       emailError,
-                                   }: BaseDialogProps) {
+    open,
+    onClose,
+    onSubmit,
+    formData,
+    setFormData,
+    editingBase = false,
+    handlePhoneChange,
+    handleEmailChange,
+    phoneError,
+    emailError,
+}: BaseDialogProps) {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>{editingBase ? "Editar Base" : "Nova Base"}</DialogTitle>
             <form onSubmit={onSubmit}>
                 <DialogContent>
-                    <Stack spacing={2} sx={{mt: 1}}>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField
                             autoFocus
                             label="Nome da Base"
@@ -42,16 +42,16 @@ export default function BaseDialog({
                             required
                             value={formData?.nome || ""}
                             onChange={(e) =>
-                                setFormData({...formData, nome: e.target.value})
+                                setFormData({ ...formData, nome: e.target.value })
                             }
                         />
-                        <div style={{display: "flex", gap: 5}}>
+                        <div style={{ display: "flex", gap: 5 }}>
                             <TextField
                                 label="Bairro"
                                 required
                                 value={formData?.bairro || ""}
                                 onChange={(e) =>
-                                    setFormData({...formData, bairro: e.target.value})
+                                    setFormData({ ...formData, bairro: e.target.value })
                                 }
                             />
                             <TextField
@@ -59,7 +59,7 @@ export default function BaseDialog({
                                 required
                                 value={formData?.municipio || ""}
                                 onChange={(e) =>
-                                    setFormData({...formData, municipio: e.target.value})
+                                    setFormData({ ...formData, municipio: e.target.value })
                                 }
                             />
                             <TextField
@@ -67,17 +67,17 @@ export default function BaseDialog({
                                 required
                                 value={formData?.endereco || ""}
                                 onChange={(e) =>
-                                    setFormData({...formData, endereco: e.target.value})
+                                    setFormData({ ...formData, endereco: e.target.value })
                                 }
                             />
                         </div>
-                        <div style={{display: "flex", gap: 5}}>
+                        <div style={{ display: "flex", gap: 5 }}>
                             <TextField
                                 label="Telefone"
                                 fullWidth
                                 required
                                 type="tel"
-                                inputProps={{maxLength: 15}}
+                                inputProps={{ maxLength: 15 }}
                                 placeholder="(00) 90000-0000"
                                 value={formData?.telefone || ""}
                                 onChange={handlePhoneChange}
@@ -95,15 +95,7 @@ export default function BaseDialog({
                                 helperText={emailError || " "}
                             />
                         </div>
-                        <TextField
-                            label="Tipo da Base"
-                            fullWidth
-                            required
-                            value={formData?.tipoBase || ""}
-                            onChange={(e) =>
-                                setFormData({...formData, tipoBase: e.target.value})
-                            }
-                        />
+
                     </Stack>
                 </DialogContent>
                 <DialogActions>

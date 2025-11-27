@@ -85,12 +85,12 @@ export default function BaseVisitasPage() {
         }
     }
 
-    async function handleCreateVisita(date: Date | null, obs: string) {
+    async function handleCreateVisita(visita: VisitaDetails) {
         try {
             const payload = {
-                dataVisita: date ? date.toISOString().split("T")[0] : null,
+                dataVisita: visita.dataVisita,
                 idBase: baseId,
-                observacoes: obs,
+                tipoVisita: visita.tipoVisita,
             };
             const res = await fetch(`/api/visita`, {
                 method: "POST",
@@ -105,13 +105,14 @@ export default function BaseVisitasPage() {
         }
     }
 
-    async function handleUpdateVisita(date: Date | null, obs: string) {
+    async function handleUpdateVisita(visita: VisitaDetails) {
         if (!editingVisita) return;
 
         try {
             const payload = {
-                dataVisita: date ? date.toISOString().split("T")[0] : null,
-                observacoes: obs,
+                dataVisita: visita.dataVisita,
+                tipoVisita: visita.tipoVisita,
+                membros: visita.membros,
                 idBase: baseId,
             };
             const res = await fetch(`/api/visita/${editingVisita.id}`, {
@@ -193,8 +194,7 @@ export default function BaseVisitasPage() {
                     onClose={handleCloseDialog}
                     onCreate={editingVisita ? handleUpdateVisita : handleCreateVisita}
                     isEditing={!!editingVisita}
-                    initialDate={editingVisita ? new Date(editingVisita.dataVisita) : new Date()}
-                    initialObs={editingVisita ? editingVisita.observacoes : ""}
+                    visita={visitas.find(v => v.id === editingVisita?.id) !== undefined ? visitas.find(v => v.id === editingVisita?.id)! : { id: 0, dataVisita: "", membros: [] }}
                 />
 
             </Box>

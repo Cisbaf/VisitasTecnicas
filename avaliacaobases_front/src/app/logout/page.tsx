@@ -8,7 +8,7 @@ export default function LogoutPage() {
 
     useEffect(() => {
         (async () => {
-            await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/user/logout`, {
+            await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/avaliacao/user/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });

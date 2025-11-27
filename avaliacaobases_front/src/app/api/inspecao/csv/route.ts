@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         const backendFormData = new FormData();
         backendFormData.append("file", file);
 
-        return await proxyFetch(`/inspecao/csv`, {
+        return await proxyFetch(`/avaliacao/inspecao/csv`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

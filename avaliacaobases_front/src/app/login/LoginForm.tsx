@@ -15,7 +15,7 @@ export default function LoginForm() {
         setError(null);
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/user/login`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/avaliacao/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -50,7 +50,6 @@ export default function LoginForm() {
             setLoading(false);
         }
     }
-
     return (
         <Box sx={{ display: 'flex', height: '100vh' }}>
 
@@ -116,6 +115,7 @@ export default function LoginForm() {
                             variant="contained"
                             disabled={loading}
                             sx={{
+                                bgcolor: "#cd9805",
                                 borderRadius: '30px',
                                 py: 1.5,
                                 fontWeight: 'bold',

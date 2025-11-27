@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 COPY . .
 
@@ -14,10 +14,6 @@ RUN npm run build
 # 2. Production stage
 FROM node:18-alpine
 WORKDIR /app
-
-# Variáveis no runtime também!
-ENV NEXT_PUBLIC_API_URL=http://gateway:8765
-ENV NEXT_PUBLIC_BACKEND_URL=http://gateway:8765
 
 # Install only production dependencies
 COPY package*.json ./

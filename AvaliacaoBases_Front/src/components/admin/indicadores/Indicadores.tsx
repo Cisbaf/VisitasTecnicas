@@ -3,15 +3,12 @@ import React, { useState, useEffect } from "react";
 import {
     Box, Button, Paper, Typography, Alert, Snackbar, CircularProgress,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Chip, Stack, Card, CardContent, TextField, useMediaQuery, useTheme,
+    Chip, Stack, Card, CardContent, TextField,
 } from "@mui/material";
 import { CloudUpload, Description, Search } from "@mui/icons-material";
 import { useIndicadores } from "../hooks/useIndicadores";
 
 export default function UploadCSVPage() {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -20,14 +17,18 @@ export default function UploadCSVPage() {
     const {
         loading, dadosCombinados, dadosFiltrados,
         fetchMedias, vtrFiltradas, searchTerm, setSearchTerm,
+        selectedMonth, setSelectedMonth,
     } = useIndicadores(false);
 
-    useEffect(() => { fetchMedias(); }, []);
+    const [uploadMonth, setUploadMonth] = useState<string>("");
+
+    useEffect(() => { fetchMedias(); }, [selectedMonth]);
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const isValid = file.type === "text/csv" || file.name.endsWith(".csv") ||
+        const isValid =
+            file.type === "text/csv" || file.name.endsWith(".csv") ||
             file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
             file.name.endsWith(".xlsx");
         if (isValid) { setSelectedFile(file); setErrorMsg(null); }
@@ -40,6 +41,7 @@ export default function UploadCSVPage() {
         setErrorMsg(null);
         const formData = new FormData();
         formData.append("file", selectedFile);
+        if (uploadMonth) formData.append("dataVigencia", `${uploadMonth}-01`);
         try {
             const response = await fetch("/api/inspecao/csv", { method: "POST", body: formData });
             if (response.ok) {
@@ -59,16 +61,16 @@ export default function UploadCSVPage() {
     };
 
     return (
-        <Box sx={{ p: isMobile ? 1.5 : 3, maxWidth: 1200, margin: "0 auto" }}>
-            <Typography variant={isMobile ? "h5" : "h4"} fontWeight="600" gutterBottom>
+        <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: 1200, margin: "0 auto" }}>
+            <Typography variant="h4" fontWeight="600" gutterBottom
+                sx={{ fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
                 Upload de Arquivos
             </Typography>
 
             <Card sx={{ mb: 4 }}>
                 <CardContent>
-                    {/* Botões empilham no mobile */}
                     <Stack
-                        direction={isMobile ? "column" : "row"}
+                        direction={{ xs: "column", sm: "row" }}
                         spacing={2}
                         sx={{ mb: 2, mt: 2 }}
                     >
@@ -76,7 +78,8 @@ export default function UploadCSVPage() {
                             variant="outlined"
                             component="label"
                             startIcon={<CloudUpload />}
-                            fullWidth={isMobile}
+                            fullWidth
+                            sx={{ maxWidth: { sm: "fit-content" } }}
                         >
                             Selecionar Arquivo
                             <input
@@ -93,10 +96,22 @@ export default function UploadCSVPage() {
                             onClick={handleUpload}
                             disabled={!selectedFile || uploading}
                             startIcon={uploading ? <CircularProgress size={20} /> : <Description />}
-                            fullWidth={isMobile}
+                            fullWidth
+                            sx={{ maxWidth: { sm: "fit-content" } }}
                         >
                             {uploading ? "Processando..." : "Enviar"}
                         </Button>
+
+                        <TextField
+                            type="month"
+                            label="Mês de Referência (Upload)"
+                            value={uploadMonth}
+                            onChange={(e) => setUploadMonth(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            sx={{ minWidth: 200 }}
+                            fullWidth
+                        />
                     </Stack>
 
                     {selectedFile && (
@@ -111,21 +126,32 @@ export default function UploadCSVPage() {
             </Card>
 
             <Card>
-                <CardContent sx={{ px: isMobile ? 1 : 2 }}>
+                <CardContent sx={{ px: { xs: 1, sm: 2 } }}>
                     <Typography variant="h6" gutterBottom>
                         Médias por Cidade
                     </Typography>
 
-                    <TextField
-                        fullWidth
-                        placeholder="Buscar por cidade..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        sx={{ mb: 2 }}
-                        InputProps={{
-                            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
-                        }}
-                    />
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
+                        <TextField
+                            fullWidth
+                            placeholder="Buscar por cidade..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                startAdornment: <Search sx={{ color: "text.secondary", mr: 1 }} />,
+                            }}
+                        />
+                        <TextField
+                            type="month"
+                            label="Filtrar por Mês"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            sx={{ minWidth: 200 }}
+                            fullWidth
+                        />
+                    </Stack>
 
                     {loading ? (
                         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -137,19 +163,21 @@ export default function UploadCSVPage() {
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
                             {/* Tabela 1 — Métricas */}
-                            {/* overflow: auto permite scroll horizontal no mobile sem quebrar o layout */}
                             <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2, overflowX: "auto" }}>
-                                <Table sx={{ minWidth: isMobile ? 320 : 650 }}>
-                                    <TableHead sx={{ bgcolor: 'gray' }}>
+                                <Table sx={{ minWidth: { xs: 320, sm: 650 } }}>
+                                    <TableHead sx={{ bgcolor: "gray" }}>
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
+                                            <TableCell sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>
                                                 Cidade
                                             </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                {isMobile ? "T. Resposta" : "Tempo Resposta Médio"}
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>
+                                                {/* CSS hides the long label on xs, shows on sm+ */}
+                                                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Tempo Resposta Médio</Box>
+                                                <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>T. Resposta</Box>
                                             </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                {isMobile ? "T. Prontidão" : "Tempo Prontidão Médio"}
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>
+                                                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Tempo Prontidão Médio</Box>
+                                                <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>T. Prontidão</Box>
                                             </TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -158,28 +186,18 @@ export default function UploadCSVPage() {
                                             <TableRow
                                                 key={item.cidade}
                                                 sx={{
-                                                    bgcolor: index % 2 === 0 ? 'background.default' : 'grey.50',
-                                                    '&:hover': { bgcolor: 'action.hover' },
+                                                    bgcolor: index % 2 === 0 ? "background.default" : "grey.50",
+                                                    "&:hover": { bgcolor: "action.hover" },
                                                 }}
                                             >
-                                                <TableCell sx={{ py: isMobile ? 1 : 2 }}>
-                                                    <Typography variant="body2" fontWeight="600">
-                                                        {item.cidade}
-                                                    </Typography>
+                                                <TableCell sx={{ py: { xs: 1, sm: 2 } }}>
+                                                    <Typography variant="body2" fontWeight="600">{item.cidade}</Typography>
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ py: isMobile ? 1 : 2 }}>
-                                                    <Chip
-                                                        label={item.tempoRespostaMedio}
-                                                        variant={item.tempoRespostaMedio === "N/A" ? "outlined" : "filled"}
-                                                        size="small"
-                                                    />
+                                                <TableCell align="center" sx={{ py: { xs: 1, sm: 2 } }}>
+                                                    <Chip label={item.tempoRespostaMedio} variant={item.tempoRespostaMedio === "N/A" ? "outlined" : "filled"} size="small" />
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ py: isMobile ? 1 : 2 }}>
-                                                    <Chip
-                                                        label={item.tempoProntidaoMedio}
-                                                        variant={item.tempoProntidaoMedio === "N/A" ? "outlined" : "filled"}
-                                                        size="small"
-                                                    />
+                                                <TableCell align="center" sx={{ py: { xs: 1, sm: 2 } }}>
+                                                    <Chip label={item.tempoProntidaoMedio} variant={item.tempoProntidaoMedio === "N/A" ? "outlined" : "filled"} size="small" />
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -189,60 +207,53 @@ export default function UploadCSVPage() {
 
                             {/* Tabela 2 — Viaturas */}
                             <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2, overflowX: "auto" }}>
-                                <Table sx={{ minWidth: isMobile ? 420 : 750 }}>
-                                    <TableHead sx={{ bgcolor: 'gray' }}>
+                                <Table sx={{ minWidth: { xs: 420, sm: 750 } }}>
+                                    <TableHead sx={{ bgcolor: "gray" }}>
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap', width: isMobile ? 100 : 200 }}>
+                                            <TableCell sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap", width: { xs: 100, sm: 200 } }}>
                                                 Cidade
                                             </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                Viatura
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                Ativa%
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                Placa
-                                            </TableCell>
-                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: 'nowrap' }}>
-                                                CNES
-                                            </TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>Viatura</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>Ativa%</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>Placa</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: "bold", color: "white", whiteSpace: "nowrap" }}>CNES</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {vtrFiltradas.map((item) => {
-                                            const viaturas = Array.isArray(item.vtr) && item.vtr.length > 0
-                                                ? item.vtr
-                                                : [{ viatura: "N/A", ativa: "N/A", placa: "N/A", CNES: "N/A", id: `${item.cidade}-na` }];
+                                            const viaturas =
+                                                Array.isArray(item.vtr) && item.vtr.length > 0
+                                                    ? item.vtr
+                                                    : [{ viatura: "N/A", ativa: "N/A", placa: "N/A", CNES: "N/A", id: `${item.cidade}-na` }];
 
                                             return viaturas.map((vtr, vtrIndex) => (
                                                 <TableRow key={`${item.cidade}-${vtr.viatura ?? vtrIndex}`}>
                                                     {vtrIndex === 0 && (
                                                         <TableCell
                                                             rowSpan={viaturas.length}
-                                                            sx={{ verticalAlign: "middle", fontWeight: 600, width: isMobile ? 100 : 200 }}
+                                                            sx={{ verticalAlign: "middle", fontWeight: 600, width: { xs: 100, sm: 200 } }}
                                                         >
                                                             {item.cidade}
                                                         </TableCell>
                                                     )}
-                                                    <TableCell align="center" sx={{ py: isMobile ? 1 : 1.5 }}>
+                                                    <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
                                                         <Chip label={vtr.viatura ?? "N/A"} variant={vtr.viatura === "N/A" ? "outlined" : "filled"} size="small" />
                                                     </TableCell>
-                                                    <TableCell align="center" sx={{ py: isMobile ? 1 : 1.5 }}>
+                                                    <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
                                                         <Chip
                                                             label={vtr.ativa == null || vtr.ativa === "N/A" ? "N/A" : (String(vtr.ativa).endsWith("%") ? vtr.ativa : `${vtr.ativa}%`)}
                                                             variant={vtr.ativa == null || vtr.ativa === "N/A" ? "outlined" : "filled"}
                                                             size="small"
                                                         />
                                                     </TableCell>
-                                                    <TableCell align="center" sx={{ py: isMobile ? 1 : 1.5 }}>
-                                                        {vtr.placa.trim().length > 0 && (
-                                                            <Chip label={vtr.placa ?? "N/A"} variant={vtr.placa === "N/A" ? "outlined" : "filled"} size="small" />
+                                                    <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
+                                                        {vtr.placa && vtr.placa.trim().length > 0 && (
+                                                            <Chip label={vtr.placa.trim() ?? "N/A"} variant="filled" size="small" />
                                                         )}
                                                     </TableCell>
-                                                    <TableCell align="center" sx={{ py: isMobile ? 1 : 1.5 }}>
-                                                        {vtr.CNES.trim().length > 0 && (
-                                                            <Chip label={vtr.CNES ?? "N/A"} variant={vtr.CNES === "N/A" ? "outlined" : "filled"} size="small" />
+                                                    <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
+                                                        {vtr.CNES && vtr.CNES.trim().length > 0 && (
+                                                            <Chip label={vtr.CNES.trim() ?? "N/A"} variant="filled" size="small" />
                                                         )}
                                                     </TableCell>
                                                 </TableRow>
@@ -263,14 +274,14 @@ export default function UploadCSVPage() {
             </Card>
 
             <Snackbar open={!!successMsg} autoHideDuration={6000} onClose={() => setSuccessMsg(null)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'center' : 'right' }}>
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
                 <Alert onClose={() => setSuccessMsg(null)} severity="success" sx={{ width: "100%" }}>
                     {successMsg}
                 </Alert>
             </Snackbar>
 
             <Snackbar open={!!errorMsg} autoHideDuration={6000} onClose={() => setErrorMsg(null)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'center' : 'right' }}>
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
                 <Alert onClose={() => setErrorMsg(null)} severity="error" sx={{ width: "100%" }}>
                     {errorMsg}
                 </Alert>

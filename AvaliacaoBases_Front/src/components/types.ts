@@ -233,6 +233,6 @@ export const PREDEFINED_SUMMARIES: Summary[] = [
     { id: 1, titulo: "MANUTENÇÃO DA PADRONIZAÇÃO DA ESTRUTURA FÍSICA DA BASE DESCENTRALIZADA" },
     { id: 2, titulo: "PADRONIZAÇÃO VISUAL DOS UNIFORMES DAS EQUIPES E DA BASE DESCENTRALIZADA" },
     { id: 4, titulo: "CONDIÇÕES DE FUNCIONAMENTO DO SERVIÇO" },
-    { id: 5, titulo: "CHEK LIST DAS UNIDADES MOVÉIS" },
+    { id: 5, titulo: "CHECKLIST DAS UNIDADES MÓVEIS" },
     { id: 6, titulo: "GERAL" }
 ];

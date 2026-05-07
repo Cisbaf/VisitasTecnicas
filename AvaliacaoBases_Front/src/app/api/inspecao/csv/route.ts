@@ -31,19 +31,20 @@ export async function POST(req: Request) {
 
         // Obter o FormData da requisição
         const formData = await req.formData();
+        const { searchParams } = new URL(req.url);
 
-        // Verificar se existe o arquivo no FormData
         const file = formData.get("file") as File;
         if (!file) {
             return NextResponse.json({ message: "Por favor, selecione um arquivo." }, { status: 400 });
         }
 
+        const dataVigencia = formData.get("dataVigencia") || searchParams.get("dataVigencia");
+        const query = dataVigencia ? `?dataVigencia=${dataVigencia}` : "";
 
-        // Criar um novo FormData para enviar ao backend
         const backendFormData = new FormData();
         backendFormData.append("file", file);
 
-        return await proxyFetch(`/avaliacao/inspecao/csv`, {
+        return await proxyFetch(`/avaliacao/inspecao/csv${query}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,

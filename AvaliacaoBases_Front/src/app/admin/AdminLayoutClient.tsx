@@ -9,7 +9,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
 
     useEffect(() => { setMounted(true); }, []);
 

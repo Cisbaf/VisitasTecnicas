@@ -45,13 +45,15 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         basesList, loadingViaturas, viaturasPorBase,
     } = useAdminHome() as any;
 
-    const { dadosFiltrados, fetchMedias, vtrFiltradas, setSearchTerm } = useIndicadores(true);
+    const { dadosFiltrados, fetchMedias, vtrFiltradas, setSearchTerm, setSelectedMonth } = useIndicadores(true);
 
     const [selectedMunicipio, setSelectedMunicipio] = React.useState<string>('');
     const [dataInicio, setDataInicio] = React.useState<Date | Dayjs | null>(new Date(2001, 0, 1));
     const [dataFim, setDataFim] = React.useState<Date | Dayjs | null>(new Date());
     const [vezes, setVezes] = useState(0);
     const initialFetchDone = useRef(false);
+    const [mesBusca, setMesBusca] = useState<string>('');
+
 
     const getCorPorSummary = (summaryId: number) => {
         const cores = ['#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#D084D0', '#FF7C7C', '#A4DE6C', '#D0ED57', '#0088FE', '#00C49F', '#FFBB28'];
@@ -82,11 +84,24 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                 } else { termo = mun; }
             }
             setSearchTerm(termo);
+
+            if (dataFim) {
+                const d = dataFim instanceof Date ? dataFim : (dataFim as any).toDate();
+                const mes = format(d, 'yyyy-MM');
+                setSelectedMonth(mes);
+                setMesBusca(mes); // dispara o useEffect acima
+            }
+
             await buscarDadosPeriodo(mun, dataInicio, dataFim);
             if (basesList.length > 0) await fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
-            await fetchMedias();
+            // fetchMedias() removido daqui — será chamado pelo useEffect
         } catch (err) { console.error(err); }
     };
+
+    useEffect(() => {
+        if (!mesBusca) return;
+        fetchMedias(mesBusca);
+    }, [mesBusca]);
 
     useEffect(() => {
         let mounted = true;
@@ -98,9 +113,18 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                 const all = JSON.parse(localStorage.getItem('allBasesData') || '[]');
                 setSearchTerm(all.find((b: any) => b.id == mun)?.nome || '');
             }
+
+            // Inicializa o mês com a data fim padrão
+            let initialMes = '';
+            if (dataFim) {
+                const d = dataFim instanceof Date ? dataFim : (dataFim as any).toDate();
+                initialMes = format(d, 'yyyy-MM');
+                setSelectedMonth(initialMes);
+            }
+
             await buscarDadosPeriodo(mun, dataInicio, dataFim);
             await fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
-            await fetchMedias();
+            await fetchMedias(initialMes);
             setVezes(v => v + 1);
             initialFetchDone.current = true;
         };

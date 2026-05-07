@@ -22,13 +22,17 @@ async function proxyFetch(path: string, init?: RequestInit) {
     }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const mes = searchParams.get("mes");
+        const query = mes ? `?mes=${mes}` : "";
+
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        return await proxyFetch(`/avaliacao/inspecao/tempos/media`, {
+        return await proxyFetch(`/avaliacao/inspecao/tempos/media${query}`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store",
         });

@@ -25,11 +25,15 @@ async function proxyFetch(path: string, init?: RequestInit) {
 
 export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const mes = searchParams.get("mes");
+        const query = mes ? `?mes=${mes}` : "";
+
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
         if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        const path = "/avaliacao/inspecao/vtr/media";
+        const path = `/avaliacao/inspecao/vtr/media${query}`;
 
         return await proxyFetch(path, {
             headers: { Authorization: `Bearer ${token}` },

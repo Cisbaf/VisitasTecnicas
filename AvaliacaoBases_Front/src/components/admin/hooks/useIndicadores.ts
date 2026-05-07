@@ -33,41 +33,50 @@ export function useIndicadores(isDashboard?: boolean) {
     const [mediaTempos, setMediaTempos] = useState<MediaTempos>({});
     const [relatorioVtr, setRelatorioVtr] = useState<RelatorioVtr[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedMonth, setSelectedMonth] = useState<string>("");
 
-    const fetchMedias = async () => {
+    const fetchMedias = async (month?: string) => {
         setLoading(true);
+        const targetMonth = month !== undefined ? month : selectedMonth;
+        const query = targetMonth ? `?mes=${targetMonth}-01` : "";
+
         try {
             const [prontidaoResponse, temposResponse, vtrResponse] = await Promise.all([
-                fetch("/api/inspecao/media/prontidao"),
-                fetch("/api/inspecao/media/tempos"),
-                fetch(isDashboard ? "/api/inspecao/media/vtr" : "/api/inspecao/vtr"),
+                fetch(`/api/inspecao/media/prontidao${query}`),
+                fetch(`/api/inspecao/media/tempos${query}`),
+                fetch(isDashboard ? `/api/inspecao/media/vtr${query}` : `/api/inspecao/vtr${query}`),
             ]);
 
-
-
-            if (prontidaoResponse.ok && prontidaoResponse.status !== 204) {
-
+            if (prontidaoResponse.ok) {
                 const prontidaoData = await prontidaoResponse.json();
-                console.log("Prontidão: ", prontidaoData)
-
                 setMediaProntidao(prontidaoData);
+                console.log("Prontidão Media: ", prontidaoData)
+            } else {
+                setMediaProntidao({});
             }
 
-            if (temposResponse.ok && prontidaoResponse.status !== 204) {
+
+            if (temposResponse.ok) {
                 const temposData = await temposResponse.json();
-                console.log("Tempos: ", temposData)
-
                 setMediaTempos(temposData);
+            } else {
+                setMediaTempos({});
             }
-            if (vtrResponse.ok && prontidaoResponse.status !== 204) {
-                const vtrData = await vtrResponse.json();
-                console.log("VTR: ", vtrData)
 
+            // Valida VTR (Aqui também estava checando a prontidaoResponse)
+            if (vtrResponse.ok) {
+                const vtrData = await vtrResponse.json();
                 setRelatorioVtr(vtrData);
+            } else {
+                setRelatorioVtr([]);
             }
 
         } catch (error) {
             console.error("Erro ao carregar médias:", error);
+            // Limpa os estados em caso de erro crítico
+            setMediaProntidao({});
+            setMediaTempos({});
+            setRelatorioVtr([]);
         } finally {
             setLoading(false);
         }
@@ -137,6 +146,8 @@ export function useIndicadores(isDashboard?: boolean) {
         searchTerm,
         setSearchTerm,
         vtrFiltradas,
-        fetchMedias
+        fetchMedias,
+        selectedMonth,
+        setSelectedMonth
     };
 }

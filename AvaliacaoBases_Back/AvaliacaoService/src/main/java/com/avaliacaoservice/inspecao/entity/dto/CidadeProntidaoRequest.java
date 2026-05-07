@@ -16,4 +16,6 @@ public class CidadeProntidaoRequest {
     private String cidade;
     private LocalDate mesAno;
     private String saidaEquipe;
+    private LocalDate dataVigencia;
+
 }

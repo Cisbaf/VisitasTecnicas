@@ -8,7 +8,8 @@ import java.time.LocalDate;
 public  record VtrMediaDto(
                 String cidade,
                 double ativa,
-                LocalDate dataEnvio
+                LocalDate dataEnvio,
+                LocalDate dataVigencia
 )  {
 
 

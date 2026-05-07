@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Getter
@@ -12,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"cidade", "dataVigencia"}))
 public class CidadeProntidao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,8 +19,9 @@ public class CidadeProntidao {
     private String cidade;
 
     private LocalDate dataEnvio;
-    @ElementCollection
-    private List<Saidas> saidas;
+    private LocalDate dataVigencia;
+
+    private String saidaEquipe;
 
 }
 

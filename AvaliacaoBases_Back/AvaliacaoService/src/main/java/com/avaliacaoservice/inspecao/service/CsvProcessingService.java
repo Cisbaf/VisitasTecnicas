@@ -1,10 +1,10 @@
 package com.avaliacaoservice.inspecao.service;
 
-import com.avaliacaoservice.inspecao.entity.Saidas;
 import com.avaliacaoservice.inspecao.entity.dto.CidadeProntidaoRequest;
 import com.avaliacaoservice.inspecao.entity.dto.CidadeProntidaoResponse;
 import com.avaliacaoservice.inspecao.entity.dto.CidadeTempoDTO;
 import com.avaliacaoservice.inspecao.entity.dto.VtrRequest;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -19,97 +19,88 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CsvProcessingService {
     private final CidadeService cidadeService;
 
-    public void processarArquivoTempos(MultipartFile file) {
+    public void processarArquivoTempos(MultipartFile file, LocalDate dataVigencia) {
         List<CidadeTempoDTO> dados = new ArrayList<>();
 
-        try {
-            InputStreamReader reader = new InputStreamReader(file.getInputStream());
+        try (InputStreamReader reader = new InputStreamReader(file.getInputStream())) {
+            // Lemos sem definir Header para evitar erro de nomes duplicados
+            CSVParser csvParser = CSVParser.parse(reader, CSVFormat.DEFAULT
+                    .builder()
+                    .setTrim(true)
+                    .build());
 
-            try {
-                CSVParser csvParser = CSVParser.parse(reader, CSVFormat.DEFAULT
-                        .builder()
-                        .setHeader()
-                        .setIgnoreHeaderCase(true)
-                        .setTrim(true)
-                        .build());
+            boolean isHeader = true;
+            for (CSVRecord record : csvParser) {
+                if (isHeader) {
+                    isHeader = false;
+                    continue;
+                } // Pula a primeira linha
+                if (record.size() < 4) continue;
 
-                for (CSVRecord record : csvParser) {
-                    CidadeTempoDTO dto = new CidadeTempoDTO();
-                    dto.setCidade(record.get("﻿CIDADE"));
-                    dto.setTempoMinimo(Utils.converterTimestampExcel(record.get("TEMPO MÍNIMO")));
-                    dto.setTempoMedio(Utils.converterTimestampExcel(record.get("TEMPO MÉDIO")));
-                    dto.setTempoMaximo(Utils.converterTimestampExcel(record.get("TEMPO MÁXIMO")));
-                    dados.add(dto);
-                }
-                reader.close();
-            } catch (Throwable throwable) {
-                try {
-                    reader.close();
-                } catch (Throwable throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
+                CidadeTempoDTO dto = new CidadeTempoDTO();
+                // Índice 0: Cidade | 1: Min | 2: Médio | 3: Máximo
+                dto.setCidade(record.get(0).replace("\uFEFF", "").trim());
+                dto.setTempoMinimo(formatarSegundosDoCsv(record.get(1)));
+                dto.setTempoMedio(formatarSegundosDoCsv(record.get(2)));
+                dto.setTempoMaximo(formatarSegundosDoCsv(record.get(3)));
+
+                dados.add(dto);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao processar arquivo de tempos: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao processar tempos: " + e.getMessage());
         }
-
-
-        this.cidadeService.processarPlanilhaTempos(dados);
+        this.cidadeService.processarPlanilhaTempos(dados, dataVigencia);
     }
 
 
-    public void processarArquivoProntidao(MultipartFile file) {
+    public void processarArquivoProntidao(MultipartFile file, LocalDate dataVigencia) {
         List<CidadeProntidaoRequest> dados = new ArrayList<>();
 
-        try {
-            InputStreamReader reader = new InputStreamReader(file.getInputStream());
-            try {
-                CSVParser csvParser = CSVParser.parse(reader, CSVFormat.DEFAULT
-                        .builder()
-                        .setHeader()
-                        .setIgnoreHeaderCase(true)
-                        .setTrim(true)
-                        .build());
+        try (InputStreamReader reader = new InputStreamReader(file.getInputStream())) {
+            CSVParser csvParser = CSVParser.parse(reader, CSVFormat.DEFAULT
+                    .builder()
+                    .setHeader()
+                    .setIgnoreHeaderCase(true)
+                    .setTrim(true)
+                    .build());
 
-                for (CSVRecord record : csvParser) {
-                    CidadeProntidaoRequest dto = new CidadeProntidaoRequest();
+            for (CSVRecord record : csvParser) {
+                CidadeProntidaoRequest dto = new CidadeProntidaoRequest();
 
-                    dto.setCidade(record.get("﻿CIDADE"));
-                    dto.setMesAno(Utils.converterMesAno(record.get("MÊS/ANO")));
+                // Busca a cidade tratando o caractere BOM
+                String cidade = record.isMapped("CIDADE") ? record.get("CIDADE") :
+                        record.isMapped("\uFEFFCIDADE") ? record.get("\uFEFFCIDADE") : "";
 
-                    String saidaEquipe = findSaidaEquipeValue(record).replace(";;;;;;", "").trim();
-                    dto.setSaidaEquipe(Utils.converterTimestampExcel(saidaEquipe));
-                    dados.add(dto);
-                }
-                reader.close();
-            } catch (Throwable throwable) {
-                try {
-                    reader.close();
-                } catch (Throwable throwable1) {
-                    throwable.addSuppressed(throwable1);
-                }
-                throw throwable;
+                dto.setCidade(cidade.trim());
+                dto.setMesAno(dataVigencia);
+                dto.setDataVigencia(dataVigencia);
+
+                String saidaRaw = findSaidaEquipeValue(record).replace(";;;;;;", "").trim();
+                dto.setSaidaEquipe(formatarSegundosDoCsv(saidaRaw));
+                dados.add(dto);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao processar arquivo de prontidão: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao processar prontidão: " + e.getMessage());
         }
-
-
         this.cidadeService.processarPlanilhaProntidao(dados);
     }
 
-    public void processarArquivoVTR(MultipartFile file) {
+    public void processarArquivoVTR(MultipartFile file, LocalDate dataVigencia) {
         // Map para agrupar viaturas por município
         Map<String, List<VtrRequest>> dadosPorMunicipio = new HashMap<>();
 
@@ -214,12 +205,11 @@ public class CsvProcessingService {
 
                     // Processar cada município com suas viaturas agrupadas
                     for (Map.Entry<String, List<VtrRequest>> entry : dadosPorMunicipio.entrySet()) {
-                        String municipio = entry.getKey();
                         List<VtrRequest> viaturasDoMunicipio = entry.getValue();
 
 
                         // Chamar o service passando as viaturas agrupadas por município
-                        this.cidadeService.processarPlanilhaVTR(viaturasDoMunicipio);
+                        this.cidadeService.processarPlanilhaVTR(viaturasDoMunicipio, dataVigencia);
                     }
 
                     xSSFWorkbook.close();
@@ -245,57 +235,56 @@ public class CsvProcessingService {
         }
     }
 
-    public HashMap<String, String> calcularMediaProntidao() {
-        List<CidadeProntidaoResponse> listaProntidao = this.cidadeService.getAllCidadesProntidao();
-        HashMap<String, String> mapaProntidao = new HashMap<>();
+    public HashMap<String, String> calcularMediaProntidao(LocalDate mes) {
+        List<CidadeProntidaoResponse> listaProntidao = this.cidadeService.getAllCidadesProntidao(mes);
 
-        for (CidadeProntidaoResponse cidade : listaProntidao) {
-            if (cidade.getSaida() != null && !cidade.getSaida().isEmpty()) {
-                long totalSegundos = 0L;
-                int count = 0;
+        // Agrupa por cidade e calcula a média dos tempos
+        Map<String, Double> mediaPorCidadeEmSegundos = listaProntidao.stream()
+                .filter(cidade -> cidade.getSaidaEquipe() != null && !cidade.getSaidaEquipe().isEmpty())
+                .collect(Collectors.groupingBy(CidadeProntidaoResponse::getCidade,
+                        Collectors.averagingLong(cidade -> {
+                            try {
+                                // Converte HH:mm:ss para segundos
+                                LocalTime time = LocalTime.parse(cidade.getSaidaEquipe());
+                                return Duration.between(LocalTime.MIDNIGHT, time).getSeconds();
+                            } catch (DateTimeParseException e) {
+                                // Logar erro ou retornar 0 para tempos inválidos
+                                System.err.println("Erro ao parsear tempo para a cidade " + cidade.getCidade() + ": " + cidade.getSaidaEquipe());
+                                return 0L;
+                            }
+                        })
+                ));
 
-                for (Saidas saida : cidade.getSaida()) {
-                    String tempo = saida.saidaEquipe();
-                    if (tempo != null && !tempo.isEmpty()) {
-                        long segundos = converterTempoParaSegundos(tempo);
-                        if (segundos >= 0L) {
-                            totalSegundos += segundos;
-                            count++;
-                        }
-                    }
-                }
+        HashMap<String, String> mapaProntidaoFormatado = getStringStringHashMap(mediaPorCidadeEmSegundos);
 
-                if (count > 0) {
-                    long mediaSegundos = totalSegundos / count;
-                    String tempoMedio = converterSegundosParaTempo(mediaSegundos);
-                    mapaProntidao.put(cidade.getCidade(), tempoMedio);
-                    continue;
-                }
-                mapaProntidao.put(cidade.getCidade(), "00:00:00");
-                continue;
-            }
-            mapaProntidao.put(cidade.getCidade(), "00:00:00");
-        }
+        // Adiciona cidades que não tinham dados ou tinham dados inválidos com "00:00:00"
+        listaProntidao.stream()
+                .map(CidadeProntidaoResponse::getCidade)
+                .distinct()
+                .forEach(cidade -> mapaProntidaoFormatado.putIfAbsent(cidade, "00:00:00"));
 
-
-        return mapaProntidao;
+        return mapaProntidaoFormatado;
     }
 
+    @Nonnull
+    private static HashMap<String, String> getStringStringHashMap(Map<String, Double> mediaPorCidadeEmSegundos) {
+        HashMap<String, String> mapaProntidaoFormatado = new HashMap<>();
 
-    private long converterTempoParaSegundos(String tempo) {
-        try {
-            String[] partes = tempo.split(":");
-            if (partes.length == 3) {
-                long horas = Long.parseLong(partes[0]);
-                long minutos = Long.parseLong(partes[1]);
-                long segundos = Long.parseLong(partes[2]);
-                return horas * 3600L + minutos * 60L + segundos;
-            }
-        } catch (NumberFormatException e) {
-            System.err.println("Formato de tempo inválido: " + tempo);
+        // Formata a média de segundos de volta para HH:mm:ss
+        for (Map.Entry<String, Double> entry : mediaPorCidadeEmSegundos.entrySet()) {
+            String cidade = entry.getKey();
+            long mediaSegundos = Math.round(entry.getValue());
+
+            long hours = mediaSegundos / 3600;
+            long minutes = (mediaSegundos % 3600) / 60;
+            long seconds = mediaSegundos % 60;
+
+            String tempoFormatado = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+            mapaProntidaoFormatado.put(cidade, tempoFormatado);
         }
-        return -1L;
+        return mapaProntidaoFormatado;
     }
+
 
     private Cell getMergedCell(Sheet sheet, List<CellRangeAddress> mergedRegions, int row, int col) {
         for (CellRangeAddress mergedRegion : mergedRegions) {
@@ -388,31 +377,23 @@ public class CsvProcessingService {
     }
 
     private String findSaidaEquipeValue(CSVRecord record) {
-        String[] possibleHeaders = {".Saída da Equipe (prontidão);;;;;;", ".Saída da Equipe (prontidão)", "Saída da Equipe (prontidão)", "Saída da Equipe", ".Saída da Equipe"};
-
-
-        for (String header : possibleHeaders) {
-            if (record.isMapped(header)) {
-                return record.get(header.replace(";;;;;;;", "").trim());
-            }
+        String[] headers = {".Saída da Equipe (Prontidão)", "Saída da Equipe (Prontidão)", "Saída da Equipe", ".Saída da Equipe"};
+        for (String h : headers) {
+            if (record.isMapped(h)) return record.get(h);
         }
-
-        for (String header : record.toMap().keySet()) {
-            if (header.contains("Saída da Equipe") || header.contains("prontidão")) {
-                return record.get(header);
-            }
-        }
-
-        return "";
+        return record.toMap().entrySet().stream()
+                .filter(e -> e.getKey().contains("Saída") || e.getKey().contains("Prontid"))
+                .map(Map.Entry::getValue)
+                .findFirst().orElse("0");
     }
 
     public boolean isArquivoTempos(MultipartFile file) {
         try {
             String firstLine = getFirstLine(file);
-            firstLine = firstLine.replace("﻿", "");
-            return (firstLine.contains("TEMPO MÁXIMO") && firstLine
-                    .contains("TEMPO MÉDIO") && firstLine
-                    .contains("TEMPO MÍNIMO"));
+            firstLine = firstLine.replace("\uFEFF", "").toUpperCase();
+
+            // Verifica se possui CIDADE e TEMPO RESPOSTA
+            return firstLine.contains("CIDADE") && firstLine.contains("TEMPO RESPOSTA");
         } catch (IOException e) {
             return false;
         }
@@ -421,9 +402,10 @@ public class CsvProcessingService {
     public boolean isArquivoProntidao(MultipartFile file) {
         try {
             String firstLine = getFirstLine(file);
-            firstLine = firstLine.replace("﻿", "");
-            return (firstLine.contains("Saída da Equipe") && firstLine
-                    .contains("MÊS/ANO"));
+            firstLine = firstLine.replace("\uFEFF", "");
+
+            return firstLine.toUpperCase().contains("CIDADE") &&
+                    (firstLine.toUpperCase().contains("SAÍDA DA EQUIPE") || firstLine.toUpperCase().contains("PRONTIDÃO"));
         } catch (IOException e) {
             return false;
         }
@@ -442,6 +424,16 @@ public class CsvProcessingService {
                 throwable.addSuppressed(throwable1);
             }
             throw throwable;
+        }
+    }
+
+    private String formatarSegundosDoCsv(String valor) {
+        if (valor == null || valor.trim().isEmpty()) return "00:00:00";
+        try {
+            double segundos = Double.parseDouble(valor.trim().replace(",", "."));
+            return converterSegundosParaTempo(Math.round(segundos));
+        } catch (NumberFormatException e) {
+            return "00:00:00";
         }
     }
 }

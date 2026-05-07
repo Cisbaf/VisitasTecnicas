@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"cidade", "dataVigencia"}))
 public class RelatorioVTR {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +21,8 @@ public class RelatorioVTR {
 
 
     private LocalDate dataEnvio;
+    private LocalDate dataVigencia;
+
     @ElementCollection
     private List<VTR> VTR;
 

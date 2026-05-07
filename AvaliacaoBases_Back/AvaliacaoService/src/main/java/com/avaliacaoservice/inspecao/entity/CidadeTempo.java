@@ -1,9 +1,6 @@
 package com.avaliacaoservice.inspecao.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -14,12 +11,15 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"cidade", "dataVigencia"}))
 public class CidadeTempo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String cidade;
     private LocalDate dataEnvio;
+    private LocalDate dataVigencia;
+
     private String tempoMinimo;
     private String tempoMedio;
     private String tempoMaximo;

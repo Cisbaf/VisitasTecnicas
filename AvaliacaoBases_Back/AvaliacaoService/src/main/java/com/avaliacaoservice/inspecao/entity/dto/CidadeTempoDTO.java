@@ -17,5 +17,7 @@ public class CidadeTempoDTO {
     private String tempoMinimo;
     private String tempoMedio;
     private String tempoMaximo;
+    private LocalDate dataVigencia;
+
 
 }

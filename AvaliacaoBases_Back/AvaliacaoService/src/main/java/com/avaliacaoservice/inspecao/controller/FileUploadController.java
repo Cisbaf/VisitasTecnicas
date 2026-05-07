@@ -8,11 +8,13 @@ import com.avaliacaoservice.inspecao.service.CidadeService;
 import com.avaliacaoservice.inspecao.service.CsvProcessingService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -27,7 +29,7 @@ public class FileUploadController {
 
     @PostMapping({"/csv"})
     @Operation(summary = "Upload de arquivo CSV", description = "Faz o upload de um arquivo CSV e XLSX e processa conforme o tipo detectado.")
-    public ResponseEntity<String> uploadFile(@RequestParam MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestParam MultipartFile file, @RequestParam(required = false) LocalDate dataVigencia) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Por favor, selecione um arquivo.");
         }
@@ -38,17 +40,17 @@ public class FileUploadController {
 
         try {
             if (file.getOriginalFilename().endsWith(".xlsx")) {
-                this.csvProcessingService.processarArquivoVTR(file);
+                this.csvProcessingService.processarArquivoVTR(file, dataVigencia);
 
                 return ResponseEntity.ok("Relatório VTR processado com sucesso!");
             }
 
             if (this.csvProcessingService.isArquivoTempos(file)) {
-                this.csvProcessingService.processarArquivoTempos(file);
+                this.csvProcessingService.processarArquivoTempos(file, dataVigencia);
                 return ResponseEntity.ok("Arquivo de tempos processado com sucesso!");
             }
             if (this.csvProcessingService.isArquivoProntidao(file)) {
-                this.csvProcessingService.processarArquivoProntidao(file);
+                this.csvProcessingService.processarArquivoProntidao(file, dataVigencia);
                 return ResponseEntity.ok("Arquivo de prontidão processado com sucesso!");
             }
             return ResponseEntity.badRequest().body("Formato de arquivo não reconhecido.");
@@ -60,75 +62,64 @@ public class FileUploadController {
 
     @PostMapping({"/csv/tempos"})
     @Operation(summary = "Upload de arquivo CSV de Tempos", description = "Faz o upload de um arquivo CSV específico para tempos.")
-    public ResponseEntity<String> uploadCsvTempos(@RequestParam("file") MultipartFile file) {
-        return processUpload(file, "tempos");
+    public ResponseEntity<String> uploadCsvTempos(@RequestParam("file") MultipartFile file, @RequestParam(required = false) LocalDate dataVigencia) {
+        return processUpload(file, "tempos", dataVigencia);
     }
 
     @PostMapping({"/csv/prontidao"})
     @Operation(summary = "Upload de arquivo CSV de Prontidão", description = "Faz o upload de um arquivo CSV específico para prontidão.")
-    public ResponseEntity<String> uploadCsvProntidao(@RequestParam("file") MultipartFile file) {
-        return processUpload(file, "prontidao");
+    public ResponseEntity<String> uploadCsvProntidao(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) LocalDate dataVigencia) { // <-- Anotação adicionada aqui
+        return processUpload(file, "prontidao", dataVigencia);
     }
 
     @GetMapping({"/tempos"})
-    public ResponseEntity<List<CidadeTempoDTO>> getAllCidadesTempo() {
-        List<CidadeTempoDTO> cidadesTempo = this.cidadeService.getAllCidadesTempo();
-        if (cidadesTempo.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(cidadesTempo);
-    }
+    public ResponseEntity<List<CidadeTempoDTO>> getAllCidadesTempo(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
 
+        // Retorna a lista direto. Se não tiver nada, o Spring retorna [] (array vazio) e status 200.
+        return ResponseEntity.ok(this.cidadeService.getAllCidadesTempo(mes));
+    }
 
     @GetMapping({"/prontidao"})
-    public ResponseEntity<List<CidadeProntidaoResponse>> getAllCidadesProntidao() {
-        List<CidadeProntidaoResponse> cidadesProntidao = this.cidadeService.getAllCidadesProntidao();
-        if (cidadesProntidao.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(cidadesProntidao);
+    public ResponseEntity<List<CidadeProntidaoResponse>> getAllCidadesProntidao(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
+
+        return ResponseEntity.ok(this.cidadeService.getAllCidadesProntidao(mes));
     }
 
-
     @GetMapping({"/prontidao/media"})
-    public ResponseEntity<?> getMediaProntidao() {
-        HashMap<String, String> mapaProntidao = this.csvProcessingService.calcularMediaProntidao();
-        if (mapaProntidao.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(mapaProntidao);
+    public ResponseEntity<?> getMediaProntidao(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
+
+        // Retorna o mapa direto. Se não tiver nada, retorna {} (objeto vazio)
+        return ResponseEntity.ok(this.csvProcessingService.calcularMediaProntidao(mes));
     }
 
     @GetMapping({"/tempos/media"})
-    public ResponseEntity<?> getMediaTempos() {
-        HashMap<String, String> mapaTempos = this.cidadeService.getCidadesTempoMedia();
-        if (mapaTempos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(mapaTempos);
+    public ResponseEntity<?> getMediaTempos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
+
+        return ResponseEntity.ok(this.cidadeService.getCidadesTempoMedia(mes));
     }
 
-
     @GetMapping({"/vtr"})
-    public ResponseEntity<?> getAllVTR() {
-        List<RelatorioVTR> listaVtr = this.cidadeService.getAllVTR();
-        if (listaVtr.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(listaVtr);
+    public ResponseEntity<?> getAllVTR(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
+
+        return ResponseEntity.ok(this.cidadeService.getAllVTR(mes));
     }
 
     @GetMapping({"/vtr/media"})
-    public ResponseEntity<?> getVtrMedia() {
-        List<VtrMediaDto> listaVtr = this.cidadeService.getVtrMedia();
-        if (listaVtr.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok().body(listaVtr);
+    public ResponseEntity<?> getVtrMedia(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes) {
+
+        return ResponseEntity.ok(this.cidadeService.getVtrMedia(mes));
     }
 
 
-    private ResponseEntity<String> processUpload(MultipartFile file, String tipo) {
+    private ResponseEntity<String> processUpload(MultipartFile file, String tipo, LocalDate dataVigencia) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Por favor, selecione um arquivo.");
         }
@@ -136,13 +127,13 @@ public class FileUploadController {
         try {
             return switch (tipo) {
                 case "tempos" -> {
-                    this.csvProcessingService.processarArquivoTempos(file);
+                    this.csvProcessingService.processarArquivoTempos(file, dataVigencia);
 
 
                     yield ResponseEntity.ok("Arquivo processado com sucesso!");
                 }
                 case "prontidao" -> {
-                    this.csvProcessingService.processarArquivoProntidao(file);
+                    this.csvProcessingService.processarArquivoProntidao(file, dataVigencia);
                     yield ResponseEntity.ok("Arquivo processado com sucesso!");
                 }
                 default -> ResponseEntity.badRequest().body("Tipo de arquivo não suportado.");

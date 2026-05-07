@@ -1,6 +1,5 @@
 package com.avaliacaoservice.inspecao.entity.dto;
 
-import com.avaliacaoservice.inspecao.entity.Saidas;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,6 +11,8 @@ import java.util.List;
 public class CidadeProntidaoResponse {
     private String cidade;
     private LocalDate dataEnvio;
-    private List<Saidas> saida;
+    private LocalDate dataVigencia;
+    private String saidaEquipe;
+
 
 }

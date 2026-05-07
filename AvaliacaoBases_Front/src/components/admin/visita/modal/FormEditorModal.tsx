@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -28,7 +28,9 @@ import {
     Edit as EditIcon,
     Delete as DeleteIcon,
     Add as AddIcon,
-    Save as SaveIcon
+    Save as SaveIcon,
+    ArrowUpward as ArrowUpIcon,
+    ArrowDownward as ArrowDownIcon
 } from '@mui/icons-material';
 import { FormField, FormCategory } from '@/components/types';
 import { PREDEFINED_SUMMARIES } from '@/components/types';
@@ -60,6 +62,7 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
     const [novoCampo, setNovoCampo] = useState<FormField>({ titulo: '', tipo: 'CHECKBOX' });
     const [editandoCampoIndex, setEditandoCampoIndex] = useState<number | null>(null);
     const [erro, setErro] = useState('');
+    const editBoxRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (open) {
@@ -84,35 +87,59 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
             novosCampos[editandoCampoIndex] = { ...novoCampo };
             setCampos(novosCampos);
             setEditandoCampoIndex(null);
+            setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
+            // Salva o formulário inteiro após editar o campo
+            submitForm(novosCampos);
         } else {
             setCampos([...campos, { ...novoCampo }]);
+            setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
         }
-        setNovoCampo({ titulo: '', tipo: 'CHECKBOX' });
     };
 
     const handleEditCampo = (index: number) => {
         setNovoCampo({ ...campos[index] });
         setEditandoCampoIndex(index);
+        setTimeout(() => {
+            editBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
     };
 
     const handleDeleteCampo = (index: number) => {
         setCampos(campos.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleMoveCampo = (index: number, direction: 'up' | 'down') => {
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= campos.length) return;
+        const novosCampos = [...campos];
+        [novosCampos[index], novosCampos[targetIndex]] = [novosCampos[targetIndex], novosCampos[index]];
+        setCampos(novosCampos);
+        // Adjust editing index if one of the swapped items is being edited
+        if (editandoCampoIndex === index) {
+            setEditandoCampoIndex(targetIndex);
+        } else if (editandoCampoIndex === targetIndex) {
+            setEditandoCampoIndex(index);
+        }
+    };
+
+    const submitForm = (camposAtuais: FormField[]) => {
         if (!categoria.trim()) {
             setErro('O nome da categoria é obrigatório');
             return;
         }
-        if (campos.length === 0) {
+        if (camposAtuais.length === 0) {
             setErro('Adicione pelo menos um campo ao formulário');
             return;
         }
         const tipoFormDeterminado = summaryId === 2 ? 'PADRONIZACAO' : 'INSPECAO';
         setTipoForm(tipoFormDeterminado);
         setErro('');
-        onSave({ id, categoria, summaryId, campos, tipoForm: tipoFormDeterminado, visitaId });
+        onSave({ id, categoria, summaryId, campos: camposAtuais, tipoForm: tipoFormDeterminado, visitaId });
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        submitForm(campos);
     };
 
     return (
@@ -175,13 +202,14 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
                     </Box>
 
                     {/* Box de adicionar/editar campo — empilha no mobile */}
-                    <Box sx={{
+                    <Box ref={editBoxRef} sx={{
                         p: 2,
                         border: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: editandoCampoIndex !== null ? 'primary.main' : 'divider',
                         borderRadius: 1,
                         mb: 2,
-                        backgroundColor: 'grey.50'
+                        backgroundColor: editandoCampoIndex !== null ? 'primary.50' : 'grey.50',
+                        transition: 'border-color 0.3s, background-color 0.3s'
                     }}>
                         <Typography variant="subtitle2" gutterBottom>
                             {editandoCampoIndex !== null ? 'Editar Campo' : 'Adicionar Novo Campo'}
@@ -223,10 +251,11 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
                             <Button
                                 variant="contained"
                                 onClick={handleAddCampo}
-                                startIcon={<AddIcon />}
-                                fullWidth={isMobile} // 👈 botão largo no mobile
+                                fullWidth={isMobile}
+                                sx={{ width: 160 }}
+                                startIcon={editandoCampoIndex !== null ? <SaveIcon /> : <AddIcon />}
                             >
-                                {editandoCampoIndex !== null ? 'Atualizar' : 'Adicionar'}
+                                {editandoCampoIndex !== null ? 'Salvar' : 'Adicionar'}
                             </Button>
                         </Stack>
                     </Box>
@@ -254,11 +283,27 @@ export default function FormEditorModal({ open, onClose, onSave, initialData, vi
                                         secondaryTypographyProps={{ component: 'div' }}
                                     />
                                     <Box sx={{ display: 'flex', alignSelf: isMobile ? 'flex-end' : 'center' }}>
-                                        <IconButton onClick={() => handleEditCampo(index)} sx={{ mr: 1 }}>
-                                            <EditIcon />
+                                        <IconButton
+                                            onClick={() => handleMoveCampo(index, 'up')}
+                                            disabled={index === 0}
+                                            size="small"
+                                            title="Mover para cima"
+                                        >
+                                            <ArrowUpIcon fontSize="small" />
                                         </IconButton>
-                                        <IconButton onClick={() => handleDeleteCampo(index)}>
-                                            <DeleteIcon />
+                                        <IconButton
+                                            onClick={() => handleMoveCampo(index, 'down')}
+                                            disabled={index === campos.length - 1}
+                                            size="small"
+                                            title="Mover para baixo"
+                                        >
+                                            <ArrowDownIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleEditCampo(index)} size="small" sx={{ ml: 0.5 }}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleDeleteCampo(index)} size="small">
+                                            <DeleteIcon fontSize="small" />
                                         </IconButton>
                                     </Box>
                                 </ListItem>

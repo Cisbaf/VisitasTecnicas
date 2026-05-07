@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +18,8 @@ public class VtrRequest {
     private String placa;
     private String CNES;
     private String viatura;
+    private LocalDate dataVigencia;
+
 
 }
 

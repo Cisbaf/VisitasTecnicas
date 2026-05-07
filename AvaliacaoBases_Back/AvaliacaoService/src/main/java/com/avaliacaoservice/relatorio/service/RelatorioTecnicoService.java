@@ -81,16 +81,16 @@ public class RelatorioTecnicoService {
                 log.warn("Erro buscando respostas por campoIds (continuando sem respostas). visitaId={}, erro={}", visitaId, e.getMessage());
             }
 
-            List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia()).orElse(List.of());
+            List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(dataInicio)).orElse(List.of());
             HashMap<String, String> prontidaoMedia = new HashMap<>();
             try {
-                prontidaoMedia = this.csvProcessingService.calcularMediaProntidao();
+                prontidaoMedia = this.csvProcessingService.calcularMediaProntidao(dataInicio);
             } catch (Exception e) {
                 log.warn("Erro calculando média prontidão (continuando). visitaId={}, erro={}", visitaId, e.getMessage());
             }
             HashMap<String, String> temposMedia = new HashMap<>();
             try {
-                temposMedia = this.inspecaoServiceClient.getCidadesTempoMedia();
+                temposMedia = this.inspecaoServiceClient.getCidadesTempoMedia(dataInicio);
             } catch (Exception e) {
                 log.warn("Erro obtendo tempos médios (continuando). visitaId={}, erro={}", visitaId, e.getMessage());
             }
@@ -327,17 +327,17 @@ public class RelatorioTecnicoService {
         List<BaseResponse> todasBases = Optional.ofNullable(this.baseService.getAll()).orElse(List.of());
         List<BaseRankingDTO> ranking = new ArrayList<>();
 
-        List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia()).orElse(List.of());
+        List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(dataInicio)).orElse(List.of());
         Map<String, Double> vtrMediaMap = vtrMediaList.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(v -> normalizarNome(v.cidade()), VtrMediaDto::ativa, (a, b) -> a));
 
-        Map<String, String> prontidaoMediaMap = Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao())
+        Map<String, String> prontidaoMediaMap = Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao(dataInicio))
                 .orElse(new HashMap<>())
                 .entrySet().stream()
                 .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
-        Map<String, String> temposMediaMap = Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia())
+        Map<String, String> temposMediaMap = Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia(dataInicio))
                 .orElse(new HashMap<>())
                 .entrySet().stream()
                 .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
@@ -361,7 +361,7 @@ public class RelatorioTecnicoService {
                     continue;
                 }
 
-               //Buscar forms da visita específica
+                //Buscar forms da visita específica
                 List<FormResponse> formsDaVisita = formsAll.stream()
                         .filter(form -> form.visitaId() != null && form.visitaId().equals(ultimaVisita.id()))
                         .toList();
@@ -401,7 +401,7 @@ public class RelatorioTecnicoService {
                 dto.setTempoMedioProntidao(prontidaoMediaMap.get(baseNomeNorm));
                 dto.setTempoMedioAtendimento(temposMediaMap.get(baseNomeNorm));
 
-                double normConf = Math.max(0.0D, Math.min(1.0D, mediaConformidadeBase / 100.0D));
+                double normConf = Math.clamp(mediaConformidadeBase / 100.0D, 0.0D, 1.0D);
                 double normVtr = normalizeVtrRaw(vtrRaw);
 
                 Double prontMin = parseDurationToMinutes(prontidaoMediaMap.get(baseNomeNorm));

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
     Accordion, AccordionSummary, AccordionDetails,
-    Typography, useMediaQuery, useTheme,
+    Box, Chip, Stack, Typography, useMediaQuery, useTheme,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { Summary, FormCategory } from '@/components/types';
 import { FormAccordion } from './FormAccordion';
 import DynamicForm from '../../DynamicForm';
@@ -35,25 +36,69 @@ export const SummaryAccordion = ({
     if (forms.length === 0) return null;
 
     return (
-        <Accordion expanded={expanded} onChange={onChange} elevation={1}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                {/* No mobile, empilha título e contagem */}
-                <Typography
-                    variant={isMobile ? "body1" : "h6"}
-                    sx={{ fontWeight: 600, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}
+        <Accordion
+            expanded={expanded}
+            onChange={onChange}
+            disableGutters
+            elevation={0}
+            sx={{
+                border: '1px solid',
+                borderColor: expanded ? 'primary.main' : 'divider',
+                borderRadius: 1,
+                overflow: 'hidden',
+                '&:before': { display: 'none' },
+            }}
+        >
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                    px: isMobile ? 1.5 : 2,
+                    py: 1,
+                    bgcolor: expanded ? 'action.selected' : 'background.paper',
+                    '&:hover': { bgcolor: 'action.hover' },
+                    '& .MuiAccordionSummary-content': { my: 1 },
+                }}
+            >
+                <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ width: '100%', pr: 2, minWidth: 0 }}
                 >
-                    {summary.titulo}
-                    <Typography
-                        component="span"
-                        variant="body2"
-                        sx={{ color: 'text.secondary' }}
-                    >
-                        ({forms.length} formulário{forms.length !== 1 ? 's' : ''})
-                    </Typography>
-                </Typography>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+                        <Box
+                            sx={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 1,
+                                bgcolor: 'action.selected',
+                                color: 'primary.main',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flex: '0 0 34px',
+                            }}
+                        >
+                            <PlaylistAddCheckIcon fontSize="small" />
+                        </Box>
+                        <Typography
+                            variant={isMobile ? "body1" : "h6"}
+                            sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}
+                        >
+                            {summary.titulo}
+                        </Typography>
+                    </Stack>
+                    <Chip
+                        size="small"
+                        label={`${forms.length} formulário${forms.length !== 1 ? 's' : ''}`}
+                        color={expanded ? 'primary' : 'default'}
+                        sx={{ flex: '0 0 auto' }}
+                    />
+                </Stack>
             </AccordionSummary>
 
-            <AccordionDetails sx={{ p: isMobile ? 1 : 2 }}>
+            <AccordionDetails sx={{ p: isMobile ? 1 : 2, bgcolor: 'grey.50' }}>
                 {forms.map((form) => {
                     const formKey = form.id?.toString() || form.categoria;
                     return (

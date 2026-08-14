@@ -1,10 +1,11 @@
 import React from 'react';
 import {
     Accordion, AccordionSummary, AccordionDetails,
-    Typography, Box, IconButton, useMediaQuery, useTheme,
+    Typography, Box, Chip, IconButton, Stack, Tooltip, useMediaQuery, useTheme,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Edit as EditIcon, Delete } from '@mui/icons-material';
+import { Delete, Edit as EditIcon } from '@mui/icons-material';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import { FormCategory } from '@/components/types';
 
 interface FormAccordionProps {
@@ -20,40 +21,93 @@ export const FormAccordion = ({ form, expanded, onChange, onEdit, onDelete, chil
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-    const formKey = form.id?.toString() || form.categoria;
-
     return (
-        <Accordion expanded={expanded} onChange={onChange} elevation={2} sx={{ mt: 1 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: "flex", alignItems: "center", width: "100%", justifyContent: "space-between" }}>
-                    {/* Título menor no mobile para não colidir com o ícone de expand */}
-                    <Typography
-                        variant={isMobile ? "body1" : "h6"}
-                        sx={{ fontWeight: 600, pr: 1 }}
-                        noWrap={isMobile}
-                    >
-                        {form.categoria}
-                    </Typography>
-                </Box>
+        <Accordion
+            expanded={expanded}
+            onChange={onChange}
+            disableGutters
+            elevation={0}
+            sx={{
+                mt: 1,
+                border: '1px solid',
+                borderColor: expanded ? 'primary.main' : 'divider',
+                borderRadius: 1,
+                overflow: 'hidden',
+                bgcolor: 'background.paper',
+                '&:before': { display: 'none' },
+            }}
+        >
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                    px: isMobile ? 1.5 : 2,
+                    py: 0.75,
+                    '&:hover': { bgcolor: 'action.hover' },
+                    '& .MuiAccordionSummary-content': { my: 1 },
+                }}
+            >
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1.5}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    justifyContent="space-between"
+                    sx={{ width: '100%', pr: 2, minWidth: 0 }}
+                >
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+                        <Box
+                            sx={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 1,
+                                bgcolor: expanded ? 'action.selected' : 'grey.100',
+                                color: expanded ? 'primary.main' : 'text.secondary',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flex: '0 0 30px',
+                            }}
+                        >
+                            <AssignmentOutlinedIcon fontSize="small" />
+                        </Box>
+                        <Typography
+                            variant={isMobile ? "body1" : "subtitle1"}
+                            sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}
+                        >
+                            {form.categoria}
+                        </Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip size="small" label={`${form.campos?.length ?? 0} campo${form.campos?.length !== 1 ? 's' : ''}`} variant="outlined" />
+                    </Stack>
+                </Stack>
             </AccordionSummary>
 
             <AccordionDetails sx={{ p: isMobile ? 1 : 2 }}>
-                {/* Botões de ação menores no mobile */}
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5, mb: 2 }}>
-                    <IconButton
-                        color="warning"
-                        size={isMobile ? "small" : "medium"}
-                        onClick={() => onEdit(form)}
-                    >
-                        <EditIcon fontSize={isMobile ? "small" : "medium"} />
-                    </IconButton>
-                    <IconButton
-                        color="error"
-                        size={isMobile ? "small" : "medium"}
-                        onClick={() => form.id && onDelete(form.id)}
-                    >
-                        <Delete fontSize={isMobile ? "small" : "medium"} />
-                    </IconButton>
+                    <Tooltip title="Editar formulário">
+                        <IconButton
+                            color="warning"
+                            size={isMobile ? "small" : "medium"}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onEdit(form);
+                            }}
+                        >
+                            <EditIcon fontSize={isMobile ? "small" : "medium"} />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Excluir formulário">
+                        <IconButton
+                            color="error"
+                            size={isMobile ? "small" : "medium"}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                form.id && onDelete(form.id);
+                            }}
+                        >
+                            <Delete fontSize={isMobile ? "small" : "medium"} />
+                        </IconButton>
+                    </Tooltip>
                 </Box>
 
                 {children}

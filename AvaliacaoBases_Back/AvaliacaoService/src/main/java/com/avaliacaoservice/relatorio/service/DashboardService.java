@@ -157,7 +157,6 @@ public class DashboardService {
 
         VisitaResponse ultimaVisita = ultimaVisitaComInspecao(visitasDaBase, formsPorVisita);
         if (ultimaVisita == null) {
-            acc.perBase.add(new DashboardResponse.PerBaseConformidade(base.id(), base.nome(), 0));
             return;
         }
 
@@ -235,7 +234,14 @@ public class DashboardService {
     private DashboardResponse montarResposta(DashboardAccumulator acc, List<RelatoResponse> relatos) {
         double indiceInspecao = media(acc.perBase.stream().map(DashboardResponse.PerBaseConformidade::avg).toList());
         double indicePadronizacao = media(acc.padronizacao.stream().map(DashboardResponse.PadronizacaoBase::conforme).toList());
-        double indiceAprovacao = (indiceInspecao + indicePadronizacao) / 2.0D;
+        List<Double> indicesDisponiveis = new ArrayList<>();
+        if (!acc.perBase.isEmpty()) {
+            indicesDisponiveis.add(indiceInspecao);
+        }
+        if (!acc.padronizacao.isEmpty()) {
+            indicesDisponiveis.add(indicePadronizacao);
+        }
+        double indiceAprovacao = media(indicesDisponiveis);
         int totalInconformidades = acc.camposNaoConformes.values().stream().mapToInt(List::size).sum();
 
         DashboardResponse.ResumoVisitas resumo = new DashboardResponse.ResumoVisitas(
@@ -446,7 +452,7 @@ public class DashboardService {
 
     private double media(List<Double> valores) {
         return valores.stream()
-                .filter(valor -> valor != null && valor > 0)
+                .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
                 .average()
                 .orElse(0.0D);

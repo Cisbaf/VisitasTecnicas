@@ -134,8 +134,8 @@ public class CalcularPontos {
             }
 
             List<Double> porcentagensSummaries = resultados.porSummary.values().stream()
+                    .filter(summary -> summary.totalCampos > 0)
                     .map(summary -> summary.porcentagem)
-                    .filter(porcentagem -> (porcentagem > 0.0D))
                     .toList();
 
             resultados.geral.porcentagem = porcentagensSummaries.isEmpty() ? 0.0D :

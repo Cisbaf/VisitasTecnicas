@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Box, TextField, Button, Typography, Alert, CircularProgress,
-    Paper, Radio, RadioGroup, FormControlLabel, FormControl,
+    Chip, Paper, Radio, RadioGroup, FormControlLabel, FormControl,
     Select, MenuItem, useMediaQuery, useTheme,
 } from "@mui/material";
 import { Save as SaveIcon } from "@mui/icons-material";
@@ -196,23 +196,41 @@ export default function DynamicForm({ form, onSave }: DynamicFormProps) {
                         elevation={isActive ? 3 : 1}
                         onClick={() => setActiveFieldId(fieldId)}
                         sx={{
-                            p: isMobile ? 1.5 : 2.5, // 👈 padding menor no mobile
+                            p: isMobile ? 1.5 : 2.5,
                             transition: "all 0.2s ease-in-out",
+                            border: "1px solid",
+                            borderColor: isActive ? "primary.main" : "divider",
                             borderLeft: "6px solid",
-                            borderColor: isActive ? "primary.main" : "transparent",
+                            borderLeftColor: isActive ? "primary.main" : "divider",
+                            borderRadius: 1,
                             cursor: "pointer",
+                            boxShadow: isActive ? theme.shadows[3] : "none",
                         }}
                     >
-                        <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2, fontSize: isMobile ? '0.9rem' : '1rem' }}>
-                            {field.titulo}
-                        </Typography>
+                        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.5, mb: 2 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: isMobile ? '0.9rem' : '1rem' }}>
+                                {field.titulo}
+                            </Typography>
+                            <Chip
+                                size="small"
+                                label={field.tipo === "TEXTO" ? "Texto" : field.tipo === "CHECKBOX" ? "Sim/Não" : "Seleção"}
+                                variant="outlined"
+                            />
+                        </Box>
                         {renderField(field, fieldId)}
                     </Paper>
                 );
             })}
 
-            {/* Botão salvar — largura total no mobile */}
-            <Box sx={{ display: "flex", justifyContent: isMobile ? "stretch" : "flex-end", mt: 2 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: isMobile ? "stretch" : "flex-end",
+                    gap: 1,
+                    mt: 2,
+                    flexDirection: isMobile ? "column" : "row",
+                }}
+            >
                 <Button
                     variant="contained"
                     onClick={handleSaveAnswers}

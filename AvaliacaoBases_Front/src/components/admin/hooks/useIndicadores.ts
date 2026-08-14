@@ -50,7 +50,6 @@ export function useIndicadores(isDashboard?: boolean) {
             if (prontidaoResponse.ok) {
                 const prontidaoData = await prontidaoResponse.json();
                 setMediaProntidao(prontidaoData);
-                console.log("Prontidão Media: ", prontidaoData)
             } else {
                 setMediaProntidao({});
             }

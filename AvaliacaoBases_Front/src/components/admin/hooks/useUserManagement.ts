@@ -103,8 +103,6 @@ export const useUserManagement = () => {
                 baseId: userData.baseId !== undefined ? Number(userData.baseId) : currentUser.baseId,
                 password: userData.password ? userData.password : undefined
             };
-            console.log(requestBody);
-
 
             const res = await fetch(`/api/auth/user/${currentUser.id}`, {
                 method: 'PUT',

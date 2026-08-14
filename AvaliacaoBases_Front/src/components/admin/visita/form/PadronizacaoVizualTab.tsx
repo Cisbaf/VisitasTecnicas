@@ -83,7 +83,6 @@ export default function PadronizacaoVizualTab({ visitaId }: PadronizacaoVizualTa
         try {
             const midia = midiasPorVisita[visitaId]?.find(m => m.id === midiaId);
             if (midia) midia.flag = flag;
-            console.log("Persistindo flag no backend:", midia);
 
             await fetch(`/api/arquivo/${midiaId}`, {
                 method: "PUT",

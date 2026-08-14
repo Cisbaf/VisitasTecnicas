@@ -11,6 +11,7 @@ import com.avaliacaoservice.inspecao.respository.VtrRespository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -28,43 +29,41 @@ public class CidadeService {
     private final TempoRepository tempoRepository;
     private final VtrRespository vtrRespository;
 
+    @Transactional
     public void processarPlanilhaProntidao(List<CidadeProntidaoRequest> dados) {
         try {
+            LocalDate dataVigencia = dados.stream()
+                    .map(CidadeProntidaoRequest::getDataVigencia)
+                    .filter(data -> data != null)
+                    .findFirst()
+                    .orElse(null);
+
+            if (dataVigencia != null) {
+                prontidaoRepository.deleteByDataVigencia(dataVigencia);
+            }
+
             for (CidadeProntidaoRequest dado : dados) {
-                LocalDate dataVigencia = dado.getDataVigencia();
-                CidadeProntidao cidadeProntidao = this.prontidaoRepository.findByCidadeAndDataVigencia(dado.getCidade(), dataVigencia).orElse(null);
-
-                if (cidadeProntidao != null) {
-                    cidadeProntidao.setDataEnvio(LocalDate.now());
-                    this.prontidaoRepository.save(cidadeProntidao);
-                    continue;
-                }
-
                 CidadeProntidao novoCidadeProntidao = CidadeProntidao.builder()
                         .cidade(dado.getCidade())
                         .dataEnvio(LocalDate.now())
-                        .dataVigencia(dataVigencia)
+                        .dataVigencia(dado.getDataVigencia())
                         .saidaEquipe(dado.getSaidaEquipe())
                         .build();
                 this.prontidaoRepository.save(novoCidadeProntidao);
             }
         } catch (Exception e) {
             log.warn("Erro ao processar planilha de prontidão: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao processar planilha de prontidão: " + e.getMessage(), e);
         }
     }
 
+    @Transactional
     public void processarPlanilhaTempos(List<CidadeTempoDTO> dados, LocalDate dataVigencia) {
-        for (CidadeTempoDTO dado : dados) {
-            CidadeTempo cidadeTempo = this.tempoRepository.findByCidadeAndDataVigencia(dado.getCidade(), dataVigencia).orElse(null);
-            if (cidadeTempo != null) {
-                cidadeTempo.setTempoMinimo(dado.getTempoMinimo());
-                cidadeTempo.setTempoMedio(dado.getTempoMedio());
-                cidadeTempo.setTempoMaximo(dado.getTempoMaximo());
-                cidadeTempo.setDataEnvio(LocalDate.now());
-                this.tempoRepository.save(cidadeTempo);
-                continue;
-            }
+        if (dataVigencia != null) {
+            tempoRepository.deleteByDataVigencia(dataVigencia);
+        }
 
+        for (CidadeTempoDTO dado : dados) {
             CidadeTempo novoCidadeTempo = CidadeTempo.builder()
                     .cidade(dado.getCidade())
                     .tempoMinimo(dado.getTempoMinimo())
@@ -75,6 +74,19 @@ public class CidadeService {
                     .build();
             this.tempoRepository.save(novoCidadeTempo);
         }
+    }
+
+    @Transactional
+    public void substituirPlanilhaVTR(Map<String, List<VtrRequest>> dadosPorMunicipio, LocalDate dataVigencia) {
+        if (dadosPorMunicipio == null || dadosPorMunicipio.isEmpty()) {
+            return;
+        }
+
+        if (dataVigencia != null) {
+            vtrRespository.deleteByDataVigencia(dataVigencia);
+        }
+
+        dadosPorMunicipio.values().forEach(viaturas -> processarPlanilhaVTR(viaturas, dataVigencia));
     }
 
     public void processarPlanilhaVTR(List<VtrRequest> viaturasDoMunicipio, LocalDate dataVigencia) {

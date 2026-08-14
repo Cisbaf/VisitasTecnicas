@@ -11,4 +11,5 @@ public interface TempoRepository extends JpaRepository<CidadeTempo, Long> {
     Optional<CidadeTempo> findByCidade(String paramString);
     Optional<CidadeTempo> findByCidadeAndDataVigencia(String cidade, LocalDate dataVigencia);
     List<CidadeTempo> findByDataVigencia(LocalDate dataVigencia);
+    void deleteByDataVigencia(LocalDate dataVigencia);
 }

@@ -13,10 +13,10 @@ public interface ProtidaoRepository extends JpaRepository<CidadeProntidao, Long>
     Optional<CidadeProntidao> findByCidade(String paramString);
     Optional<CidadeProntidao> findByCidadeAndDataVigencia(String cidade, LocalDate dataVigencia);
     List<CidadeProntidao> findByDataVigencia(LocalDate dataVigencia);
+    void deleteByDataVigencia(LocalDate dataVigencia);
 
     // Novo método para buscar por um intervalo de datas (mês)
     @Query("SELECT c FROM CidadeProntidao c WHERE c.dataVigencia BETWEEN :startDate AND :endDate")
     List<CidadeProntidao> findByDataVigenciaBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }
-
 

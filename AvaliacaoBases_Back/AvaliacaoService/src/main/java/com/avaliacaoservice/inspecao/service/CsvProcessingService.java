@@ -24,9 +24,11 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CsvProcessingService {
     private final CidadeService cidadeService;
+
+    private record VtrColumns(
+            int headerRowIndex,
+            int municipioCol,
+            int ativaCol,
+            int placaCol,
+            int cnesCol,
+            int viaturaCol
+    ) {
+    }
 
     public void processarArquivoTempos(MultipartFile file, LocalDate dataVigencia) {
         List<CidadeTempoDTO> dados = new ArrayList<>();
@@ -116,60 +128,35 @@ public class CsvProcessingService {
                     FormulaEvaluator evaluator = xSSFWorkbook.getCreationHelper().createFormulaEvaluator();
                     List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
 
-                    Row headerRow = sheet.getRow(0);
-                    int municipioCol = -1, ativaCol = -1, placaCol = -1, cnesCol = -1, viaturaCol = -1;
-
-                    // Identificar colunas (seu código atual)
-                    for (Cell cell : headerRow) {
-                        String cellValue = getCellValueAsString(cell, evaluator).toUpperCase();
-                        if (cellValue.contains("MUNICÍPIO") || cellValue.contains("MUNICIPIO")) {
-                            municipioCol = cell.getColumnIndex();
-                            continue;
-                        }
-                        if (cellValue.contains("ATIVA") && cellValue.contains("%")) {
-                            ativaCol = cell.getColumnIndex();
-                            continue;
-                        }
-                        if (cellValue.contains("PLACA")) {
-                            placaCol = cell.getColumnIndex();
-                            continue;
-                        }
-                        if (cellValue.contains("CNES")) {
-                            cnesCol = cell.getColumnIndex();
-                            continue;
-                        }
-                        if (cellValue.contains("VIATURA")) {
-                            viaturaCol = cell.getColumnIndex();
-                        }
-                    }
+                    VtrColumns columns = findVtrColumns(sheet, evaluator);
                     // Processar linhas e agrupar por município
-                    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                    for (int i = columns.headerRowIndex() + 1; i <= sheet.getLastRowNum(); i++) {
                         Row row = sheet.getRow(i);
                         if (row != null) {
                             VtrRequest dto = new VtrRequest();
 
-                            if (municipioCol >= 0) {
-                                String cidade = getMergedCellValue(sheet, mergedRegions, i, municipioCol, evaluator);
+                            if (columns.municipioCol() >= 0) {
+                                String cidade = getMergedCellValue(sheet, mergedRegions, i, columns.municipioCol(), evaluator);
                                 dto.setCidade(cidade);
                             }
 
-                            if (placaCol >= 0) {
-                                String placa = getMergedCellValue(sheet, mergedRegions, i, placaCol, evaluator);
+                            if (columns.placaCol() >= 0) {
+                                String placa = getMergedCellValue(sheet, mergedRegions, i, columns.placaCol(), evaluator);
                                 dto.setPlaca(placa);
                             }
 
-                            if (cnesCol >= 0) {
-                                String cnes = getMergedCellValue(sheet, mergedRegions, i, cnesCol, evaluator);
+                            if (columns.cnesCol() >= 0) {
+                                String cnes = getMergedCellValue(sheet, mergedRegions, i, columns.cnesCol(), evaluator);
                                 dto.setCNES(cnes);
                             }
 
-                            if (viaturaCol >= 0) {
-                                String viatura = getMergedCellValue(sheet, mergedRegions, i, viaturaCol, evaluator);
+                            if (columns.viaturaCol() >= 0) {
+                                String viatura = getMergedCellValue(sheet, mergedRegions, i, columns.viaturaCol(), evaluator);
                                 dto.setViatura(viatura);
                             }
 
-                            if (ativaCol >= 0) {
-                                Cell ativaCell = getMergedCell(sheet, mergedRegions, i, ativaCol);
+                            if (columns.ativaCol() >= 0) {
+                                Cell ativaCell = getMergedCell(sheet, mergedRegions, i, columns.ativaCol());
                                 if (ativaCell != null) {
                                     try {
                                         evaluator.evaluateFormulaCell(ativaCell);
@@ -205,14 +192,7 @@ public class CsvProcessingService {
                         }
                     }
 
-                    // Processar cada município com suas viaturas agrupadas
-                    for (Map.Entry<String, List<VtrRequest>> entry : dadosPorMunicipio.entrySet()) {
-                        List<VtrRequest> viaturasDoMunicipio = entry.getValue();
-
-
-                        // Chamar o service passando as viaturas agrupadas por município
-                        this.cidadeService.processarPlanilhaVTR(viaturasDoMunicipio, dataVigencia);
-                    }
+                    this.cidadeService.substituirPlanilhaVTR(dadosPorMunicipio, dataVigencia);
 
                     xSSFWorkbook.close();
                 } catch (Throwable throwable) {
@@ -235,6 +215,108 @@ public class CsvProcessingService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar arquivo VTR: " + e.getMessage(), e);
         }
+    }
+
+    private VtrColumns findVtrColumns(Sheet sheet, FormulaEvaluator evaluator) {
+        VtrColumns bestColumns = new VtrColumns(0, -1, -1, -1, -1, -1);
+        int bestScore = -1;
+        int municipioCol = -1, ativaCol = -1, placaCol = -1, cnesCol = -1, viaturaCol = -1;
+        int lastMatchedHeaderRow = 0;
+        int lastHeaderCandidate = Math.min(sheet.getLastRowNum(), 20);
+
+        for (int rowIndex = 0; rowIndex <= lastHeaderCandidate; rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row == null) continue;
+
+            int rowMunicipioCol = -1, rowAtivaCol = -1, rowPlacaCol = -1, rowCnesCol = -1, rowViaturaCol = -1;
+
+            for (Cell cell : row) {
+                String cellValue = normalizeHeader(getCellValueAsString(cell, evaluator));
+
+                if ((cellValue.contains("MUNICIPIO") || cellValue.equals("CIDADE")) && rowMunicipioCol < 0) {
+                    rowMunicipioCol = cell.getColumnIndex();
+                    if (municipioCol < 0) {
+                        municipioCol = rowMunicipioCol;
+                        lastMatchedHeaderRow = Math.max(lastMatchedHeaderRow, rowIndex);
+                    }
+                    continue;
+                }
+                if ((cellValue.contains("ATIVA") || cellValue.contains("DISPONIBILIDADE")) && rowAtivaCol < 0) {
+                    rowAtivaCol = cell.getColumnIndex();
+                    if (ativaCol < 0) {
+                        ativaCol = rowAtivaCol;
+                        lastMatchedHeaderRow = Math.max(lastMatchedHeaderRow, rowIndex);
+                    }
+                    continue;
+                }
+                if (cellValue.contains("PLACA") && rowPlacaCol < 0) {
+                    rowPlacaCol = cell.getColumnIndex();
+                    if (placaCol < 0) {
+                        placaCol = rowPlacaCol;
+                        lastMatchedHeaderRow = Math.max(lastMatchedHeaderRow, rowIndex);
+                    }
+                    continue;
+                }
+                if (cellValue.contains("CNES") && rowCnesCol < 0) {
+                    rowCnesCol = cell.getColumnIndex();
+                    if (cnesCol < 0) {
+                        cnesCol = rowCnesCol;
+                        lastMatchedHeaderRow = Math.max(lastMatchedHeaderRow, rowIndex);
+                    }
+                    continue;
+                }
+                if (cellValue.contains("VIATURA") && rowViaturaCol < 0) {
+                    rowViaturaCol = cell.getColumnIndex();
+                    if (viaturaCol < 0) {
+                        viaturaCol = rowViaturaCol;
+                        lastMatchedHeaderRow = Math.max(lastMatchedHeaderRow, rowIndex);
+                    }
+                }
+            }
+
+            int score = 0;
+            if (rowMunicipioCol >= 0) score++;
+            if (rowAtivaCol >= 0) score++;
+            if (rowPlacaCol >= 0) score++;
+            if (rowCnesCol >= 0) score++;
+            if (rowViaturaCol >= 0) score++;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestColumns = new VtrColumns(rowIndex, rowMunicipioCol, rowAtivaCol, rowPlacaCol, rowCnesCol, rowViaturaCol);
+            }
+
+            if (municipioCol >= 0 && ativaCol >= 0 && placaCol >= 0 && cnesCol >= 0 && viaturaCol >= 0) {
+                return new VtrColumns(lastMatchedHeaderRow, municipioCol, ativaCol, placaCol, cnesCol, viaturaCol);
+            }
+        }
+
+        VtrColumns accumulatedColumns = new VtrColumns(lastMatchedHeaderRow, municipioCol, ativaCol, placaCol, cnesCol, viaturaCol);
+        if (accumulatedColumns.municipioCol() >= 0 && accumulatedColumns.viaturaCol() >= 0) {
+            if (accumulatedColumns.cnesCol() < 0) {
+                log.warn("Coluna CNES não encontrada na planilha VTR. Cabeçalhos analisados até a linha {}", lastHeaderCandidate + 1);
+            }
+            return accumulatedColumns;
+        }
+
+        if (bestColumns.municipioCol() < 0 || bestColumns.viaturaCol() < 0) {
+            throw new RuntimeException("Cabeçalho da planilha VTR não encontrado. Verifique colunas Município/Cidade e Viatura.");
+        }
+
+        if (bestColumns.cnesCol() < 0) {
+            log.warn("Coluna CNES não encontrada na planilha VTR. Cabeçalho usado na linha {}", bestColumns.headerRowIndex() + 1);
+        }
+
+        return bestColumns;
+    }
+
+    private String normalizeHeader(String value) {
+        if (value == null) return "";
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace("\uFEFF", "")
+                .trim()
+                .toUpperCase(Locale.forLanguageTag("pt-BR"));
     }
 
     public HashMap<String, String> calcularMediaProntidao(LocalDate mes) {
@@ -322,6 +404,12 @@ public class CsvProcessingService {
     private String getCellValueAsString(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null) return "";
         try {
+            DataFormatter formatter = new DataFormatter(Locale.forLanguageTag("pt-BR"));
+            String formattedValue = formatter.formatCellValue(cell, evaluator);
+            if (formattedValue != null && !formattedValue.isBlank()) {
+                return formattedValue.trim();
+            }
+
             switch (cell.getCellType()) {
                 case STRING:
                     return cell.getStringCellValue().trim();

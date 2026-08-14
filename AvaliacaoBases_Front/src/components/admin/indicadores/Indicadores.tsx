@@ -5,13 +5,14 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Chip, Stack, Card, CardContent, TextField,
 } from "@mui/material";
-import { CloudUpload, Description, Search } from "@mui/icons-material";
+import { CloudUpload, Description, Search, Web } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { useIndicadores } from "../hooks/useIndicadores";
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
 export default function UploadCSVPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -122,6 +123,7 @@ export default function UploadCSVPage() {
                                     }
                                 }}
                             />
+
                         </Stack>
 
                         {selectedFile && (
@@ -129,9 +131,33 @@ export default function UploadCSVPage() {
                                 Arquivo selecionado: <strong>{selectedFile.name}</strong>
                             </Typography>
                         )}
-                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                            Tipos suportados: .csv e .xlsx
-                        </Typography>
+                        <Box sx={{ mt: 1, display: "flex", flexDirection: "row", gap: 1 }} >
+                            <Button
+                                variant="contained"
+                                component="label"
+                                startIcon={<TravelExploreIcon />}
+                                fullWidth
+                                sx={{ maxWidth: { sm: "fit-content" } }}
+                            >
+                                <a
+                                    href="https://datastudio.google.com/u/0/reporting/25e0bdc8-2f8f-4073-93ae-15969f1a6221/page/p_qvgdcu1x1d"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Buscar arquivos
+                                </a>
+                            </Button>
+                            <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                                    Tipos suportados: .csv e .xlsx
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                                    Exportar graficos "Tempo Resposta Entrada Ambulância Nível 1" e "Tempo Resposta Mínimo, Médio e Máximo" e pegar sempre CSV (Excel)
+                                </Typography>
+                            </Box>
+                        </Box>
+
+
                     </CardContent>
                 </Card>
 
@@ -265,8 +291,8 @@ export default function UploadCSVPage() {
                                                             )}
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
-                                                            {vtr.CNES && vtr.CNES.trim().length > 0 && (
-                                                                <Chip label={vtr.CNES.trim() ?? "N/A"} variant="filled" size="small" />
+                                                            {(vtr.CNES || vtr.cnes) && (vtr.CNES || vtr.cnes)?.trim().length > 0 && (
+                                                                <Chip label={(vtr.CNES || vtr.cnes)?.trim() ?? "N/A"} variant="filled" size="small" />
                                                             )}
                                                         </TableCell>
                                                     </TableRow>

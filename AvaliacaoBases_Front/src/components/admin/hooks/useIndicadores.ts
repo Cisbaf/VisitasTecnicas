@@ -16,7 +16,8 @@ export interface RelatorioVtr {
 interface VTR {
     ativa: string,
     placa: string,
-    CNES: string,
+    CNES?: string,
+    cnes?: string,
     viatura: string,
 }
 

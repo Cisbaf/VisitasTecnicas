@@ -52,7 +52,6 @@ export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaH
         setLoading(true);
         setError(null);
         try {
-            console.log("Fetching dados da viatura:", placa);
             const res = await fetch(`/api/viatura/api/${encodeURIComponent(placa)}`);
 
             if (!res.ok) {
@@ -80,7 +79,6 @@ export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaH
             data.setDate(data.getDate() + 1);
             return data.toLocaleDateString("pt-BR");
         } catch {
-            console.log("Data inválida:", dataString);
             return dataString;
         }
     };

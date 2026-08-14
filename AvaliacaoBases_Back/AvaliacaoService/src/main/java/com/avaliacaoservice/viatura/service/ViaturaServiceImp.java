@@ -6,6 +6,7 @@ import com.avaliacaoservice.viatura.entity.ViaturaEntity;
 import com.avaliacaoservice.viatura.entity.ViaturaRequest;
 import com.avaliacaoservice.viatura.entity.ViaturaResponse;
 import com.avaliacaoservice.viatura.entity.api.Cidade;
+import com.avaliacaoservice.viatura.entity.api.Preenchimento;
 import com.avaliacaoservice.viatura.entity.api.RegistroApi;
 import com.avaliacaoservice.viatura.entity.api.Veiculo;
 import com.avaliacaoservice.viatura.entity.dto.VeiculoDto;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,7 +66,7 @@ public class ViaturaServiceImp implements ViaturaService {
         if (veiculo != null && veiculo.getIdentificacao() != null) {
             return new VeiculoDto(veiculo
                     .getIdentificacao(), veiculo
-                    .getPreenchimentos(), veiculo
+                    .getPreenchimentos() != null ? veiculo.getPreenchimentos() : new ArrayList<>(), veiculo
                     .getKM());
         }
 
@@ -122,14 +124,17 @@ public class ViaturaServiceImp implements ViaturaService {
     }
 
     private static ViaturaResponse getViaturaResponse(Map.Entry<String, Veiculo> veiculoEntry, Veiculo veiculo, BaseResponse base) {
+        List<Preenchimento> preenchimentos = Optional
+                .ofNullable(veiculo.getPreenchimentos())
+                .orElse(List.of());
         ViaturaResponse viaturaResponse = new ViaturaResponse();
         viaturaResponse.setPlaca((veiculoEntry.getKey() != null) ? veiculoEntry.getKey() : "Não encontrado!");
         viaturaResponse.setKm((veiculo.getKM() != null && !veiculo.getKM().equals("Não encontrado!") && veiculo.getKM().startsWith("0")) ? veiculo.getKM().replaceAll("\\D", "") : "0");
         viaturaResponse.setTipoViatura(veiculo.getIdentificacao());
         viaturaResponse.setIdBase(base.id());
-        viaturaResponse.setStatusOperacional(!veiculo.getPreenchimentos().isEmpty() ? "Operacional" : "Indefinido");
-        viaturaResponse.setDataUltimaAlteracao(!veiculo.getPreenchimentos().isEmpty() ? veiculo.getPreenchimentos().getFirst().getDia() : null);
-        viaturaResponse.setDataInclusao(!veiculo.getPreenchimentos().isEmpty() ? veiculo.getPreenchimentos().getLast().getDia() : null);
+        viaturaResponse.setStatusOperacional(!preenchimentos.isEmpty() ? "Operacional" : "Indefinido");
+        viaturaResponse.setDataUltimaAlteracao(!preenchimentos.isEmpty() ? preenchimentos.getFirst().getDia() : null);
+        viaturaResponse.setDataInclusao(!preenchimentos.isEmpty() ? preenchimentos.getLast().getDia() : null);
         return viaturaResponse;
     }
 

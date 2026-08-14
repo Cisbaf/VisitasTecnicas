@@ -75,7 +75,6 @@ export default function useRelatorioConsolidado(baseId: number) {
             }
 
             const dados: RelatorioConsolidadoResponse = JSON.parse(texto);
-            console.log("Relatório carregado:", dados);
             setRelatorio(dados);
         } catch (err: any) {
             console.error("Erro buscarRelatorio:", err);

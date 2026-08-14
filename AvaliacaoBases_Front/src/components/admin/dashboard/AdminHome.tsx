@@ -65,8 +65,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         s?.length > n ? `${s.substring(0, n)}…` : s;
 
     const processedData = padronizacaoByBaseLastVisit.map((item: any) => {
-        const total = item.conforme + item.naoConforme;
-        const conf = total > 0 ? (item.conforme / total) * 100 : 0;
+        const conf = Number(item.conforme ?? 0);
         return { name: t(item.name), conformidade: Number(conf.toFixed(1)) };
     });
 
@@ -510,7 +509,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                 {/* ══ ITENS NÃO CONFORMES ═══════════════════════════ */}
                                 {(() => {
-                                    const key = baseId ?? perBaseConformidade?.[0]?.id;
+                                    if (!baseId) return null;
+                                    const key = baseId;
                                     const items = resumo?.camposNaoConformes?.[key] ?? [];
                                     if (!items.length) return null;
                                     return (
@@ -552,7 +552,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                             <Box sx={{ p: 1.5, display: 'flex', alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
                                                 <Typography variant={isMobile ? 'subtitle1' : 'h5'}>
                                                     <b>Média {perBaseConformidade.length === 1 ? 'da base' : 'regional'}:</b>{' '}
-                                                    {resumo?.indiceInspecao ? `${resumo.indiceInspecao.toFixed(1)}%` : '—'}
+                                                    {resumo?.indiceInspecao !== undefined && resumo?.indiceInspecao !== null ? `${resumo.indiceInspecao.toFixed(1)}%` : '—'}
                                                 </Typography>
                                             </Box>
 
@@ -760,7 +760,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                             <Box sx={{ p: 1.5, display: 'flex', alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
                                                 <Typography variant={isMobile ? 'subtitle1' : 'h5'}>
                                                     <b>Média {padronizacaoByBaseLastVisit.length === 1 ? 'da base' : 'regional'}:</b>{' '}
-                                                    {resumo?.indicePadronizacao ? `${resumo.indicePadronizacao.toFixed(1)}%` : '—'}
+                                                    {resumo?.indicePadronizacao !== undefined && resumo?.indicePadronizacao !== null ? `${resumo.indicePadronizacao.toFixed(1)}%` : '—'}
                                                 </Typography>
                                             </Box>
 

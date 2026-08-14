@@ -117,12 +117,9 @@ export default function LoginForm() {
                                 variant="contained"
                                 disabled={loading}
                                 sx={{
-                                    bgcolor: '#cd9805',
                                     borderRadius: '30px',
                                     py: 1.5,
                                     fontWeight: 'bold',
-                                    background: '#D71920',
-                                    '&:hover': { background: 'linear-gradient(135deg,#D71920,#F28C28)' },
                                 }}
                             >
                                 {loading ? 'Entrando...' : 'Entrar'}
@@ -209,9 +206,6 @@ export default function LoginForm() {
                                 borderRadius: 3,
                                 py: 1.5,
                                 fontWeight: 'bold',
-                                background: '#D71920',
-                                '&:hover': { background: '#b3131a' },
-                                textTransform: 'none',
                                 fontSize: '1rem',
                             }}
                         >

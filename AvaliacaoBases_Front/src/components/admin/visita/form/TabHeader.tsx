@@ -17,7 +17,6 @@ export const TabHeader = ({ title, onAddClick, children }: TabHeaderProps) => (
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={onAddClick}
-                sx={{ bgcolor: '#5a3d30', '&:hover': { bgcolor: '#3d2514' } }}
             >
                 Novo Formulário
             </Button>

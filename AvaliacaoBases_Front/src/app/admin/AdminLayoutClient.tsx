@@ -64,11 +64,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     <Box sx={{ width: 48, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                         <Button
                             variant="contained"
+                            color="error"
                             href="/logout"
                             sx={{
-                                textTransform: 'none',
-                                bgcolor: '#830101',
-                                '&:hover': { bgcolor: '#5a0000' },
                                 boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
                                 borderRadius: 5,
                                 whiteSpace: 'nowrap',

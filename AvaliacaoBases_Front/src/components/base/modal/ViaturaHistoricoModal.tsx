@@ -63,13 +63,24 @@ export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaH
             }
 
             const text = await res.text();
-            const data: Veiculo = text ? JSON.parse(text) : null;
-            setViatura(data);
+            const data = text ? JSON.parse(text) : null;
+            setViatura(normalizarVeiculo(data));
         } catch (err: any) {
             setError(err.message || "Erro ao carregar dados da viatura");
         } finally {
             setLoading(false);
         }
+    };
+
+    const normalizarVeiculo = (data: any): Veiculo | null => {
+        if (!data) return null;
+
+        const preenchimentos = data.preenchimentos ?? data.Preenchimentos ?? [];
+        return {
+            identificacao: data.identificacao ?? data["Identificação no sistema"] ?? "",
+            km: data.km ?? data.KM ?? "",
+            preenchimentos: Array.isArray(preenchimentos) ? preenchimentos : [],
+        };
     };
 
     const formatarData = (dataString: string) => {

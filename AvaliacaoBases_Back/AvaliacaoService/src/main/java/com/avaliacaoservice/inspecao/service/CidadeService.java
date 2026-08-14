@@ -9,6 +9,7 @@ import com.avaliacaoservice.inspecao.respository.ProtidaoRepository;
 import com.avaliacaoservice.inspecao.respository.TempoRepository;
 import com.avaliacaoservice.inspecao.respository.VtrRespository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CidadeService {
 
     private final ProtidaoRepository prontidaoRepository;
@@ -47,7 +49,7 @@ public class CidadeService {
                 this.prontidaoRepository.save(novoCidadeProntidao);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.warn("Erro ao processar planilha de prontidão: {}", e.getMessage(), e);
         }
     }
 

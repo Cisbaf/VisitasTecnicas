@@ -87,8 +87,8 @@ public class FormMapper {
                     .visitaId((entity.getCampo() != null && entity.getCampo().getForm() != null) ? entity.getCampo().getForm().getVisitaId() : null)
                     .build();
         } catch (Exception e) {
-            System.out.println(entity.toString());
-            throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage());
+            log.warn("Erro ao mapear Resposta entity para RespostaResponse. respostaId={}", entity != null ? entity.getId() : null, e);
+            throw new IllegalArgumentException("Erro ao mapear Resposta entity para RespostaResponse: " + e.getMessage(), e);
         }
     }
 

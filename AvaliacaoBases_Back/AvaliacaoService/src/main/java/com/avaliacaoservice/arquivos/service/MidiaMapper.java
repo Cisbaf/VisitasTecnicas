@@ -5,6 +5,7 @@ import com.avaliacaoservice.arquivos.entity.MidiasRequest;
 import com.avaliacaoservice.arquivos.entity.MidiasResponse;
 import com.avaliacaoservice.arquivos.entity.TipoMidia;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 class MidiaMapper {
 
     private final FileStorageService fileStorageService;
@@ -54,7 +56,7 @@ class MidiaMapper {
 
                 if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
 
-                    System.err.println("Arquivo não encontrado ou sem permissão de leitura: " + midia.getCaminhoArquivo());
+                    log.warn("Arquivo não encontrado ou sem permissão de leitura: {}", midia.getCaminhoArquivo());
 
                     return buildResponseWithoutImage(midia);
                 }
@@ -64,7 +66,7 @@ class MidiaMapper {
 
 
                 if (fileContent.length == 0) {
-                    System.err.println("Arquivo vazio: " + midia.getCaminhoArquivo());
+                    log.warn("Arquivo vazio: {}", midia.getCaminhoArquivo());
                     return buildResponseWithoutImage(midia);
                 }
 
@@ -75,7 +77,7 @@ class MidiaMapper {
                 String base64 = Base64.getEncoder().encodeToString(fileContent);
                 base64DataUrl = "data:" + mimeType + ";base64," + base64;
             } catch (Exception e) {
-                System.err.println("Erro ao carregar arquivo: " + midia.getCaminhoArquivo());
+                log.warn("Erro ao carregar arquivo: {}", midia.getCaminhoArquivo(), e);
                 return buildResponseWithoutImage(midia);
             }
         }

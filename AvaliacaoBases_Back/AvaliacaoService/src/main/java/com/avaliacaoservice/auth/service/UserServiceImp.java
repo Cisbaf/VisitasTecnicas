@@ -94,8 +94,6 @@ public class UserServiceImp implements UserService {
 
 
         if (!request.password().equals(oldpass) && request.role().equals(entity.getRole()) && request.baseId().equals(entity.getBaseId())) {
-            System.out.println("New pass: " + request.password());
-            System.out.println("Oldpass: " + oldpass);
             entity.setPassword(BCrypt.hashpw(request.password(), BCrypt.gensalt()));
         } else {
             entity.setPassword(oldpass);

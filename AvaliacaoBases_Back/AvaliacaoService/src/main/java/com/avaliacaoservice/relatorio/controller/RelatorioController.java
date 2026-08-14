@@ -1,8 +1,10 @@
 package com.avaliacaoservice.relatorio.controller;
 
 import com.avaliacaoservice.relatorio.entity.BaseRankingDTO;
+import com.avaliacaoservice.relatorio.entity.DashboardResponse;
 import com.avaliacaoservice.relatorio.entity.RelatorioConsolidadoResponse;
 import com.avaliacaoservice.relatorio.entity.RelatorioTecnicoResponse;
+import com.avaliacaoservice.relatorio.service.DashboardService;
 import com.avaliacaoservice.relatorio.service.RelatorioTecnicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class RelatorioController {
 
 
     private final RelatorioTecnicoService relatorioService;
+    private final DashboardService dashboardService;
 
     @GetMapping({"/tecnico/{visitaId}"})
     @Operation(summary = "Gera um relatório técnico para uma visita específica")
@@ -45,5 +48,11 @@ public class RelatorioController {
     @Operation(summary = "Gera um relatório de ranking de visitas")
     public ResponseEntity<List<BaseRankingDTO>> getRankingVisitas(@RequestParam LocalDate inicio, @RequestParam LocalDate fim) {
         return ResponseEntity.ok(this.relatorioService.getRankingBasesPeriodoAtual(inicio, fim));
+    }
+
+    @GetMapping({"/dashboard"})
+    @Operation(summary = "Gera os indicadores consolidados do dashboard administrativo")
+    public ResponseEntity<DashboardResponse> getDashboard(@RequestParam LocalDate inicio, @RequestParam LocalDate fim, @RequestParam(required = false) Long baseId) {
+        return ResponseEntity.ok(this.dashboardService.gerarDashboard(inicio, fim, baseId));
     }
 }

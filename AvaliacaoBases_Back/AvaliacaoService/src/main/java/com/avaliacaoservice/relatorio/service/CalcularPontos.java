@@ -143,8 +143,7 @@ public class CalcularPontos {
 
             return resultados;
         } catch (Exception err) {
-            System.err.println("Erro processando conformidade hierárquica: " + err.getMessage());
-            err.printStackTrace(); // Adicione isso para ‘debugging’
+            log.warn("Erro processando conformidade hierárquica: {}", err.getMessage(), err);
             return resultados;
         }
     }

@@ -6,6 +6,7 @@ import com.avaliacaoservice.inspecao.entity.dto.CidadeTempoDTO;
 import com.avaliacaoservice.inspecao.entity.dto.VtrRequest;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CsvProcessingService {
     private final CidadeService cidadeService;
 
@@ -248,8 +250,7 @@ public class CsvProcessingService {
                                 LocalTime time = LocalTime.parse(cidade.getSaidaEquipe());
                                 return Duration.between(LocalTime.MIDNIGHT, time).getSeconds();
                             } catch (DateTimeParseException e) {
-                                // Logar erro ou retornar 0 para tempos inválidos
-                                System.err.println("Erro ao parsear tempo para a cidade " + cidade.getCidade() + ": " + cidade.getSaidaEquipe());
+                                log.warn("Erro ao parsear tempo para a cidade {}: {}", cidade.getCidade(), cidade.getSaidaEquipe());
                                 return 0L;
                             }
                         })

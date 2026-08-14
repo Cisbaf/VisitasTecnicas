@@ -5,7 +5,6 @@ import com.avaliacaoservice.auth.entity.userDto.UserRequest;
 import com.avaliacaoservice.auth.entity.userDto.UserResponse;
 import com.avaliacaoservice.auth.service.capsule.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -128,7 +127,7 @@ public class UserController {
 
     @PostMapping({"/login"})
     @Operation(summary = "Login user")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
 
         if (request == null) {
 
@@ -139,7 +138,13 @@ public class UserController {
         String accessToken = this.userService.login(request);
 
 
-        ResponseCookie cookie = ResponseCookie.from("token", accessToken).httpOnly(true).secure(false).path("/").maxAge(Long.parseLong(this.expiration)).sameSite(this.sameSite).build();
+        ResponseCookie cookie = ResponseCookie.from("token", accessToken)
+                .httpOnly(true)
+                .secure(this.secureCookie)
+                .path("/")
+                .maxAge(Long.parseLong(this.expiration))
+                .sameSite(this.sameSite)
+                .build();
 
 
         return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body("Login feito com sucesso");
@@ -150,7 +155,13 @@ public class UserController {
     @Operation(summary = "Logout user")
     public ResponseEntity<String> logout() {
 
-        ResponseCookie cookie = ResponseCookie.from("token", "").httpOnly(true).secure(false).path("/").maxAge(Duration.ZERO).sameSite(this.sameSite).build();
+        ResponseCookie cookie = ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(this.secureCookie)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .sameSite(this.sameSite)
+                .build();
 
 
         return ResponseEntity.ok().header("Set-Cookie", cookie.toString()).body("Logout feito com sucesso");
@@ -162,7 +173,7 @@ public class UserController {
     public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody UserRequest request) {
 
         if (request == null) {
-            ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().build();
         }
 
         UserResponse updatedUser = this.userService.updateUser(id, request);

@@ -6,6 +6,7 @@ import com.avaliacaoservice.arquivos.service.MidiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/midias")
 @AllArgsConstructor
+@Slf4j
 public class MidiasController {
 
     private final MidiaService service;
@@ -49,7 +51,7 @@ public class MidiasController {
     @Operation(summary = "Update media file flag by ID")
     public ResponseEntity<MidiasResponse> updateFlag(@PathVariable Long id, @RequestBody MidiasRequest request) throws IOException {
 
-        System.out.println("Atualizando mídia com ID: " + id + " com dados: " + request);
+        log.debug("Atualizando mídia com ID: {}", id);
 
         MidiasResponse updatedMidia = this.service.updateMidia(id, request);
 

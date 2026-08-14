@@ -1,6 +1,7 @@
 package com.avaliacaoservice.arquivos.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +14,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class FileStorageService {
     private final Path fileStorageLocation;
 
@@ -24,7 +26,7 @@ public class FileStorageService {
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         Files.createDirectories(this.fileStorageLocation, (FileAttribute<?>[]) new FileAttribute[0]);
 
-        System.out.println("Diretório de upload configurado: " + this.fileStorageLocation);
+        log.info("Diretório de upload configurado: {}", this.fileStorageLocation);
     }
 
 
@@ -56,7 +58,7 @@ public class FileStorageService {
             throw new IOException("Falha ao salvar o arquivo: " + fileName);
         }
 
-        System.out.println("Arquivo salvo em: " + targetLocation + " Tamanho: " + Files.size(targetLocation) + " bytes");
+        log.debug("Arquivo salvo em: {}. Tamanho: {} bytes", targetLocation, Files.size(targetLocation));
         return fileName;
     }
 

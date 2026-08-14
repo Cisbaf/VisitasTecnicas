@@ -15,16 +15,16 @@ export async function GET(req: Request) {
             );
         }
 
-        const query = `inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
-        const path = baseId
-            ? `/avaliacao/relatorios/consolidado/${encodeURIComponent(baseId)}?${query}`
-            : `/avaliacao/relatorios/consolidado?${query}`;
+        const params = new URLSearchParams({ inicio, fim });
+        if (baseId) {
+            params.set("baseId", baseId);
+        }
 
-        return await proxyWithAuth(path, {
+        return await proxyWithAuth(`/avaliacao/relatorios/dashboard?${params.toString()}`, {
             cache: "no-store",
         });
     } catch (err) {
-        console.error("api/relatorios/consolidado GET proxy error:", err);
+        console.error("api/relatorios/dashboard GET proxy error:", err);
         return internalErrorResponse(err);
     }
 }

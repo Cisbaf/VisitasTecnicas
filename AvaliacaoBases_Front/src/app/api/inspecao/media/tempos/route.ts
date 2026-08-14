@@ -1,43 +1,16 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-
-const BACKEND = process.env.BACKEND_INTERNAL_URL;
-
-async function proxyFetch(path: string, init?: RequestInit) {
-    try {
-        const res = await fetch(`${BACKEND}${path}`, init);
-        const status = res.status;
-        const contentType = res.headers.get("content-type") || "";
-
-        if (status === 204) return new NextResponse(null, { status });
-
-        const bodyText = await res.text();
-        return new NextResponse(bodyText, {
-            status,
-            headers: { "content-type": contentType },
-        });
-    } catch (err: any) {
-        console.error("proxyFetch network error:", err);
-        return NextResponse.json({ message: "Bad gateway", detail: err?.message ?? String(err) }, { status: 502 });
-    }
-}
+import { internalErrorResponse, proxyWithAuth } from "@/lib/apiProxy";
 
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const mes = searchParams.get("mes");
-        const query = mes ? `?mes=${mes}` : "";
+        const query = mes ? `?mes=${encodeURIComponent(mes)}` : "";
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-        return await proxyFetch(`/avaliacao/inspecao/tempos/media${query}`, {
-            headers: { Authorization: `Bearer ${token}` },
+        return await proxyWithAuth(`/avaliacao/inspecao/tempos/media${query}`, {
             cache: "no-store",
         });
     } catch (err) {
         console.error("api/inspecao/tempos/media GET proxy error:", err);
-        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
+        return internalErrorResponse(err);
     }
 }

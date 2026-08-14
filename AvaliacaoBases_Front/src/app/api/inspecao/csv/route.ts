@@ -1,35 +1,8 @@
-// app/api/inspecao/csv/route.ts
+import { internalErrorResponse, proxyWithAuth } from "@/lib/apiProxy";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-
-const BACKEND = process.env.BACKEND_INTERNAL_URL;
-
-async function proxyFetch(path: string, init?: RequestInit) {
-    try {
-        const res = await fetch(`${BACKEND}${path}`, init);
-        const status = res.status;
-        const contentType = res.headers.get("content-type") || "";
-
-        if (status === 204) return new NextResponse(null, { status });
-
-        const bodyText = await res.text();
-        return new NextResponse(bodyText, {
-            status,
-            headers: { "content-type": contentType },
-        });
-    } catch (err: any) {
-        console.error("proxyFetch network error:", err);
-        return NextResponse.json({ message: "Bad gateway", detail: err?.message ?? String(err) }, { status: 502 });
-    }
-}
 
 export async function POST(req: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-        if (!token) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-        // Obter o FormData da requisição
         const formData = await req.formData();
         const { searchParams } = new URL(req.url);
 
@@ -39,21 +12,17 @@ export async function POST(req: Request) {
         }
 
         const dataVigencia = formData.get("dataVigencia") || searchParams.get("dataVigencia");
-        const query = dataVigencia ? `?dataVigencia=${dataVigencia}` : "";
+        const query = dataVigencia ? `?dataVigencia=${encodeURIComponent(String(dataVigencia))}` : "";
 
         const backendFormData = new FormData();
         backendFormData.append("file", file);
 
-        return await proxyFetch(`/avaliacao/inspecao/csv${query}`, {
+        return await proxyWithAuth(`/avaliacao/inspecao/csv${query}`, {
             method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                // Não definir Content-Type - o browser vai definir com o boundary correto
-            },
             body: backendFormData,
         });
     } catch (err) {
         console.error("api/inspecao/csv POST proxy error:", err);
-        return NextResponse.json({ message: "Erro interno", detail: String(err) }, { status: 500 });
+        return internalErrorResponse(err);
     }
 }

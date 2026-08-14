@@ -11,8 +11,5 @@ export async function GET() {
     const claims = decodeJwtPayload(token);
     if (!claims) return NextResponse.json({ ok: false, error: 'Invalid token' }, { status: 401 });
 
-    // Remova campos sensíveis se houver; aqui retornamos só os claims
-
-    console.log('Claims:', claims);
     return NextResponse.json({ ok: true, claims });
 }

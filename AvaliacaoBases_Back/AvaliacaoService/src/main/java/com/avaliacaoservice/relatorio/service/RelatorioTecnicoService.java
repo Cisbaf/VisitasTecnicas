@@ -81,16 +81,17 @@ public class RelatorioTecnicoService {
                 log.warn("Erro buscando respostas por campoIds (continuando sem respostas). visitaId={}, erro={}", visitaId, e.getMessage());
             }
 
-            List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(dataInicio)).orElse(List.of());
+            LocalDate competenciaMetricas = competenciaMensal(dataFim);
+            List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(competenciaMetricas)).orElse(List.of());
             HashMap<String, String> prontidaoMedia = new HashMap<>();
             try {
-                prontidaoMedia = this.csvProcessingService.calcularMediaProntidao(dataInicio);
+                prontidaoMedia = this.csvProcessingService.calcularMediaProntidao(competenciaMetricas);
             } catch (Exception e) {
                 log.warn("Erro calculando média prontidão (continuando). visitaId={}, erro={}", visitaId, e.getMessage());
             }
             HashMap<String, String> temposMedia = new HashMap<>();
             try {
-                temposMedia = this.inspecaoServiceClient.getCidadesTempoMedia(dataInicio);
+                temposMedia = this.inspecaoServiceClient.getCidadesTempoMedia(competenciaMetricas);
             } catch (Exception e) {
                 log.warn("Erro obtendo tempos médios (continuando). visitaId={}, erro={}", visitaId, e.getMessage());
             }
@@ -165,13 +166,13 @@ public class RelatorioTecnicoService {
 
             relatorio.setViaturas(processarViaturas(safeViaturas));
 
-            String baseNomeNormalizado = normalizarNome(base.nome());
+            List<String> nomesBaseNormalizados = nomesBaseNormalizados(base);
 
-            Optional<VtrMediaDto> vtrBase = vtrMediaList.stream().filter(vtr -> normalizarNome(vtr.cidade()).equals(baseNomeNormalizado)).findFirst();
+            Optional<VtrMediaDto> vtrBase = vtrMediaList.stream().filter(vtr -> nomesBaseNormalizados.contains(normalizarNome(vtr.cidade()))).findFirst();
 
             relatorio.setPorcentagemVtrAtiva(vtrBase.map(VtrMediaDto::ativa).orElse(null));
-            relatorio.setTempoMedioProntidao(prontidaoMedia.get(base.nome()));
-            relatorio.setTempoMedioAtendimento(temposMedia.get(base.nome()));
+            relatorio.setTempoMedioProntidao(buscarValorPorNomesNormalizados(prontidaoMedia, nomesBaseNormalizados));
+            relatorio.setTempoMedioAtendimento(buscarValorPorNomesNormalizados(temposMedia, nomesBaseNormalizados));
 
             return relatorio;
         } catch (Exception e) {
@@ -203,28 +204,29 @@ public class RelatorioTecnicoService {
 
     public RelatorioConsolidadoResponse gerarRelatoriosPorPeriodIdBase(Long idBase, LocalDate dataInicio, LocalDate dataFim) {
         log.info("Gerando relatorios por base. idBase={}, dataInicio={}, dataFim={}", idBase, dataInicio, dataFim);
-        RelatorioTecnicoResponse rel;
         List<VisitaResponse> visitas = Optional.ofNullable(this.visitaService.getBaseByPeriod(idBase, dataInicio, dataFim)).orElse(List.of());
 
         List<VisitaResponse> visitasValidas = visitas.stream().filter(Objects::nonNull).filter(v -> (v.idBase() != null && v.dataVisita() != null && v.id() != null)).filter(v -> (v.tipoVisita() == null || v.tipoVisita().isEmpty() || v.tipoVisita().toUpperCase().contains("INSP"))).toList();
 
         int totalVisitasPeriodo = visitasValidas.size();
 
-        VisitaResponse ultimaVisita = visitasValidas.stream().max(Comparator.comparing(VisitaResponse::dataVisita)).orElse(null);
-
-        if (ultimaVisita == null) {
+        if (visitasValidas.isEmpty()) {
             return consolidarRelatorios(List.of(), dataInicio, dataFim, totalVisitasPeriodo);
         }
 
-        try {
-            rel = gerarRelatorio(ultimaVisita.id(), dataInicio, dataFim);
-        } catch (Exception e) {
-            log.warn("Falha ao gerar relatório para ultima visita id={} da base {}: {}", ultimaVisita.id(), idBase, e.getMessage());
-            return consolidarRelatorios(List.of(), dataInicio, dataFim, totalVisitasPeriodo);
-        }
+        List<RelatorioTecnicoResponse> relatorios = visitasValidas.stream()
+                .map(visita -> {
+                    try {
+                        return gerarRelatorio(visita.id(), dataInicio, dataFim);
+                    } catch (Exception e) {
+                        log.warn("Falha ao gerar relatório para visita id={} da base {}: {}", visita.id(), idBase, e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
 
-        return consolidarRelatorios(
-                (rel != null) ? List.of(rel) : List.of(), dataInicio, dataFim, totalVisitasPeriodo);
+        return consolidarRelatorios(relatorios, dataInicio, dataFim, totalVisitasPeriodo);
     }
 
 
@@ -327,17 +329,18 @@ public class RelatorioTecnicoService {
         List<BaseResponse> todasBases = Optional.ofNullable(this.baseService.getAll()).orElse(List.of());
         List<BaseRankingDTO> ranking = new ArrayList<>();
 
-        List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(dataInicio)).orElse(List.of());
+        LocalDate competenciaMetricas = competenciaMensal(dataFim);
+        List<VtrMediaDto> vtrMediaList = Optional.ofNullable(this.inspecaoServiceClient.getVtrMedia(competenciaMetricas)).orElse(List.of());
         Map<String, Double> vtrMediaMap = vtrMediaList.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(v -> normalizarNome(v.cidade()), VtrMediaDto::ativa, (a, b) -> a));
 
-        Map<String, String> prontidaoMediaMap = Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao(dataInicio))
+        Map<String, String> prontidaoMediaMap = Optional.ofNullable(this.csvProcessingService.calcularMediaProntidao(competenciaMetricas))
                 .orElse(new HashMap<>())
                 .entrySet().stream()
                 .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
 
-        Map<String, String> temposMediaMap = Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia(dataInicio))
+        Map<String, String> temposMediaMap = Optional.ofNullable(this.inspecaoServiceClient.getCidadesTempoMedia(competenciaMetricas))
                 .orElse(new HashMap<>())
                 .entrySet().stream()
                 .collect(Collectors.toMap(e -> normalizarNome(e.getKey()), Map.Entry::getValue, (a, b) -> a));
@@ -394,18 +397,18 @@ public class RelatorioTecnicoService {
                 }
 
                 BaseRankingDTO dto = new BaseRankingDTO(base.nome(), base.id(), mediaConformidadeBase, ultimaVisita.dataVisita());
-                String baseNomeNorm = normalizarNome(base.nome());
+                List<String> nomesBaseNorm = nomesBaseNormalizados(base);
 
-                Double vtrRaw = vtrMediaMap.get(baseNomeNorm);
+                Double vtrRaw = buscarValorPorNomesNormalizados(vtrMediaMap, nomesBaseNorm);
                 dto.setPorcentagemVtrAtiva(vtrRaw);
-                dto.setTempoMedioProntidao(prontidaoMediaMap.get(baseNomeNorm));
-                dto.setTempoMedioAtendimento(temposMediaMap.get(baseNomeNorm));
+                dto.setTempoMedioProntidao(buscarValorPorNomesNormalizados(prontidaoMediaMap, nomesBaseNorm));
+                dto.setTempoMedioAtendimento(buscarValorPorNomesNormalizados(temposMediaMap, nomesBaseNorm));
 
                 double normConf = Math.clamp(mediaConformidadeBase / 100.0D, 0.0D, 1.0D);
                 double normVtr = normalizeVtrRaw(vtrRaw);
 
-                Double prontMin = parseDurationToMinutes(prontidaoMediaMap.get(baseNomeNorm));
-                Double atendMin = parseDurationToMinutes(temposMediaMap.get(baseNomeNorm));
+                Double prontMin = parseDurationToMinutes(dto.getTempoMedioProntidao());
+                Double atendMin = parseDurationToMinutes(dto.getTempoMedioAtendimento());
 
                 double normPront = normalizarTempo(prontMin);
                 double normAtend = normalizarTempo(atendMin);
@@ -479,5 +482,33 @@ public class RelatorioTecnicoService {
         s = s.replaceAll("\\p{M}", "");
         s = s.replaceAll("\\s+", " ");
         return s;
+    }
+
+    private LocalDate competenciaMensal(LocalDate dataReferencia) {
+        return Optional.ofNullable(dataReferencia)
+                .orElse(LocalDate.now())
+                .withDayOfMonth(1);
+    }
+
+    private List<String> nomesBaseNormalizados(BaseResponse base) {
+        if (base == null) {
+            return List.of();
+        }
+        return Arrays.asList(base.municipio(), base.nome()).stream()
+                .map(this::normalizarNome)
+                .filter(nome -> !nome.isBlank())
+                .distinct()
+                .toList();
+    }
+
+    private <T> T buscarValorPorNomesNormalizados(Map<String, T> valoresPorNome, List<String> nomesNormalizados) {
+        if (valoresPorNome == null || valoresPorNome.isEmpty()) {
+            return null;
+        }
+        return valoresPorNome.entrySet().stream()
+                .filter(entry -> nomesNormalizados.contains(normalizarNome(entry.getKey())))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }

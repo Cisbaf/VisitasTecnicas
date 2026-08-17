@@ -17,7 +17,9 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -32,29 +34,52 @@ public class CidadeService {
     @Transactional
     public void processarPlanilhaProntidao(List<CidadeProntidaoRequest> dados) {
         try {
-            LocalDate dataVigencia = dados.stream()
+            List<LocalDate> datasVigencia = dados.stream()
                     .map(CidadeProntidaoRequest::getDataVigencia)
                     .filter(data -> data != null)
-                    .findFirst()
-                    .orElse(null);
+                    .distinct()
+                    .toList();
 
-            if (dataVigencia != null) {
+            for (LocalDate dataVigencia : datasVigencia) {
                 prontidaoRepository.deleteByDataVigencia(dataVigencia);
             }
+            prontidaoRepository.flush();
 
+            Map<String, CidadeProntidaoRequest> dadosUnicosPorCidadeData = new LinkedHashMap<>();
             for (CidadeProntidaoRequest dado : dados) {
+                String cidade = normalizarCidadeProntidao(dado.getCidade());
+                if (cidade.isBlank() || dado.getDataVigencia() == null) {
+                    continue;
+                }
+                dado.setCidade(cidade);
+                dadosUnicosPorCidadeData.put(cidade + "|" + dado.getDataVigencia(), dado);
+            }
+
+            List<CidadeProntidao> prontidoes = new ArrayList<>();
+            for (CidadeProntidaoRequest dado : dadosUnicosPorCidadeData.values()) {
                 CidadeProntidao novoCidadeProntidao = CidadeProntidao.builder()
                         .cidade(dado.getCidade())
                         .dataEnvio(LocalDate.now())
                         .dataVigencia(dado.getDataVigencia())
                         .saidaEquipe(dado.getSaidaEquipe())
                         .build();
-                this.prontidaoRepository.save(novoCidadeProntidao);
+                prontidoes.add(novoCidadeProntidao);
             }
+            this.prontidaoRepository.saveAll(prontidoes);
         } catch (Exception e) {
             log.warn("Erro ao processar planilha de prontidão: {}", e.getMessage(), e);
             throw new RuntimeException("Erro ao processar planilha de prontidão: " + e.getMessage(), e);
         }
+    }
+
+    private String normalizarCidadeProntidao(String cidade) {
+        if (cidade == null) {
+            return "";
+        }
+        return cidade.replace("\uFEFF", "")
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toUpperCase(Locale.forLanguageTag("pt-BR"));
     }
 
     @Transactional
@@ -122,6 +147,8 @@ public class CidadeService {
         // Se não passar o mês, pega o mês atual (forçando o dia 1 para bater com a vigência)
         if (mes == null) {
             mes = LocalDate.now().withDayOfMonth(1);
+        } else {
+            mes = mes.withDayOfMonth(1);
         }
 
         return vtrRespository.findByDataVigencia(mes).stream()
@@ -132,6 +159,8 @@ public class CidadeService {
     public List<CidadeTempoDTO> getAllCidadesTempo(LocalDate mes) {
         if (mes == null) {
             mes = LocalDate.now().withDayOfMonth(1);
+        } else {
+            mes = mes.withDayOfMonth(1);
         }
 
         List<CidadeTempo> cidadesTempo = this.tempoRepository.findByDataVigencia(mes);
@@ -150,6 +179,8 @@ public class CidadeService {
     public List<VtrMediaDto> getVtrMedia(LocalDate mes) {
         if (mes == null) {
             mes = LocalDate.now().withDayOfMonth(1);
+        } else {
+            mes = mes.withDayOfMonth(1);
         }
 
         List<RelatorioVTR> relatorios = this.vtrRespository.findByDataVigencia(mes);
@@ -179,7 +210,7 @@ public class CidadeService {
                 continue;
             }
 
-            double somaPorcentagens = todasViaturas.stream()
+            double somaPorcentagens = regulares.stream()
                     .mapToDouble(vtr -> vtr.getAtiva() != null ? vtr.getAtiva() : 0.0)
                     .sum();
 
@@ -201,6 +232,8 @@ public class CidadeService {
     public HashMap<String, String> getCidadesTempoMedia(LocalDate mes) {
         if (mes == null) {
             mes = LocalDate.now().withDayOfMonth(1);
+        } else {
+            mes = mes.withDayOfMonth(1);
         }
 
         List<CidadeTempo> cidadesTempo = this.tempoRepository.findByDataVigencia(mes);

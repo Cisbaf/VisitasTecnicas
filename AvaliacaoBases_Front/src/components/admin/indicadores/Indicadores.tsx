@@ -291,8 +291,8 @@ export default function UploadCSVPage() {
                                                             )}
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ py: { xs: 1, sm: 1.5 } }}>
-                                                            {(vtr.CNES || vtr.cnes) && (vtr.CNES || vtr.cnes)?.trim().length > 0 && (
-                                                                <Chip label={(vtr.CNES || vtr.cnes)?.trim() ?? "N/A"} variant="filled" size="small" />
+                                                            {vtr.CNES && vtr.CNES?.trim().length > 0 && (
+                                                                <Chip label={vtr.CNES?.trim() ?? "N/A"} variant="filled" size="small" />
                                                             )}
                                                         </TableCell>
                                                     </TableRow>

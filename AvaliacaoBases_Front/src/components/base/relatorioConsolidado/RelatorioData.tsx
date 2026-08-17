@@ -240,27 +240,27 @@ export const RelatorioData = ({ relatorio, getConformidadeColor, getScoreColor, 
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
-                                                        label={`${metricas.porcentagemVtrAtiva}%`}
+                                                        label={metricas.porcentagemVtrAtiva == null ? "N/A" : `${metricas.porcentagemVtrAtiva}%`}
                                                         variant="outlined"
-                                                        color={metricas.porcentagemVtrAtiva > 70 ? "success" : metricas.porcentagemVtrAtiva > 50 ? "warning" : "error"}
+                                                        color={metricas.porcentagemVtrAtiva == null ? "default" : metricas.porcentagemVtrAtiva > 70 ? "success" : metricas.porcentagemVtrAtiva > 50 ? "warning" : "error"}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
-                                                        label={`${metricas.tempoMedioProntidao}`}
+                                                        label={metricas.tempoMedioProntidao ?? "N/A"}
                                                         variant="outlined"
                                                     />
                                                 </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }}>
                                                     <Chip
-                                                        label={`${metricas.tempoMedioAtendimento} `}
+                                                        label={metricas.tempoMedioAtendimento ?? "N/A"}
                                                         variant="outlined"
                                                         color="primary"
                                                     />
                                                 </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }}>
                                                     <Chip
-                                                        label={`${metricas.mediaConformidade.toFixed(2)}%`}
+                                                        label={metricas.mediaConformidade == null ? "N/A" : `${metricas.mediaConformidade.toFixed(2)}%`}
                                                         variant="outlined"
                                                         color="primary"
                                                     />
@@ -306,7 +306,7 @@ export const RelatorioData = ({ relatorio, getConformidadeColor, getScoreColor, 
                                     <TableBody>
                                         {relatorio.rankingBases.map((base) => (
                                             <TableRow
-                                                key={base.id}
+                                                key={base.idBase}
                                                 sx={{
                                                     '&:last-child td, &:last-child th': { border: 0 },
                                                     '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.02) },

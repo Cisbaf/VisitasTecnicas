@@ -19,7 +19,7 @@ export default function useRelatorioConsolidado(baseId: number) {
         setIsClient(true);
         const fim = new Date();
         const inicio = new Date();
-        inicio.setDate(inicio.getDate() - 9000); // 30 dias atrás
+        inicio.setDate(inicio.getDate() - 30);
         setDataInicio(inicio);
         setDataFim(fim);
     }, []);

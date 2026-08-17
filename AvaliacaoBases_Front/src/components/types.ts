@@ -49,10 +49,10 @@ export interface RelatorioConsolidadoResponse {
 interface BaseMetricasExternasDTO {
     baseNome: string;
     idBase: number;
-    porcentagemVtrAtiva: number;
-    tempoMedioProntidao: number;
-    tempoMedioAtendimento: number;
-    mediaConformidade: number;
+    porcentagemVtrAtiva: number | null;
+    tempoMedioProntidao: string | null;
+    tempoMedioAtendimento: string | null;
+    mediaConformidade: number | null;
 }
 
 export interface CategoryConformanceDTO {
@@ -82,7 +82,7 @@ export interface ItemViaturaDTO {
 
 export interface BaseRankingDTO {
     nomeBase: string;
-    id: number;
+    idBase: number;
     mediaConformidade: number;
     dataUltimaVisita: string;
     posicaoRanking: number;

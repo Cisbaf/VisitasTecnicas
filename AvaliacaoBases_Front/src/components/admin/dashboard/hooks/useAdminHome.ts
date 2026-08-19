@@ -55,6 +55,12 @@ interface DashboardResponse {
 }
 
 const formatDateParam = (date: Date) => date.toISOString().split('T')[0];
+const addDaysToDate = (date: Date, days: number) => {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
+};
+const isForbiddenError = (error: unknown) => String(error instanceof Error ? error.message : error).includes('HTTP 403');
 
 export function useAdminHome() {
     const [basesList, setBasesList] = useState<any[]>([]);
@@ -120,27 +126,46 @@ export function useAdminHome() {
 
     const fetchStatusViaturasPorBase = useCallback(async (selectedMunicipio?: string, dateFim?: Date, dateInicio?: Date) => {
         setLoadingViaturas(true);
+        setViaturaStatusPorBase([]);
+        setViaturasPorBase({});
+        setBasesComChecklist([]);
 
         try {
             const selectedBase = selectedMunicipio
                 ? basesList.find((base) => base.nome === selectedMunicipio || base.id === Number(selectedMunicipio))
                 : null;
-            const dataInicioFormatada = dateInicio && dateFim && dateInicio < dateFim
-                ? formatDateParam(dateInicio)
-                : formatDateParam(new Date('2001-01-01'));
-            const dataFimFormatada = dateInicio && dateFim && dateInicio < dateFim
-                ? formatDateParam(dateFim)
-                : formatDateParam(new Date());
+            const dataFinal = dateFim ? new Date(dateFim) : new Date();
+            const dataInicialInformada = dateInicio && dateInicio < dataFinal ? new Date(dateInicio) : addDaysToDate(dataFinal, -90);
+            const dataInicialApi = dataInicialInformada.getFullYear() < 2020
+                ? addDaysToDate(dataFinal, -90)
+                : dataInicialInformada;
+            const dataInicioFormatada = formatDateParam(dataInicialApi);
+            const dataFimFormatada = formatDateParam(dataFinal);
 
-            const viaturasData = await fetchJsonSafe(
-                `/api/viatura/api?baseId=${selectedBase?.id || 0}&data_inicio=${dataInicioFormatada}&data_final=${dataFimFormatada}`
-            );
+            let viaturasData;
+            try {
+                viaturasData = await fetchJsonSafe(
+                    `/api/viatura/api?baseId=${selectedBase?.id || 0}&data_inicio=${dataInicioFormatada}&data_final=${dataFimFormatada}`
+                );
+            } catch (externalErr) {
+                console.warn('API externa de viaturas indisponível, usando cadastro local:', externalErr);
+                try {
+                    viaturasData = await fetchJsonSafe(selectedBase?.id ? `/api/viatura/base/${selectedBase.id}` : '/api/viatura');
+                } catch (localErr) {
+                    if (isForbiddenError(localErr)) {
+                        console.warn('Usuário sem permissão para consultar cadastro local de viaturas.');
+                        return;
+                    }
+                    throw localErr;
+                }
+            }
             const viaturas = Array.isArray(viaturasData) ? viaturasData : [];
             const dataLimite = dateFim ? new Date(dateFim) : new Date();
             const dataInicio = dateInicio ? new Date(dateInicio) : new Date();
             const viaturasPorBaseLocal: Record<number, Viatura[]> = {};
             const statusPorBase: ViaturaStatusPorBase[] = [];
             const basesComChecklistLocal: number[] = [];
+            const basesEscopo = selectedBase ? [selectedBase] : basesList;
 
             viaturas.forEach((viatura: Viatura) => {
                 if (!viatura.idBase) return;
@@ -148,8 +173,8 @@ export function useAdminHome() {
                 viaturasPorBaseLocal[viatura.idBase].push(viatura);
             });
 
-            Object.entries(viaturasPorBaseLocal).forEach(([baseId, viaturasDaBase]) => {
-                const base = basesList.find((item) => item.id === Number(baseId));
+            basesEscopo.forEach((base) => {
+                const viaturasDaBase = viaturasPorBaseLocal[base.id] || [];
                 const statusCount = { operacional: 0, indefinido: 0 };
                 let baseTemChecklistRecente = false;
 
@@ -167,13 +192,13 @@ export function useAdminHome() {
                 });
 
                 statusPorBase.push({
-                    baseId: Number(baseId),
-                    baseNome: base?.nome ?? `Base ${baseId}`,
+                    baseId: Number(base.id),
+                    baseNome: base?.nome ?? `Base ${base.id}`,
                     status: statusCount,
                 });
 
                 if (baseTemChecklistRecente) {
-                    basesComChecklistLocal.push(Number(baseId));
+                    basesComChecklistLocal.push(Number(base.id));
                 }
             });
 
@@ -182,7 +207,9 @@ export function useAdminHome() {
             setBasesComChecklist(basesComChecklistLocal);
         } catch (err: any) {
             console.error('Erro ao buscar status das viaturas:', err);
-            setError(String(err?.message || err));
+            setViaturaStatusPorBase([]);
+            setViaturasPorBase({});
+            setBasesComChecklist([]);
         } finally {
             setLoadingViaturas(false);
         }

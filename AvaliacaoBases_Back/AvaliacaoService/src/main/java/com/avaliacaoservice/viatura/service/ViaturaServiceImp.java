@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,9 +86,9 @@ public class ViaturaServiceImp implements ViaturaService {
         List<ViaturaResponse> viaturas = new ArrayList<>();
 
         if (registros != null && registros.getCidades() != null) {
-            String nomeBaseNormalizado = normalizarTexto(base.nome());
+            List<String> nomesBaseNormalizados = nomesBaseNormalizados(base);
 
-            Cidade cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomeBaseNormalizado);
+            Cidade cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomesBaseNormalizados);
 
             if (cidade != null && cidade.getVeiculos() != null) {
                 for (Map.Entry<String, Veiculo> veiculoEntry : cidade.getVeiculos().entrySet()) {
@@ -108,8 +109,7 @@ public class ViaturaServiceImp implements ViaturaService {
 
             List<BaseResponse> bases = this.baseService.getAll();
             for (BaseResponse base : bases) {
-                String nomeBaseNormalizado = normalizarTexto(base.nome());
-                Cidade cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomeBaseNormalizado);
+                Cidade cidade = encontrarCidadeCorrespondente(registros.getCidades(), nomesBaseNormalizados(base));
 
                 if (cidade != null && cidade.getVeiculos() != null) {
                     for (Map.Entry<String, Veiculo> veiculoEntry : cidade.getVeiculos().entrySet()) {
@@ -186,10 +186,21 @@ public class ViaturaServiceImp implements ViaturaService {
                 .trim();
     }
 
-    private Cidade encontrarCidadeCorrespondente(Map<String, Cidade> cidades, String nomeBaseNormalizado) {
+    private List<String> nomesBaseNormalizados(BaseResponse base) {
+        if (base == null) {
+            return List.of();
+        }
+        return Arrays.asList(base.municipio(), base.nome()).stream()
+                .map(this::normalizarTexto)
+                .filter(nome -> nome != null && !nome.isBlank())
+                .distinct()
+                .toList();
+    }
+
+    private Cidade encontrarCidadeCorrespondente(Map<String, Cidade> cidades, List<String> nomesBaseNormalizados) {
         for (Map.Entry<String, Cidade> entry : cidades.entrySet()) {
             String nomeCidadeNormalizado = normalizarTexto(entry.getKey());
-            if (nomeBaseNormalizado.equals(nomeCidadeNormalizado)) {
+            if (nomesBaseNormalizados.contains(nomeCidadeNormalizado)) {
                 return entry.getValue();
             }
         }

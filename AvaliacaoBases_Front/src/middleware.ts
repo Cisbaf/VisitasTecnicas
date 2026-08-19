@@ -42,6 +42,11 @@ export function middleware(req: NextRequest) {
             return url.searchParams.get('baseId') === userBase;
         }
 
+        const placaRouteMatch = url.pathname.match(/^\/api\/viatura\/api\/([^/]+)$/);
+        if (placaRouteMatch) {
+            return url.searchParams.get('baseId') === userBase;
+        }
+
         return false;
     };
 

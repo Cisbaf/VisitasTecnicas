@@ -258,6 +258,7 @@ export default function Viaturas({ baseId }: { baseId?: number }) {
                 open={checklistsModalOpen}
                 onClose={() => setChecklistsModalOpen(false)}
                 placa={selectedidViatura}
+                baseId={resolvedBaseId}
             />
 
             <Snackbar open={!!successMsg} autoHideDuration={4000} onClose={() => setSuccessMsg(null)}>

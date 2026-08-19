@@ -11,7 +11,6 @@ import {
     Divider,
     Paper,
     Typography,
-    CircularProgress,
     useMediaQuery,
     useTheme,
     Skeleton
@@ -20,10 +19,10 @@ import {
     Home,
     CheckBox,
     LocalShipping,
-    Assessment,
     History,
     InsertDriveFile,
 } from "@mui/icons-material";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
 interface VisitaResponse {
@@ -37,14 +36,16 @@ interface VisitaResponse {
     }>;
 }
 
-const drawerWidth = 280;
+export const DRAWER_WIDTH = 280;
+export const COLLAPSED_DRAWER_WIDTH = 76;
 
 interface SidebarProps {
     mobileOpen: boolean;
     handleDrawerClose: () => void;
+    collapsed?: boolean;
 }
 
-export default function Sidebar({ mobileOpen, handleDrawerClose }: SidebarProps) {
+export default function Sidebar({ mobileOpen, handleDrawerClose, collapsed = false }: SidebarProps) {
     const params = useParams();
     const pathname = usePathname();
     const baseId = params.baseId as string;
@@ -104,8 +105,8 @@ export default function Sidebar({ mobileOpen, handleDrawerClose }: SidebarProps)
         return new Date(dataString).toLocaleDateString('pt-BR');
     };
 
-    const drawerContent = (
-        <Box sx={{ overflow: "auto", p: 2 }}>
+    const drawerContent = (compact = false) => (
+        <Box sx={{ overflow: "auto", px: compact ? 1 : 2, py: 2 }}>
             <List>
                 {menuItems.map((item) => {
                     const isSelected =
@@ -116,54 +117,66 @@ export default function Sidebar({ mobileOpen, handleDrawerClose }: SidebarProps)
                     return (
                         <ListItemButton
                             key={item.label}
-                            component="a"
+                            component={Link}
                             href={item.href}
                             selected={isSelected}
                             onClick={isMobile ? handleDrawerClose : undefined}
+                            title={compact ? item.label : undefined}
+                            sx={{
+                                minHeight: 46,
+                                justifyContent: compact ? "center" : "flex-start",
+                                px: compact ? 1 : 2,
+                                borderRadius: 2,
+                                mb: 0.5,
+                            }}
                         >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.label} />
+                            <ListItemIcon sx={{ minWidth: compact ? 0 : 40, justifyContent: "center" }}>{item.icon}</ListItemIcon>
+                            {!compact && <ListItemText primary={item.label} />}
                         </ListItemButton>
                     );
                 })}
             </List>
 
-            <Divider sx={{ my: 2 }} />
+            {!compact && (
+                <>
+                    <Divider sx={{ my: 2 }} />
 
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-                    Última Visita Técnica
-                </Typography>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                            Última Visita Técnica
+                        </Typography>
 
-                {loading ? (
-                    <Box sx={{ mt: 1 }}>
-                        <Skeleton variant="text" width="60%" height={20} />
-                        <Skeleton variant="text" width="90%" height={20} />
-                    </Box>
-                ) : error ? (
-                    <Typography variant="caption" color="error">
-                        Erro ao carregar dados
-                    </Typography>
-                ) : !ultimaVisita ? (
-                    <Typography variant="caption">
-                        Nenhuma visita realizada
-                    </Typography>
-                ) : (
-                    <>
-                        <Typography variant="caption" display="block" sx={{ mb: 1 }}>
-                            Data: {formatarData(ultimaVisita.dataVisita)}
-                        </Typography>
-                        <Typography variant="caption" display="block" sx={{ mb: 1 }}>
-                            Equipe: {ultimaVisita.membros.map(m => m.nome).join(", ")}
-                        </Typography>
-                    </>
-                )}
-            </Paper>
+                        {loading ? (
+                            <Box sx={{ mt: 1 }}>
+                                <Skeleton variant="text" width="60%" height={20} />
+                                <Skeleton variant="text" width="90%" height={20} />
+                            </Box>
+                        ) : error ? (
+                            <Typography variant="caption" color="error">
+                                Erro ao carregar dados
+                            </Typography>
+                        ) : !ultimaVisita ? (
+                            <Typography variant="caption">
+                                Nenhuma visita realizada
+                            </Typography>
+                        ) : (
+                            <>
+                                <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+                                    Data: {formatarData(ultimaVisita.dataVisita)}
+                                </Typography>
+                                <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+                                    Equipe: {ultimaVisita.membros.map(m => m.nome).join(", ")}
+                                </Typography>
+                            </>
+                        )}
+                    </Paper>
+                </>
+            )}
         </Box>
     );
 
     return (
-        <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
+        <Box component="nav" sx={{ width: { md: collapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH }, flexShrink: { md: 0 }, transition: "width 0.2s ease" }}>
             {/* VERSÃO MOBILE: Variante temporary controlada pelo CSS */}
             <Drawer
                 variant="temporary"
@@ -172,11 +185,11 @@ export default function Sidebar({ mobileOpen, handleDrawerClose }: SidebarProps)
                 ModalProps={{ keepMounted: true }} // Melhora performance mobile
                 sx={{
                     display: { xs: 'block', md: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, background: "#f7fbfe" },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH, background: "#f7fbfe" },
                 }}
             >
                 <Toolbar />
-                {drawerContent}
+                {drawerContent(false)}
             </Drawer>
 
             {/* VERSÃO DESKTOP: Variante permanent fixa */}
@@ -184,12 +197,22 @@ export default function Sidebar({ mobileOpen, handleDrawerClose }: SidebarProps)
                 variant="permanent"
                 sx={{
                     display: { xs: 'none', md: 'block' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, background: "#f7fbfe", borderRight: 0 },
+                    width: collapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH,
+                    flexShrink: 0,
+                    transition: "width 0.2s ease",
+                    '& .MuiDrawer-paper': {
+                        boxSizing: 'border-box',
+                        width: collapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH,
+                        background: "#f7fbfe",
+                        borderRight: 0,
+                        overflowX: "hidden",
+                        transition: "width 0.2s ease",
+                    },
                 }}
                 open
             >
                 <Toolbar />
-                {drawerContent}
+                {drawerContent(collapsed)}
             </Drawer>
         </Box>
     );

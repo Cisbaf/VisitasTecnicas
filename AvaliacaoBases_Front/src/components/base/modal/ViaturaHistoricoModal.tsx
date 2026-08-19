@@ -26,9 +26,10 @@ interface ViaturaHistoricoProps {
     open: boolean;
     onClose: () => void;
     placa: string | null;
+    baseId?: number | null;
 }
 
-export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaHistoricoProps) {
+export default function ViaturaHistoricoModal({ open, onClose, placa, baseId }: ViaturaHistoricoProps) {
     const [viatura, setViatura] = useState<Veiculo | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaH
             setViatura(null);
             setError(null);
         }
-    }, [open, placa]);
+    }, [open, placa, baseId]);
 
     const fetchViatura = async () => {
         if (placa == null || typeof placa !== "string") {
@@ -52,7 +53,8 @@ export default function ViaturaHistoricoModal({ open, onClose, placa }: ViaturaH
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/viatura/api/${encodeURIComponent(placa)}`);
+            const query = baseId ? `?baseId=${encodeURIComponent(String(baseId))}` : "";
+            const res = await fetch(`/api/viatura/api/${encodeURIComponent(placa)}${query}`);
 
             if (!res.ok) {
                 if (res.status === 404 || res.status === 204) {

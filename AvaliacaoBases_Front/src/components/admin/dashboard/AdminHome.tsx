@@ -5,7 +5,7 @@ import {
     Alert, Box, Button, Chip, CircularProgress, Divider, MenuItem,
     Paper, Table, TableBody, TableCell,
     TableHead, TableRow, TextField, Typography, Tooltip as MuiTooltip,
-    useMediaQuery, useTheme,
+    Skeleton, useMediaQuery, useTheme,
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -29,9 +29,9 @@ import { Viatura } from '@/components/types';
 import { useIndicadores } from '../hooks/useIndicadores';
 
 const paperStyles = {
-    borderColor: 'rgba(15, 23, 42, 0.08)',
+    borderColor: 'rgba(15, 23, 42, 0.06)',
     borderRadius: 2,
-    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.06)',
+    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
 };
 
 export default function AdminHomePage({ baseId }: { baseId?: string }) {
@@ -92,7 +92,9 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             }
 
             await buscarDadosPeriodo(mun, dataInicio, dataFim);
-            if (basesList.length > 0) await fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
+            if (basesList.length > 0) {
+                void fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
+            }
             // fetchMedias() removido daqui — será chamado pelo useEffect
         } catch (err) { console.error(err); }
     };
@@ -121,11 +123,13 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                 setSelectedMonth(initialMes);
             }
 
-            await buscarDadosPeriodo(mun, dataInicio, dataFim);
-            await fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
-            await fetchMedias(initialMes);
-            setVezes(v => v + 1);
             initialFetchDone.current = true;
+            await Promise.all([
+                buscarDadosPeriodo(mun, dataInicio, dataFim),
+                fetchMedias(initialMes),
+            ]);
+            void fetchStatusViaturasPorBase(mun || null, dataFim, dataInicio);
+            setVezes(v => v + 1);
         };
         init();
         return () => { mounted = false; };
@@ -164,8 +168,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         </Box>
     );
 
-    const scoreColor = (value: number) => value >= 80 ? '#2e7d32' : value >= 50 ? '#ed6c02' : '#d32f2f';
-    const softScoreColor = (value: number) => value >= 80 ? '#43a047' : value >= 50 ? '#fb8c00' : '#e53935';
+    const scoreColor = (value: number) => value >= 80 ? '#2f6f4e' : value >= 50 ? '#b7791f' : '#b42318';
+    const softScoreColor = (value: number) => value >= 80 ? '#4f8f6b' : value >= 50 ? '#d99a2b' : '#c94a3f';
     const clampScore = (value: number) => Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
 
     const ProgressBar = ({ value, color }: { value: number; color: string }) => (
@@ -173,6 +177,20 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             <Box sx={{ width: `${clampScore(value)}%`, height: '100%', bgcolor: color, borderRadius: 999 }} />
         </Box>
     );
+
+    const getViaturaKm = (viatura: any) => {
+        if (!viatura) return null;
+        if (Array.isArray(viatura)) return getViaturaKm(viatura[0]);
+        const km = viatura?.km ?? viatura?.KM ?? viatura?.quilometragem ?? viatura?.Quilometragem ?? viatura?.odometro ?? viatura?.Odometro ?? null;
+        const value = km === null || km === undefined ? '' : String(km).trim();
+        if (value && value !== '0' && value !== '0.0') return value;
+
+        const nested = getViaturaKm(viatura?.dados ?? viatura?.data ?? viatura?.veiculo ?? viatura?.Veiculo ?? viatura?.resultado);
+        if (nested) return nested;
+
+        const preenchimentos = viatura?.preenchimentos ?? viatura?.Preenchimentos;
+        return Array.isArray(preenchimentos) ? getViaturaKm(preenchimentos[0]) : null;
+    };
 
     const ScoreHero = ({ value, scope }: { value?: number | null; scope: string }) => {
         const hasValue = value !== undefined && value !== null && !Number.isNaN(Number(value));
@@ -182,21 +200,19 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             <Paper
                 variant="outlined"
                 sx={{
-                    p: { xs: 2, md: 2.5 },
+                    p: { xs: 1.75, md: 2 },
                     mb: 3,
                     borderRadius: 2,
                     bgcolor: 'background.paper',
-                    borderColor: hasValue ? `${color}40` : 'divider',
-                    borderLeft: '4px solid',
-                    borderLeftColor: hasValue ? color : 'divider',
+                    borderColor: 'rgba(15, 23, 42, 0.08)',
                     overflow: 'hidden',
                 }}
             >
                 <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0 }}>
                         Média {scope}
                     </Typography>
-                    <Typography variant={isMobile ? 'h4' : 'h3'} fontWeight={800} sx={{ color, lineHeight: 1.05, mt: 0.5 }}>
+                    <Typography variant={isMobile ? 'h4' : 'h3'} fontWeight={600} sx={{ color, lineHeight: 1.05, mt: 0.5 }}>
                         {hasValue ? `${score.toFixed(1)}%` : '-'}
                     </Typography>
                 </Box>
@@ -213,23 +229,23 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         <Paper
             variant="outlined"
             sx={{
-                p: { xs: 1.5, md: 2 },
+                p: { xs: 1.25, md: 1.5 },
                 borderRadius: 2,
                 bgcolor: 'background.paper',
                 borderColor: `${accent}33`,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)' },
+                transition: 'border-color 0.2s',
+                '&:hover': { borderColor: 'rgba(15, 23, 42, 0.14)' },
             }}
         >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: accent, flexShrink: 0 }} />
-                <Typography fontWeight={800} sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, minWidth: 0 }}>{title}</Typography>
+                <Typography fontWeight={600} sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, minWidth: 0 }}>{title}</Typography>
             </Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: dados.length > 1 ? '1fr 1fr' : '1fr' }, gap: 1 }}>
                 {dados.length > 0 ? dados.map((item: any) => (
-                    <Box key={item.name} sx={{ p: 1.25, borderRadius: 1.5, bgcolor: `${item.fill}12`, border: '1px solid', borderColor: `${item.fill}30` }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 700 }}>{item.name}</Typography>
-                        <Typography variant="h6" fontWeight={800} sx={{ color: item.fill, lineHeight: 1.15 }}>
+                    <Box key={item.name} sx={{ p: 1.25, borderRadius: 1.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'rgba(15, 23, 42, 0.06)' }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{item.name}</Typography>
+                        <Typography variant="h6" fontWeight={600} sx={{ color: item.fill, lineHeight: 1.15 }}>
                             {item.porcentagem.toFixed(1)}%
                         </Typography>
                         {showQuantity && <Typography variant="caption" color="text.secondary">{item.value} itens</Typography>}
@@ -244,15 +260,15 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
     const chartShellSx = {
         p: { xs: 1, md: 1.5 },
         borderRadius: 2,
-        bgcolor: '#fbfcfe',
+        bgcolor: '#ffffff',
         border: '1px solid',
-        borderColor: 'rgba(15, 23, 42, 0.08)',
+        borderColor: 'rgba(15, 23, 42, 0.06)',
     };
 
     const polishedTooltip = {
         borderRadius: 8,
         border: '1px solid rgba(15, 23, 42, 0.08)',
-        boxShadow: '0 10px 28px rgba(15, 23, 42, 0.14)',
+        boxShadow: '0 8px 18px rgba(15, 23, 42, 0.10)',
         fontSize: 12,
     };
 
@@ -260,13 +276,13 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         p: { xs: 2, md: 3 },
         mb: 4,
         ...paperStyles,
-        bgcolor: 'rgba(255, 255, 255, 0.96)',
+        bgcolor: 'background.paper',
     };
 
     const SectionHeader = ({ title, caption }: { title: string; caption?: string }) => (
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
             <Box>
-                <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={800} sx={{ lineHeight: 1.2 }}>
+                <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600} sx={{ lineHeight: 1.2 }}>
                     {title}
                 </Typography>
                 {caption && (
@@ -290,8 +306,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                 borderRadius: 999,
                 bgcolor: 'background.paper',
                 border: '1px solid',
-                borderColor: 'rgba(15, 23, 42, 0.08)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
+                borderColor: 'rgba(15, 23, 42, 0.06)',
             }}
         >
             <Box sx={{ width: 34, height: 34, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: `${color}14`, color, flexShrink: 0 }}>
@@ -299,7 +314,54 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             </Box>
             <Box sx={{ minWidth: 0 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.1 }}>{title}</Typography>
-                <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1.2, color: 'text.primary' }}>{value}</Typography>
+                <Typography variant="subtitle1" fontWeight={700} sx={{ lineHeight: 1.2, color: 'text.primary' }}>{value}</Typography>
+            </Box>
+        </Box>
+    );
+
+    const DashboardSkeleton = () => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Paper variant="outlined" sx={sectionPaperSx}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 1.4fr) 1fr 1fr auto' }, gap: 2, alignItems: 'center' }}>
+                    <Skeleton variant="rounded" height={40} />
+                    <Skeleton variant="rounded" height={40} />
+                    <Skeleton variant="rounded" height={40} />
+                    <Skeleton variant="rounded" height={40} sx={{ minWidth: { md: 150 } }} />
+                </Box>
+            </Paper>
+
+            <Paper variant="outlined" sx={sectionPaperSx}>
+                <Skeleton variant="text" width={190} height={28} sx={{ mb: 2 }} />
+                <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 3 }}>
+                    {[0, 1, 2, 3].map((item) => (
+                        <Skeleton key={item} variant="rounded" width={isMobile ? '100%' : 190} height={58} sx={{ borderRadius: 999 }} />
+                    ))}
+                </Box>
+                <Skeleton variant="rounded" height={isMobile ? 220 : 300} />
+            </Paper>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
+                {[0, 1].map((item) => (
+                    <Paper key={item} variant="outlined" sx={sectionPaperSx}>
+                        <Skeleton variant="text" width="45%" height={28} sx={{ mb: 2 }} />
+                        <Skeleton variant="rounded" height={isMobile ? 240 : 320} />
+                    </Paper>
+                ))}
+            </Box>
+        </Box>
+    );
+
+    const ViaturasSkeleton = () => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                <Skeleton variant="rounded" height={118} />
+                <Skeleton variant="rounded" height={118} />
+            </Box>
+            <Skeleton variant="rounded" height={isMobile ? 220 : 280} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {[0, 1, 2].map((item) => (
+                    <Skeleton key={item} variant="rounded" height={48} />
+                ))}
             </Box>
         </Box>
     );
@@ -360,11 +422,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                         <Box key={i} sx={{
                             p: 1.5, bgcolor: 'background.paper',
                             border: '1px solid', borderColor: 'rgba(15, 23, 42, 0.08)',
-                            borderLeft: `4px solid ${cor === 'primary.main' ? '#1976d2' : cor}`,
+                            borderLeft: `3px solid ${cor === 'primary.main' ? '#6b8fb8' : '#c97b7b'}`,
                             borderRadius: 2,
-                            boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
                         }}>
-                            <Typography variant="caption" fontWeight="bold" sx={{ display: 'block' }}>
+                            <Typography variant="caption" fontWeight={600} sx={{ display: 'block' }}>
                                 {v.data ? format(addDays(new Date(v.data), 1), 'dd/MM/yyyy') : 'N/D'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -382,8 +443,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         }
         /* desktop original */
         return (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1, width: '100%', px: 1, py: 1, minHeight: 70, position: 'relative', zIndex: 2 }}>
-                <Box sx={{ position: 'absolute', top: '18px', left: 8, right: 8, transform: 'translateY(-50%)', height: 2, bgcolor: cor, opacity: 0.24, width: 'auto', zIndex: 1 }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 1, width: '100%', px: 1, py: 1, minHeight: 70, position: 'relative' }}>
+                <Box sx={{ position: 'absolute', top: '14px', left: 28, right: 28, height: '2px', bgcolor: 'divider', zIndex: 1 }} />
                 {visitas.map((visita: any, i: number) => (
                     <Box key={`${visita.baseId}-${visita.data}-${i}`} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', flex: '1 0 auto', minWidth: 60, maxWidth: 100 }}>
                         <MuiTooltip
@@ -403,9 +464,9 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                             ) : visita.tipo}
                             placement="top" arrow
                         >
-                            <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: cor, border: '3px solid white', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.18)', mb: 0.5, cursor: 'pointer', position: 'relative', zIndex: 2, ':hover': { transform: 'scale(1.35)', transition: 'transform 0.2s' } }} />
+                            <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: cor === 'primary.main' ? '#5f7f9f' : '#a15c5c', border: '3px solid white', mb: 0.5, cursor: 'pointer', position: 'relative', zIndex: 2, boxShadow: '0 0 0 1px rgba(15, 23, 42, 0.08)' }} />
                         </MuiTooltip>
-                        <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.primary', textAlign: 'center', fontSize: '0.7rem' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'center', fontSize: '0.7rem' }}>
                             {visita.data ? format(addDays(new Date(visita.data), 1), 'dd/MM/yy') : 'N/D'}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center', fontSize: '0.65rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
@@ -423,7 +484,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                 px: { xs: 1.5, md: 4 },
                 pt: { xs: 1, md: 2 },
                 pb: { xs: 1.5, md: 4 },
-                backgroundColor: '#f6f8fb',
+                backgroundColor: '#f8fafc',
                 minHeight: '100vh',
                 fontFamily: 'Roboto, sans-serif',
                 maxWidth: '100vw',
@@ -432,7 +493,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             }}>
                 <Box sx={{ maxWidth: 1480, mx: 'auto' }}>
                     <Box sx={{ mb: { xs: 2.5, md: 3.5 } }}>
-                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={900} sx={{ letterSpacing: 0, lineHeight: 1.1 }}>
+                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} sx={{ letterSpacing: 0, lineHeight: 1.1 }}>
                             Painel Administrativo
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, maxWidth: 760 }}>
@@ -440,16 +501,12 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                         </Typography>
                     </Box>
 
-                    {loading || loadingViaturas ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 2 }}>
-                            <CircularProgress size={48} />
-                            <Typography color="text.secondary">Carregando...</Typography>
-                        </Box>
+                    {loading ? (
+                        <DashboardSkeleton />
                     ) : (
                         <>
                             {/* ══ FILTROS ═══════════════════════════════════════════ */}
                             <Paper variant="outlined" sx={sectionPaperSx}>
-                                <SectionHeader title="Filtros" caption="Selecione a base e o intervalo para atualizar os indicadores do painel." />
                                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: baseId ? '1fr 1fr auto' : 'minmax(260px, 1.4fr) 1fr 1fr auto' }, gap: 2, alignItems: 'center' }}>
                                     {!baseId && (
                                         <TextField select fullWidth label="Base" value={selectedMunicipio} onChange={handleMunicipioChange} size="small">
@@ -459,40 +516,35 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                     )}
                                     <DatePicker label="Data Início" value={dataInicio} onChange={setDataInicio} maxDate={dataFim || new Date()} slotProps={{ textField: { size: 'small', fullWidth: true } }} />
                                     <DatePicker label="Data Fim" value={dataFim} onChange={setDataFim} minDate={dataInicio || new Date(2001, 0, 1)} maxDate={new Date()} slotProps={{ textField: { size: 'small', fullWidth: true } }} />
-                                    <Button variant="contained" onClick={handleBuscarClick} disabled={!dataInicio || !dataFim || loading} sx={{ px: 3, py: 1.15, borderRadius: 2, fontWeight: 800, minHeight: 40, boxShadow: 'none', '&:hover': { boxShadow: '0 8px 18px rgba(25, 118, 210, 0.22)' } }}>
+                                    <Button variant="contained" onClick={handleBuscarClick} disabled={!dataInicio || !dataFim || loading} sx={{ px: 3, py: 1.15, borderRadius: 2, fontWeight: 600, minHeight: 40, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}>
                                         {loading ? <CircularProgress size={22} color="inherit" /> : 'Analisar Período'}
                                     </Button>
                                 </Box>
                             </Paper>
 
-                            {loading && (
-                                <Box sx={{ display: 'flex', justifyContent: 'center', my: 6, gap: 2 }}>
-                                    <CircularProgress /><Typography color="text.secondary">Processando dados...</Typography>
-                                </Box>
-                            )}
                             {error && <Alert severity="error" sx={{ mb: 4 }} onClose={() => { }}>{String(error)}</Alert>}
 
                             {resumo && !loading && (
                                 <>
-                                {/* ══ VISITAS ═══════════════════════════════════════ */}
-                                <Paper variant="outlined" sx={sectionPaperSx}>
-                                    <SectionHeader title="Visitas técnicas" caption="Histórico do período, próximas visitas e equipes registradas por base." />
-                                    <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 3 }}>
-                                        {resumo?.visitasDetalhadas?.some((v: any) => v.periodo === 'após') && (
-                                            <VisitMetric
-                                                icon={<CalendarMonth fontSize="small" />}
-                                                title="Próxima visita"
-                                                color="#ed6c02"
-                                                value={(() => {
-                                                    const fut = resumo.visitasDetalhadas.filter((v: any) => v.periodo === 'após').sort((a: any, b: any) => +new Date(a.data) - +new Date(b.data));
-                                                    return fut[0] ? format(addDays(new Date(fut[0].data), 1), 'dd/MM/yyyy') : 'Nenhuma';
-                                                })()}
-                                            />
-                                        )}
-                                        <VisitMetric icon={<ApartmentIcon fontSize="small" />} title="Bases visitadas" value={resumo.totalBasesVisitadas} color="#1976d2" />
-                                        <VisitMetric icon={<FactCheckIcon fontSize="small" />} title="Índice de avaliações" value={`${resumo.indiceAprovacao.toFixed(1)}%`} color="#2e7d32" />
-                                    </Box>
-                                    <InfoSection title="Linha do Tempo de Visitas">
+                                    {/* ══ VISITAS ═══════════════════════════════════════ */}
+                                    <Paper variant="outlined" sx={sectionPaperSx}>
+                                        <SectionHeader title="Visitas técnicas" caption="Histórico do período, próximas visitas e equipes registradas por base." />
+                                        <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 3 }}>
+                                            {resumo?.visitasDetalhadas?.some((v: any) => v.periodo === 'após') && (
+                                                <VisitMetric
+                                                    icon={<CalendarMonth fontSize="small" />}
+                                                    title="Próxima visita"
+                                                    color="#ed6c02"
+                                                    value={(() => {
+                                                        const fut = resumo.visitasDetalhadas.filter((v: any) => v.periodo === 'após').sort((a: any, b: any) => +new Date(a.data) - +new Date(b.data));
+                                                        return fut[0] ? format(addDays(new Date(fut[0].data), 1), 'dd/MM/yyyy') : 'Nenhuma';
+                                                    })()}
+                                                />
+                                            )}
+                                            <VisitMetric icon={<ApartmentIcon fontSize="small" />} title="Bases visitadas" value={resumo.totalBasesVisitadas} color="#1976d2" />
+                                            <VisitMetric icon={<FactCheckIcon fontSize="small" />} title="Índice de avaliações" value={`${resumo.indiceAprovacao.toFixed(1)}%`} color="#2e7d32" />
+                                        </Box>
+                                        <InfoSection title="Linha do Tempo de Visitas">
                                             {resumo?.visitasDetalhadas?.filter((v: any) => v.periodo === 'entre').length > 0 ? (
                                                 <VisitaTimeline
                                                     visitas={resumo.visitasDetalhadas.filter((v: any) => v.periodo === 'entre').sort((a: any, b: any) => +new Date(a.data) - +new Date(b.data))}
@@ -508,7 +560,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                         <InfoSection title="Resumo de Visitas">
                                             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, bgcolor: 'grey.50', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
                                                 <Typography variant="caption" color="text.secondary">Total de visitas:</Typography>
-                                                <Typography variant="caption" fontWeight="bold">
+                                                <Typography variant="caption" fontWeight={600}>
                                                     {resumo.visitasDetalhadas?.filter((v: any) => {
                                                         if (v.periodo !== 'entre') return false;
                                                         const d = addDays(new Date(v.data), 1);
@@ -601,14 +653,14 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                     ...paperStyles,
                                                     bgcolor: 'background.paper',
                                                 }}>
-                                                    <Typography variant="h6" gutterBottom sx={{ mb: 0.5, fontWeight: 800, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>{title}</Typography>
+                                                    <Typography variant="h6" gutterBottom sx={{ mb: 0.5, fontWeight: 600, fontSize: { xs: '0.95rem', md: '1.1rem' } }}>{title}</Typography>
                                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>Gerado a partir do último envio.</Typography>
                                                     <Box sx={{ overflowX: 'auto' }}>
                                                         <Table size="small" sx={{ minWidth: 260, borderCollapse: 'separate', borderSpacing: 0 }}>
                                                             <TableHead>
                                                                 <TableRow>
                                                                     {cols.map(c => (
-                                                                        <TableCell key={c.key} align={c.align} sx={{ fontWeight: 800, whiteSpace: 'nowrap', fontSize: { xs: '0.72rem', sm: '0.875rem' }, bgcolor: 'grey.50', borderBottom: '1px solid', borderColor: 'divider' }}>{c.header}</TableCell>
+                                                                        <TableCell key={c.key} align={c.align} sx={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize: { xs: '0.72rem', sm: '0.875rem' }, bgcolor: 'grey.50', borderBottom: '1px solid', borderColor: 'divider' }}>{c.header}</TableCell>
                                                                     ))}
                                                                 </TableRow>
                                                             </TableHead>
@@ -618,7 +670,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                         {cols.map(c => (
                                                                             <TableCell key={c.key} align={c.align} sx={{ py: 1.1, fontSize: { xs: '0.72rem', sm: '0.875rem' }, borderBottom: '1px solid', borderColor: 'rgba(15, 23, 42, 0.06)' }}>
                                                                                 {c.align === 'center'
-                                                                                    ? <Chip label={`${row[c.key]}${'suffix' in c ? (c as any).suffix : ''}`} size="small" variant={row[c.key] === 'N/A' ? 'outlined' : 'filled'} sx={{ fontWeight: 700 }} />
+                                                                                    ? <Chip label={`${row[c.key]}${'suffix' in c ? (c as any).suffix : ''}`} size="small" variant={row[c.key] === 'N/A' ? 'outlined' : 'filled'} sx={{ fontWeight: 600 }} />
                                                                                     : <Typography variant="body2" sx={{ fontSize: 'inherit' }}>{row[c.key]}</Typography>
                                                                                 }
                                                                             </TableCell>
@@ -640,26 +692,26 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                         const items = resumo?.camposNaoConformes?.[key] ?? [];
                                         if (!items.length) return null;
                                         return (
-                                            <Box sx={{ width: '100%', mt: 4, mb: 4 }}>
-                                                <Paper variant="outlined" sx={{ ...sectionPaperSx, borderTop: '4px solid', borderTopColor: 'error.main' }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                                            <Box sx={{ bgcolor: 'error.50', p: 1, borderRadius: '50%', display: 'flex' }}>
-                                                                <ErrorOutlineIcon color="error" />
+                                            <Box sx={{ width: '100%', mt: 3, mb: 3 }}>
+                                                <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, mb: 0, borderRadius: 2, borderColor: 'rgba(180, 35, 24, 0.18)', bgcolor: 'background.paper' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, flexWrap: 'wrap', gap: 1.5 }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Box sx={{ bgcolor: '#fff4f2', p: 0.75, borderRadius: '50%', display: 'flex' }}>
+                                                                <ErrorOutlineIcon sx={{ color: '#b42318', fontSize: 20 }} />
                                                             </Box>
                                                             <Box>
-                                                                <Typography variant="h6" fontWeight="bold">Itens Não Conformes</Typography>
-                                                                <Typography variant="body2" color="text.secondary">Lista de itens que precisam de atenção nesta base.</Typography>
+                                                                <Typography variant="subtitle1" fontWeight={600}>Itens Não Conformes</Typography>
+                                                                <Typography variant="caption" color="text.secondary">Itens que precisam de atenção nesta base.</Typography>
                                                             </Box>
                                                         </Box>
-                                                        <Chip label={`${items.length} pendências`} color="error" variant="outlined" size="small" sx={{ fontWeight: 800, bgcolor: 'background.paper' }} />
+                                                        <Chip label={`${items.length} pendências`} variant="outlined" size="small" sx={{ fontWeight: 600, bgcolor: 'background.paper', color: '#b42318', borderColor: '#e6b8b2' }} />
                                                     </Box>
-                                                    <Divider sx={{ mb: 3 }} />
-                                                    <Box sx={{ maxHeight: items.length > 16 ? '400px' : 'none', overflowY: items.length > 16 ? 'auto' : 'visible', scrollbarWidth: 'thin' }}>
-                                                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
+                                                    <Divider sx={{ mb: 1.5 }} />
+                                                    <Box sx={{ maxHeight: items.length > 12 ? '260px' : 'none', overflowY: items.length > 12 ? 'auto' : 'visible', scrollbarWidth: 'thin' }}>
+                                                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)', xl: 'repeat(4, 1fr)' }, gap: 1 }}>
                                                             {items.map((campo: any, i: number) => (
-                                                                <Paper key={i} variant="outlined" sx={{ p: 1.5, borderLeft: '4px solid', borderColor: 'error.main', bgcolor: 'error.50', borderRadius: 2, transition: 'all 0.2s', '&:hover': { bgcolor: 'error.100', transform: 'translateY(-2px)', boxShadow: '0 8px 18px rgba(211, 47, 47, 0.10)' } }}>
-                                                                    <Typography variant="body2" color="error.800" sx={{ lineHeight: 1.3 }}>{campo.titulo}</Typography>
+                                                                <Paper key={i} variant="outlined" sx={{ px: 1.25, py: 1, borderLeft: '3px solid', borderColor: '#c94a3f', bgcolor: '#fffafa', borderRadius: 1.5 }}>
+                                                                    <Typography variant="caption" sx={{ lineHeight: 1.25, color: '#7f1d1d', display: 'block' }}>{campo.titulo}</Typography>
                                                                 </Paper>
                                                             ))}
                                                         </Box>
@@ -729,7 +781,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                     </Box>
 
                                                                     <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2 }}>
-                                                                        <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', md: '1.25rem' } }}>Detalhamento por Categoria</Typography>
+                                                                        <Typography variant="h6" fontWeight={600} gutterBottom sx={{ fontSize: { xs: '0.95rem', md: '1.15rem' } }}>Detalhamento por Categoria</Typography>
                                                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                                                             {cPS.map((summary: any) => {
                                                                                 const unicas = summary.categorias?.filter((c: any, i: number, arr: any[]) => i === arr.findIndex((x: any) => x.nome === c.nome)) || [];
@@ -737,7 +789,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                     <Paper key={summary.summaryId} variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 2 }}>
                                                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}20`, borderRadius: 1, flexWrap: 'wrap' }}>
                                                                                             <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(summary.summaryId), flexShrink: 0 }} />
-                                                                                            <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', md: '1rem' } }}>{summary.summaryNome}</Typography>
+                                                                                            <Typography variant="subtitle1" fontWeight={600} sx={{ fontSize: { xs: '0.85rem', md: '1rem' } }}>{summary.summaryNome}</Typography>
                                                                                             <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto', fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{unicas.length} cat. • {summary.porcentagem.toFixed(1)}%</Typography>
                                                                                         </Box>
                                                                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -752,7 +804,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                                     <Paper key={ci} variant="outlined" sx={{ p: { xs: 1.25, md: 2 }, borderRadius: 2 }}>
                                                                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}10`, borderRadius: 1, flexWrap: 'wrap' }}>
                                                                                                             <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(summary.summaryId), flexShrink: 0 }} />
-                                                                                                            <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.nome}</Typography>
+                                                                                                            <Typography fontWeight={600} sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.nome}</Typography>
                                                                                                             <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>{cat.porcentagem.toFixed(1)}%</Typography>
                                                                                                         </Box>
                                                                                                         <Box>
@@ -791,11 +843,11 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                 <Paper key={summary.summaryId} variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 2 }}>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}20`, borderRadius: 1 }}>
                                                                         <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(summary.summaryId), flexShrink: 0 }} />
-                                                                        <Typography variant="subtitle1" fontWeight="bold">{summary.summaryNome}</Typography>
+                                                                        <Typography variant="subtitle1" fontWeight={600}>{summary.summaryNome}</Typography>
                                                                     </Box>
                                                                     {Array.from(summary.catMap.values()).map((cat: any) => (
                                                                         <Box key={cat.categoriaNome} sx={{ mb: 3 }}>
-                                                                            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, ml: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}20`, p: 1, borderRadius: 1, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
+                                                                            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1, ml: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}12`, p: 1, borderRadius: 1, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                                                                                 {cat.categoriaNome}
                                                                             </Typography>
                                                                             <Box sx={{ width: '100%', ...chartShellSx }}>
@@ -807,7 +859,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                         <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Conformidade']} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
                                                                                         <Bar dataKey="porcentagem" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
                                                                                             {cat.dados.map((d: any, i: number) => <Cell key={i} fill={softScoreColor(Number(d.porcentagem))} />)}
-                                                                                            <LabelList dataKey="porcentagem" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
+                                                                                            <LabelList dataKey="porcentagem" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 600, fill: '#475569' }} />
                                                                                         </Bar>
                                                                                         <Legend content={() => <LegendaCores />} />
                                                                                     </BarChart>
@@ -821,7 +873,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                             <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2, mt: 1 }}>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: '#BBBBFC', borderRadius: 1 }}>
                                                                     <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#6363F8', flexShrink: 0 }} />
-                                                                    <Typography variant="subtitle1" fontWeight="bold">Conformidade Geral das Categorias</Typography>
+                                                                    <Typography variant="subtitle1" fontWeight={600}>Conformidade Geral das Categorias</Typography>
                                                                 </Box>
                                                                 <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                     <ResponsiveContainer width="100%" height={chartH}>
@@ -836,7 +888,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                             <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
                                                                             <Bar dataKey="Conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
                                                                                 {perBaseConformidade.filter((b: any) => !isNaN(Number(b.avg))).map((b: any, i: number) => <Cell key={i} fill={softScoreColor(Number(b.avg))} />)}
-                                                                                <LabelList dataKey="Conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
+                                                                                <LabelList dataKey="Conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 600, fill: '#475569' }} />
                                                                                 <Legend content={() => <LegendaCores />} />
                                                                             </Bar>
                                                                         </BarChart>
@@ -888,7 +940,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                 </ResponsiveContainer>
                                                             </Box>
                                                             <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2, width: '100%' }}>
-                                                                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '0.95rem', md: '1.25rem' } }}>Detalhamento por Categoria</Typography>
+                                                                <Typography variant="h6" fontWeight={600} gutterBottom sx={{ fontSize: { xs: '0.95rem', md: '1.15rem' } }}>Detalhamento por Categoria</Typography>
                                                                 {bu.categorias?.length > 0 ? (
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                                                         {bu.categorias.map((cat: any) => {
@@ -901,7 +953,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                 <Paper key={cat.categoria} variant="outlined" sx={{ p: { xs: 1.25, md: 2 }, borderRadius: 2 }}>
                                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(2)}20`, borderRadius: 1 }}>
                                                                                         <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(2), flexShrink: 0 }} />
-                                                                                        <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
+                                                                                        <Typography fontWeight={600} sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
                                                                                     </Box>
                                                                                     <Box>
                                                                                         <StatusBreakdownCard title="Resumo da categoria" dados={dados} accent={getCorPorSummary(2)} showQuantity={false} />
@@ -931,7 +983,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                             <Paper key={cat.categoria} variant="outlined" sx={{ p: { xs: 1.25, md: 2 }, mb: 2.5, borderRadius: 2, borderColor: `${getCorPorSummary(2)}33` }}>
                                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(2)}20`, borderRadius: 1 }}>
                                                                                     <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(2), flexShrink: 0 }} />
-                                                                                    <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
+                                                                                    <Typography fontWeight={600} sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
                                                                                 </Box>
                                                                                 <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                                     <ResponsiveContainer width="100%" height={chartH}>
@@ -946,7 +998,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                             <Tooltip formatter={v => `${Number(v).toFixed(1)}%`} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
                                                                                             <Bar dataKey="conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
                                                                                                 {dadosCat.map((d: any, i: number) => { const tot = d.conforme + d.naoConforme; const c = tot > 0 ? (d.conforme / tot) * 100 : 0; return <Cell key={i} fill={softScoreColor(c)} />; })}
-                                                                                                <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
+                                                                                                <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 600, fill: '#475569' }} />
                                                                                             </Bar>
                                                                                             <Legend content={() => <LegendaCores />} />
                                                                                         </BarChart>
@@ -963,7 +1015,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                         <Paper variant="outlined" sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 2, mt: 3, width: '100%' }}>
                                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: '#BBBBFC', borderRadius: 1 }}>
                                                                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#6363F8', flexShrink: 0 }} />
-                                                                <Typography variant="subtitle1" fontWeight="bold">Conformidade Geral das Categorias</Typography>
+                                                                <Typography variant="subtitle1" fontWeight={600}>Conformidade Geral das Categorias</Typography>
                                                             </Box>
                                                             <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                 <ResponsiveContainer width="100%" height={chartH}>
@@ -974,7 +1026,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                         <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
                                                                         <Bar dataKey="conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
                                                                             {processedData.map((d: any, i: number) => <Cell key={i} fill={softScoreColor(Number(d.conformidade))} />)}
-                                                                            <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
+                                                                            <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 600, fill: '#475569' }} />
                                                                             <Legend content={() => <LegendaCores />} />
                                                                         </Bar>
                                                                     </BarChart>
@@ -987,17 +1039,25 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                             {/* ─── VIATURAS ─── */}
                                             <ChartCard title={viaturaStatusPorBase.length === 1 ? "Viatura da Base" : "Viatura das Bases"}>
-                                                {viaturaStatusPorBase.length === 1 ? (() => {
+                                                {loadingViaturas ? (
+                                                    <ViaturasSkeleton />
+                                                ) : viaturaStatusPorBase.length === 0 ? (
+                                                    <Box sx={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', px: 2 }}>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            Nenhum dado de viatura encontrado para o período selecionado.
+                                                        </Typography>
+                                                    </Box>
+                                                ) : viaturaStatusPorBase.length === 1 ? (() => {
                                                     const bu = viaturaStatusPorBase[0];
                                                     const temCk = basesComChecklist.includes(bu.baseId);
                                                     const vtrs = viaturasPorBase[bu.baseId] || [];
                                                     return (
                                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                                            <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, borderLeft: `4px solid ${temCk ? '#4caf50' : '#f44336'}` }}>
+                                                            <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, borderColor: temCk ? '#cfe5d6' : '#eed0cc', bgcolor: 'background.paper' }}>
                                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                                                                    {temCk ? <CheckCircleIcon sx={{ color: '#4caf50', fontSize: { xs: 30, md: 40 } }} /> : <ErrorOutlineIcon sx={{ color: '#f44336', fontSize: { xs: 30, md: 40 } }} />}
+                                                                    {temCk ? <CheckCircleIcon sx={{ color: '#4f8f6b', fontSize: { xs: 28, md: 34 } }} /> : <ErrorOutlineIcon sx={{ color: '#c94a3f', fontSize: { xs: 28, md: 34 } }} />}
                                                                     <Box>
-                                                                        <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight="bold">{temCk ? 'Checklist Preenchido' : 'Checklist Não Preenchido'}</Typography>
+                                                                        <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>{temCk ? 'Checklist Preenchido' : 'Checklist Não Preenchido'}</Typography>
                                                                         <Typography variant="body2" color="text.secondary">{bu.baseNome}</Typography>
                                                                     </Box>
                                                                 </Box>
@@ -1018,14 +1078,14 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                             </Paper>
 
                                                             <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
-                                                                <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight="bold" gutterBottom>Resumo de Viaturas</Typography>
+                                                                <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600} gutterBottom>Resumo de Viaturas</Typography>
                                                                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 2, md: 4 } }}>
-                                                                    <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#e8f5e9', borderRadius: 2, flex: 1 }}>
-                                                                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight="bold" color="#2e7d32">{bu.status.operacional}</Typography>
+                                                                    <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f3faf5', borderRadius: 2, flex: 1, border: '1px solid', borderColor: '#d8eadf' }}>
+                                                                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={600} color="#2f6f4e">{bu.status.operacional}</Typography>
                                                                         <Typography variant="body2" color="text.secondary">Operacionais</Typography>
                                                                     </Box>
-                                                                    <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f5f5f5', borderRadius: 2, flex: 1 }}>
-                                                                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight="bold" color="#757575">{bu.status.indefinido}</Typography>
+                                                                    <Box sx={{ textAlign: 'center', p: 2, bgcolor: '#f8fafc', borderRadius: 2, flex: 1, border: '1px solid', borderColor: 'rgba(15, 23, 42, 0.06)' }}>
+                                                                        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={600} color="#64748b">{bu.status.indefinido}</Typography>
                                                                         <Typography variant="body2" color="text.secondary">Indefinidos</Typography>
                                                                     </Box>
                                                                 </Box>
@@ -1036,13 +1096,13 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                                             {vtrs.length > 0 && (
                                                                 <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
-                                                                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight="bold" gutterBottom>Viaturas da Base ({vtrs.length})</Typography>
+                                                                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600} gutterBottom>Viaturas da Base ({vtrs.length})</Typography>
                                                                     <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                                                                         {vtrs.map((v: Viatura, i: number) => (
                                                                             <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: { xs: 1.5, md: 2 }, borderBottom: i < vtrs.length - 1 ? '1px solid #eee' : 'none', flexWrap: 'wrap', gap: 1 }}>
                                                                                 <Box sx={{ minWidth: 0, flex: 1 }}>
                                                                                     <Typography variant="body1" fontWeight="medium" sx={{ fontSize: { xs: '0.85rem', md: '1rem' } }}>{v.placa || `Viatura ${v.id}`}</Typography>
-                                                                                    <Typography variant="caption" color="text.secondary">KM: {v.km || 'Não informado'}</Typography>
+                                                                                    <Typography variant="caption" color="text.secondary">KM: {getViaturaKm(v) || 'Não informado'}</Typography>
                                                                                 </Box>
                                                                                 <Chip label={v.statusOperacional} color={v.statusOperacional === 'Operacional' ? 'success' : 'default'} size="small" />
                                                                             </Box>
@@ -1055,12 +1115,12 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                 })() : (
                                                     <Box>
                                                         <Box mt={2}>
-                                                            <Typography variant="body2" fontWeight="bold" sx={{ mb: 2 }}>Status do Checklist</Typography>
+                                                            <Typography variant="body2" fontWeight={600} sx={{ mb: 2 }}>Status do Checklist</Typography>
                                                             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                                                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderLeft: '4px solid #4caf50' }}>
+                                                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: '#cfe5d6' }}>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                                        <CheckCircleIcon sx={{ color: '#4caf50' }} />
-                                                                        <Typography variant="subtitle2" fontWeight="bold">Com Checklist</Typography>
+                                                                        <CheckCircleIcon sx={{ color: '#4f8f6b' }} />
+                                                                        <Typography variant="subtitle2" fontWeight={600}>Com Checklist</Typography>
                                                                     </Box>
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                                                         {basesComChecklist.length > 0 ? (
@@ -1076,10 +1136,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                         ) : <Typography variant="body2" color="text.secondary">Nenhuma base preencheu recentemente.</Typography>}
                                                                     </Box>
                                                                 </Paper>
-                                                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderLeft: '4px solid #f44336' }}>
+                                                                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: '#eed0cc' }}>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                                        <ErrorOutlineIcon sx={{ color: '#f44336' }} />
-                                                                        <Typography variant="subtitle2" fontWeight="bold">Sem Checklist</Typography>
+                                                                        <ErrorOutlineIcon sx={{ color: '#c94a3f' }} />
+                                                                        <Typography variant="subtitle2" fontWeight={600}>Sem Checklist</Typography>
                                                                     </Box>
                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                                                         {basesSemChecklist.length > 0 ? (
@@ -1098,7 +1158,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                         </Box>
 
                                                         <Divider sx={{ my: 2 }} />
-                                                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Status das Viaturas por Base</Typography>
+                                                        <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Status das Viaturas por Base</Typography>
                                                         <BaseScoreChart
                                                             data={chartData.map((item: any) => ({ name: item.name, value: item.Operacional }))}
                                                             emptyText="Nenhum status de viatura encontrado."

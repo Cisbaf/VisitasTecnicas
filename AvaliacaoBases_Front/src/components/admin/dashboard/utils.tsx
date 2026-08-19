@@ -3,14 +3,14 @@ import { Paper, Box, Typography } from '@mui/material';
 
 
 const paperStyles = {
-    borderColor: 'rgba(15, 23, 42, 0.08)',
+    borderColor: 'rgba(15, 23, 42, 0.06)',
     borderRadius: 3,
-    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.06)'
+    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)'
 };
 const paperStylesCard = {
-    borderColor: 'rgba(15, 23, 42, 0.08)',
+    borderColor: 'rgba(15, 23, 42, 0.06)',
     borderRadius: 2,
-    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.06)'
+    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)'
 };
 
 export const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string | number }) => (
@@ -24,8 +24,8 @@ export const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title:
             alignItems: 'center',
             gap: 1.75,
             bgcolor: 'background.paper',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 24px rgba(15, 23, 42, 0.10)' },
+            transition: 'border-color 0.2s, background-color 0.2s',
+            '&:hover': { borderColor: 'rgba(15, 23, 42, 0.14)', bgcolor: 'grey.50' },
             ...paperStyles,
         }}
     >
@@ -33,7 +33,7 @@ export const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title:
             {icon}
         </Box>
         <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h5" fontWeight={800} sx={{ lineHeight: 1.1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{value}</Typography>
+            <Typography variant="h5" fontWeight={700} sx={{ lineHeight: 1.1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{value}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{title}</Typography>
         </Box>
     </Paper>
@@ -47,7 +47,7 @@ export const Placeholder = ({ text }: { text: string }) => (
 
 export const InfoSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <Box>
-        <Typography variant="subtitle1" fontWeight={800} gutterBottom sx={{ color: 'text.primary' }}>{title}</Typography>
+        <Typography variant="subtitle1" fontWeight={700} gutterBottom sx={{ color: 'text.primary' }}>{title}</Typography>
         {children}
     </Box>
 );
@@ -66,7 +66,7 @@ export const ChartCard = ({ title, children }: { title: string, children: React.
             overflow: 'hidden',
         }}
     >
-        <Typography variant="h6" fontWeight={800} gutterBottom sx={{ letterSpacing: 0, lineHeight: 1.25 }}>{title}</Typography>
+        <Typography variant="h6" fontWeight={700} gutterBottom sx={{ letterSpacing: 0, lineHeight: 1.25 }}>{title}</Typography>
         <Box sx={{ flexGrow: 1, width: '100%', mt: 1.5 }}>{children}</Box>
     </Paper>
 );

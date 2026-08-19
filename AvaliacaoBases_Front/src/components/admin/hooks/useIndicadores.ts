@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import fetchJsonSafe from "../dashboard/hooks/fetchJsonSafe";
 
 interface MediaProntidao {
     [cidade: string]: string;
@@ -42,34 +43,15 @@ export function useIndicadores(isDashboard?: boolean) {
         const query = targetMonth ? `?mes=${targetMonth}-01` : "";
 
         try {
-            const [prontidaoResponse, temposResponse, vtrResponse] = await Promise.all([
-                fetch(`/api/inspecao/media/prontidao${query}`),
-                fetch(`/api/inspecao/media/tempos${query}`),
-                fetch(isDashboard ? `/api/inspecao/media/vtr${query}` : `/api/inspecao/vtr${query}`),
+            const [prontidaoData, temposData, vtrData] = await Promise.all([
+                fetchJsonSafe(`/api/inspecao/media/prontidao${query}`),
+                fetchJsonSafe(`/api/inspecao/media/tempos${query}`),
+                fetchJsonSafe(isDashboard ? `/api/inspecao/media/vtr${query}` : `/api/inspecao/vtr${query}`),
             ]);
 
-            if (prontidaoResponse.ok) {
-                const prontidaoData = await prontidaoResponse.json();
-                setMediaProntidao(prontidaoData);
-            } else {
-                setMediaProntidao({});
-            }
-
-
-            if (temposResponse.ok) {
-                const temposData = await temposResponse.json();
-                setMediaTempos(temposData);
-            } else {
-                setMediaTempos({});
-            }
-
-            // Valida VTR (Aqui também estava checando a prontidaoResponse)
-            if (vtrResponse.ok) {
-                const vtrData = await vtrResponse.json();
-                setRelatorioVtr(vtrData);
-            } else {
-                setRelatorioVtr([]);
-            }
+            setMediaProntidao(prontidaoData ?? {});
+            setMediaTempos(temposData ?? {});
+            setRelatorioVtr(Array.isArray(vtrData) ? vtrData : []);
 
         } catch (error) {
             console.error("Erro ao carregar médias:", error);

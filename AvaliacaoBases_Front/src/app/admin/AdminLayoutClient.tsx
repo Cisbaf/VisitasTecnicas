@@ -2,22 +2,35 @@
 import { useEffect, useState } from 'react';
 import { AppBar, Box, Button, IconButton, Toolbar, useMediaQuery, useTheme } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
-import AdminSidebar, { DRAWER_WIDTH } from '@/components/admin/AdminSidebar';
+import AdminSidebar, { COLLAPSED_DRAWER_WIDTH, DRAWER_WIDTH } from '@/components/admin/AdminSidebar';
 
 export default function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
 
-    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => {
+        setSidebarCollapsed(localStorage.getItem('adminSidebarCollapsed') === 'true');
+        setMounted(true);
+    }, []);
+
+    const toggleSidebarCollapsed = () => {
+        setSidebarCollapsed((value) => {
+            const next = !value;
+            localStorage.setItem('adminSidebarCollapsed', String(next));
+            return next;
+        });
+    };
 
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f4f8fb' }}>
             <AdminSidebar
                 mobileOpen={mobileOpen}
                 onClose={() => setMobileOpen(false)}
+                collapsed={sidebarCollapsed}
             />
 
             <AppBar
@@ -33,17 +46,21 @@ export default function AdminLayoutContent({ children }: { children: React.React
             >
                 <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
 
-                    {/* Esquerda: hamburguer (mobile) ou espaço vazio (desktop) */}
+                    {/* Esquerda: menu */}
                     <Box sx={{ width: 48, display: 'flex', alignItems: 'center' }}>
-                        {isMobile && (
-                            <IconButton
-                                onClick={() => setMobileOpen(true)}
-                                sx={{ color: 'white', p: 1 }}
-                                aria-label="Abrir menu"
-                            >
-                                <MenuIcon />
-                            </IconButton>
-                        )}
+                        <IconButton
+                            onClick={() => {
+                                if (isMobile) {
+                                    setMobileOpen(true);
+                                    return;
+                                }
+                                toggleSidebarCollapsed();
+                            }}
+                            sx={{ color: 'white', p: 1 }}
+                            aria-label={isMobile ? "Abrir menu" : sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
+                        >
+                            <MenuIcon />
+                        </IconButton>
                     </Box>
 
                     {/* Centro: logo */}
@@ -87,7 +104,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     p: { xs: 1.5, md: 3 },
                     mt: 10,
                     /* no mobile não subtrai a sidebar (ela fica por cima) */
-                    width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+                    width: { xs: '100%', md: `calc(100% - ${sidebarCollapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH}px)` },
                     maxWidth: '100vw',
                     overflowX: 'hidden',
                     boxSizing: 'border-box',

@@ -61,6 +61,30 @@ const addDaysToDate = (date: Date, days: number) => {
     return next;
 };
 const isForbiddenError = (error: unknown) => String(error instanceof Error ? error.message : error).includes('HTTP 403');
+const getViaturaKm = (viatura: any): unknown => {
+    if (!viatura) return null;
+    if (Array.isArray(viatura)) return getViaturaKm(viatura[0]);
+
+    const direct = viatura?.km ?? viatura?.KM ?? viatura?.quilometragem ?? viatura?.Quilometragem ?? viatura?.odometro ?? viatura?.Odometro;
+    if (hasValidKm(direct)) return direct;
+
+    const nested = getViaturaKm(viatura?.dados ?? viatura?.data ?? viatura?.veiculo ?? viatura?.Veiculo ?? viatura?.resultado);
+    if (hasValidKm(nested)) return nested;
+
+    const preenchimentos = viatura?.preenchimentos ?? viatura?.Preenchimentos;
+    if (Array.isArray(preenchimentos) && preenchimentos.length > 0) {
+        return getViaturaKm(preenchimentos[0]);
+    }
+
+    return direct ?? null;
+};
+const getViaturaPlaca = (viatura: any) =>
+    viatura?.placa ?? viatura?.Placa ?? viatura?.identificacao ?? viatura?.Identificacao ?? viatura?.['Identificação no sistema'] ?? null;
+const hasValidKm = (km: unknown) => {
+    if (km === null || km === undefined) return false;
+    const value = String(km).trim();
+    return value !== '' && value !== '0' && value !== '0.0';
+};
 
 export function useAdminHome() {
     const [basesList, setBasesList] = useState<any[]>([]);
@@ -78,6 +102,21 @@ export function useAdminHome() {
 
     const fetchBases = useCallback(async () => {
         try {
+            const cachedBases = localStorage.getItem('allBasesData');
+
+            if (cachedBases) {
+                try {
+                    const parsedBases = JSON.parse(cachedBases);
+
+                    if (Array.isArray(parsedBases)) {
+                        setBasesList(parsedBases);
+                        setBases([...new Set(parsedBases.map((base: any) => base.nome).filter(Boolean))] as string[]);
+                    }
+                } catch {
+                    localStorage.removeItem('allBasesData');
+                }
+            }
+
             const data = await fetchJsonSafe('/api/base');
             const basesData = Array.isArray(data) ? data : [];
             setBasesList(basesData);
@@ -134,6 +173,7 @@ export function useAdminHome() {
             const selectedBase = selectedMunicipio
                 ? basesList.find((base) => base.nome === selectedMunicipio || base.id === Number(selectedMunicipio))
                 : null;
+
             const dataFinal = dateFim ? new Date(dateFim) : new Date();
             const dataInicialInformada = dateInicio && dateInicio < dataFinal ? new Date(dateInicio) : addDaysToDate(dataFinal, -90);
             const dataInicialApi = dataInicialInformada.getFullYear() < 2020
@@ -160,6 +200,24 @@ export function useAdminHome() {
                 }
             }
             const viaturas = Array.isArray(viaturasData) ? viaturasData : [];
+            const viaturasEnriquecidas = selectedBase?.id
+                ? await Promise.all(viaturas.map(async (viatura: any) => {
+                    const kmAtual = getViaturaKm(viatura);
+                    const placa = getViaturaPlaca(viatura);
+
+                    if (hasValidKm(kmAtual) || !placa) {
+                        return viatura;
+                    }
+
+                    try {
+                        const detalhe = await fetchJsonSafe(`/api/viatura/api/${encodeURIComponent(String(placa))}?baseId=${selectedBase.id}`);
+                        const kmDetalhe = getViaturaKm(detalhe);
+                        return hasValidKm(kmDetalhe) ? { ...viatura, km: kmDetalhe } : viatura;
+                    } catch {
+                        return viatura;
+                    }
+                }))
+                : viaturas;
             const dataLimite = dateFim ? new Date(dateFim) : new Date();
             const dataInicio = dateInicio ? new Date(dateInicio) : new Date();
             const viaturasPorBaseLocal: Record<number, Viatura[]> = {};
@@ -167,7 +225,7 @@ export function useAdminHome() {
             const basesComChecklistLocal: number[] = [];
             const basesEscopo = selectedBase ? [selectedBase] : basesList;
 
-            viaturas.forEach((viatura: Viatura) => {
+            viaturasEnriquecidas.forEach((viatura: Viatura) => {
                 if (!viatura.idBase) return;
                 viaturasPorBaseLocal[viatura.idBase] = viaturasPorBaseLocal[viatura.idBase] || [];
                 viaturasPorBaseLocal[viatura.idBase].push(viatura);

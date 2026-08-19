@@ -25,10 +25,29 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     const token = req.cookies.get('token')?.value;
     const claims = decodeJwtPayload(token);
+    const isAdmin = claims?.role === 'ADMIN';
+    const userBase = claims?.base ? String(claims.base) : '';
+
+    const canAccessOwnViaturaRoute = () => {
+        if (!claims || claims.role !== 'FUNCIONARIO' || !userBase) {
+            return false;
+        }
+
+        const baseRouteMatch = url.pathname.match(/^\/api\/viatura\/base\/([^/]+)$/);
+        if (baseRouteMatch) {
+            return baseRouteMatch[1] === userBase;
+        }
+
+        if (url.pathname === '/api/viatura/api') {
+            return url.searchParams.get('baseId') === userBase;
+        }
+
+        return false;
+    };
 
     // 🔐 Proteção
-    if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/viatura')) {
-        if (!claims || claims.role !== 'ADMIN') {
+    if (url.pathname.startsWith('/admin')) {
+        if (!isAdmin) {
 
             if (url.pathname.startsWith('/api/')) {
                 return NextResponse.json({ message: "Forbidden" }, { status: 403 });
@@ -37,6 +56,10 @@ export function middleware(req: NextRequest) {
             url.pathname = '/login';
             return NextResponse.redirect(url);
         }
+    }
+
+    if (url.pathname.startsWith('/api/viatura') && !isAdmin && !canAccessOwnViaturaRoute()) {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.next();

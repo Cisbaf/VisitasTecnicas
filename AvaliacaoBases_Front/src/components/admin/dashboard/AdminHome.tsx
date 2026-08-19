@@ -13,7 +13,7 @@ import { ptBR } from 'date-fns/locale/pt-BR';
 import { Dayjs } from 'dayjs';
 import { addDays, format } from 'date-fns';
 import {
-    Bar, BarChart, Cell, LabelList, Legend, Pie, PieChart,
+    Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart,
     ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 
@@ -145,11 +145,13 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
     /* Dimensões adaptativas de gráfico */
     const chartH = isMobile ? 220 : 300;
     const pieR = isMobile ? 70 : 100;
-    const xAngle = isMobile ? -55 : -45;
-    const xHeight = isMobile ? 70 : 80;
+    const xAngle = isMobile ? -48 : -38;
+    const xHeight = isMobile ? 58 : 52;
     const xFont = isMobile ? 9 : 10;
-    const yWidth = isMobile ? 28 : 35;
-    const mLeft = isMobile ? -15 : -10;
+    const yWidth = isMobile ? 38 : 46;
+    const mLeft = isMobile ? 4 : 8;
+    const chartTop = isMobile ? 30 : 34;
+    const chartRight = isMobile ? 16 : 22;
 
     const LegendaCores = () => (
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 1, sm: 2 }, mt: 1, flexWrap: 'wrap' }}>
@@ -163,6 +165,95 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
     );
 
     const scoreColor = (value: number) => value >= 80 ? '#2e7d32' : value >= 50 ? '#ed6c02' : '#d32f2f';
+    const softScoreColor = (value: number) => value >= 80 ? '#43a047' : value >= 50 ? '#fb8c00' : '#e53935';
+    const scoreBg = (value: number) => value >= 80 ? '#e8f5e9' : value >= 50 ? '#fff4e5' : '#ffebee';
+    const clampScore = (value: number) => Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
+
+    const ProgressBar = ({ value, color }: { value: number; color: string }) => (
+        <Box sx={{ height: 8, bgcolor: 'grey.100', borderRadius: 999, overflow: 'hidden', width: '100%' }}>
+            <Box sx={{ width: `${clampScore(value)}%`, height: '100%', bgcolor: color, borderRadius: 999 }} />
+        </Box>
+    );
+
+    const ScoreHero = ({ value, scope }: { value?: number | null; scope: string }) => {
+        const hasValue = value !== undefined && value !== null && !Number.isNaN(Number(value));
+        const score = hasValue ? clampScore(Number(value)) : 0;
+        const color = hasValue ? scoreColor(score) : 'text.disabled';
+        return (
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: { xs: 2, md: 2.5 },
+                    mb: 3,
+                    borderRadius: 2,
+                    bgcolor: hasValue ? scoreBg(score) : 'grey.50',
+                    borderColor: hasValue ? `${color}40` : 'divider',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0 }}>
+                        Média {scope}
+                    </Typography>
+                    <Typography variant={isMobile ? 'h4' : 'h3'} fontWeight={800} sx={{ color, lineHeight: 1.05, mt: 0.5 }}>
+                        {hasValue ? `${score.toFixed(1)}%` : '-'}
+                    </Typography>
+                </Box>
+                {hasValue && (
+                    <Box sx={{ mt: 2 }}>
+                        <ProgressBar value={score} color={color} />
+                    </Box>
+                )}
+            </Paper>
+        );
+    };
+
+    const StatusBreakdownCard = ({ title, dados, accent = '#1976d2', showQuantity = true }: { title: string; dados: any[]; accent?: string; showQuantity?: boolean }) => (
+        <Paper
+            variant="outlined"
+            sx={{
+                p: { xs: 1.5, md: 2 },
+                borderRadius: 2,
+                bgcolor: 'background.paper',
+                borderColor: `${accent}33`,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)' },
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: accent, flexShrink: 0 }} />
+                <Typography fontWeight={800} sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, minWidth: 0 }}>{title}</Typography>
+            </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: dados.length > 1 ? '1fr 1fr' : '1fr' }, gap: 1 }}>
+                {dados.length > 0 ? dados.map((item: any) => (
+                    <Box key={item.name} sx={{ p: 1.25, borderRadius: 1.5, bgcolor: `${item.fill}12`, border: '1px solid', borderColor: `${item.fill}30` }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 700 }}>{item.name}</Typography>
+                        <Typography variant="h6" fontWeight={800} sx={{ color: item.fill, lineHeight: 1.15 }}>
+                            {item.porcentagem.toFixed(1)}%
+                        </Typography>
+                        {showQuantity && <Typography variant="caption" color="text.secondary">{item.value} itens</Typography>}
+                    </Box>
+                )) : (
+                    <Typography variant="body2" color="text.secondary">Sem itens avaliados.</Typography>
+                )}
+            </Box>
+        </Paper>
+    );
+
+    const chartShellSx = {
+        p: { xs: 1, md: 1.5 },
+        borderRadius: 2,
+        bgcolor: '#fbfcfe',
+        border: '1px solid',
+        borderColor: 'rgba(15, 23, 42, 0.08)',
+    };
+
+    const polishedTooltip = {
+        borderRadius: 8,
+        border: '1px solid rgba(15, 23, 42, 0.08)',
+        boxShadow: '0 10px 28px rgba(15, 23, 42, 0.14)',
+        fontSize: 12,
+    };
 
     const BaseScoreChart = ({ data, emptyText = 'Nenhum dado disponível.' }: { data: { name: string; value: number }[]; emptyText?: string }) => {
         const rows = data
@@ -183,22 +274,24 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
         return (
             <Box sx={{ width: '100%', pb: 1 }}>
                 <ResponsiveContainer width="100%" height={isMobile ? 280 : 320}>
-                    <BarChart data={chartRows} margin={{ top: 24, right: 8, left: -14, bottom: isMobile ? 64 : 58 }} barCategoryGap={isMobile ? '12%' : '18%'}>
+                    <BarChart data={chartRows} margin={{ top: chartTop, right: chartRight, left: mLeft, bottom: xHeight }} barCategoryGap={isMobile ? '6%' : '10%'}>
                         <XAxis
                             dataKey="label"
                             interval={0}
-                            angle={-35}
+                            angle={xAngle}
                             textAnchor="end"
-                            height={isMobile ? 64 : 58}
-                            tick={{ fontSize: isMobile ? 9 : 10 }}
+                            height={xHeight}
+                            tick={{ fontSize: isMobile ? 9 : 10, fill: '#64748b' }}
+                            tickLine={false}
+                            axisLine={{ stroke: 'rgba(15, 23, 42, 0.16)' }}
                         />
-                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} width={34} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} width={yWidth} />
                         <Tooltip
                             formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Conformidade']}
                             labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.name ?? ''}
                             contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}
                         />
-                        <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={isMobile ? 18 : 28}>
+                        <Bar dataKey="value" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 44}>
                             {chartRows.map((item, index) => <Cell key={`${item.name}-${index}`} fill={item.fill} />)}
                             <LabelList dataKey="value" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 9, fontWeight: 700 }} />
                         </Bar>
@@ -597,12 +690,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                     {/* ─── coluna esquerda ─── */}
                                     <Box sx={{ flex: 1, width: '100%', minWidth: 0, gap: 2, display: 'flex', flexDirection: 'column' }}>
                                         <ChartCard title="Avaliação da Estrutura Física da Base">
-                                            <Box sx={{ p: 1.5, display: 'flex', alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
-                                                <Typography variant={isMobile ? 'subtitle1' : 'h5'}>
-                                                    <b>Média {perBaseConformidade.length === 1 ? 'da base' : 'regional'}:</b>{' '}
-                                                    {resumo?.indiceInspecao !== undefined && resumo?.indiceInspecao !== null ? `${resumo.indiceInspecao.toFixed(1)}%` : '—'}
-                                                </Typography>
-                                            </Box>
+                                            <ScoreHero
+                                                scope={perBaseConformidade.length === 1 ? 'da base' : 'regional'}
+                                                value={resumo?.indiceInspecao}
+                                            />
 
                                             {perBaseConformidade.length === 0 ? (
                                                 <Placeholder text="Nenhuma conformidade por base encontrada." />
@@ -678,33 +769,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                                         <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.nome}</Typography>
                                                                                                         <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>{cat.porcentagem.toFixed(1)}%</Typography>
                                                                                                     </Box>
-                                                                                                    {/* Barras horizontais — largura YAxis fixa no mobile para caber */}
-                                                                                                    <Box sx={{ width: '100%' }}>
-                                                                                                        <ResponsiveContainer width="100%" height={80}>
-                                                                                                            <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 16, left: isMobile ? 4 : 20, bottom: 4 }}>
-                                                                                                                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} />
-                                                                                                                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={isMobile ? 70 : 80} />
-                                                                                                                <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, '']} />
-                                                                                                                <Bar dataKey="porcentagem" radius={[0, 4, 4, 0]}>
-                                                                                                                    {dados.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                                                                                                                </Bar>
-                                                                                                            </BarChart>
-                                                                                                        </ResponsiveContainer>
-                                                                                                    </Box>
-                                                                                                    <Box sx={{ mt: 1, overflowX: 'auto' }}>
-                                                                                                        <Table size="small"><TableHead><TableRow>
-                                                                                                            <TableCell sx={{ width: '50%', fontSize: { xs: '0.72rem', md: '0.875rem' } }}><strong>Status</strong></TableCell>
-                                                                                                            <TableCell align="center" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}><strong>%</strong></TableCell>
-                                                                                                            <TableCell align="center" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}><strong>Qtd</strong></TableCell>
-                                                                                                        </TableRow></TableHead><TableBody>
-                                                                                                                {dados.map((item, ii) => (
-                                                                                                                    <TableRow key={ii} sx={{ borderLeft: `3px solid ${item.fill}` }}>
-                                                                                                                        <TableCell><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: item.fill, flexShrink: 0 }} /><Typography variant="body2" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{item.name}</Typography></Box></TableCell>
-                                                                                                                        <TableCell align="center"><Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{item.porcentagem.toFixed(1)}%</Typography></TableCell>
-                                                                                                                        <TableCell align="center"><Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{item.value}</Typography></TableCell>
-                                                                                                                    </TableRow>
-                                                                                                                ))}
-                                                                                                            </TableBody></Table>
+                                                                                                    <Box>
+                                                                                                        <StatusBreakdownCard title="Resumo da categoria" dados={dados} accent={getCorPorSummary(summary.summaryId)} />
                                                                                                     </Box>
                                                                                                 </Paper>
                                                                                             );
@@ -746,14 +812,16 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                         <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, ml: 1, bgcolor: `${getCorPorSummary(summary.summaryId)}20`, p: 1, borderRadius: 1, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                                                                             {cat.categoriaNome}
                                                                         </Typography>
-                                                                        <Box sx={{ width: '100%' }}>
+                                                                        <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                             <ResponsiveContainer width="100%" height={chartH}>
-                                                                                <BarChart data={cat.dados} margin={{ top: 4, right: 8, left: mLeft, bottom: xHeight }}>
-                                                                                    <XAxis dataKey="baseNome" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont }} interval={0} />
-                                                                                    <YAxis domain={[0, 100]} tick={{ fontSize: xFont }} tickFormatter={v => `${v}%`} width={yWidth} />
-                                                                                    <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Conformidade']} />
-                                                                                    <Bar dataKey="porcentagem" radius={[2, 2, 0, 0]}>
-                                                                                        {cat.dados.map((d: any, i: number) => <Cell key={i} fill={d.porcentagem >= 80 ? '#4caf50' : d.porcentagem >= 50 ? '#ff9800' : '#f44336'} />)}
+                                                                                <BarChart data={cat.dados} margin={{ top: chartTop, right: chartRight, left: mLeft, bottom: xHeight }} barCategoryGap={isMobile ? '8%' : '12%'}>
+                                                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(15, 23, 42, 0.10)" />
+                                                                                    <XAxis dataKey="baseNome" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: 'rgba(15, 23, 42, 0.16)' }} interval={0} />
+                                                                                    <YAxis domain={[0, 100]} tick={{ fontSize: xFont, fill: '#64748b' }} tickFormatter={v => `${v}%`} width={yWidth} tickLine={false} axisLine={false} />
+                                                                                    <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Conformidade']} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
+                                                                                    <Bar dataKey="porcentagem" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
+                                                                                        {cat.dados.map((d: any, i: number) => <Cell key={i} fill={softScoreColor(Number(d.porcentagem))} />)}
+                                                                                        <LabelList dataKey="porcentagem" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
                                                                                     </Bar>
                                                                                     <Legend content={() => <LegendaCores />} />
                                                                                 </BarChart>
@@ -769,17 +837,20 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#6363F8', flexShrink: 0 }} />
                                                                 <Typography variant="subtitle1" fontWeight="bold">Conformidade Geral das Categorias</Typography>
                                                             </Box>
-                                                            <Box sx={{ width: '100%' }}>
+                                                            <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                 <ResponsiveContainer width="100%" height={chartH}>
                                                                     <BarChart
                                                                         data={perBaseConformidade.filter((b: any) => !isNaN(Number(b.avg)) && Number(b.avg) >= 0 && Number(b.avg) <= 100).map((b: any) => ({ name: t(b.nome), Conformidade: Number((b.avg || 0).toFixed(1)) }))}
-                                                                        margin={{ top: 4, right: 8, left: mLeft, bottom: xHeight }}
+                                                                        margin={{ top: chartTop, right: chartRight, left: mLeft, bottom: xHeight }}
+                                                                        barCategoryGap={isMobile ? '8%' : '12%'}
                                                                     >
-                                                                        <XAxis dataKey="name" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont }} interval={0} />
-                                                                        <YAxis domain={[0, 100]} tick={{ fontSize: xFont }} width={yWidth} />
-                                                                        <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} />
-                                                                        <Bar dataKey="Conformidade" radius={[4, 4, 0, 0]}>
-                                                                            {perBaseConformidade.filter((b: any) => !isNaN(Number(b.avg))).map((b: any, i: number) => <Cell key={i} fill={Number(b.avg) >= 80 ? '#4caf50' : Number(b.avg) >= 50 ? '#ff9800' : '#f44336'} />)}
+                                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(15, 23, 42, 0.10)" />
+                                                                        <XAxis dataKey="name" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: 'rgba(15, 23, 42, 0.16)' }} interval={0} />
+                                                                        <YAxis domain={[0, 100]} tick={{ fontSize: xFont, fill: '#64748b' }} tickFormatter={v => `${v}%`} width={yWidth} tickLine={false} axisLine={false} />
+                                                                        <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
+                                                                        <Bar dataKey="Conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
+                                                                            {perBaseConformidade.filter((b: any) => !isNaN(Number(b.avg))).map((b: any, i: number) => <Cell key={i} fill={softScoreColor(Number(b.avg))} />)}
+                                                                            <LabelList dataKey="Conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
                                                                             <Legend content={() => <LegendaCores />} />
                                                                         </Bar>
                                                                     </BarChart>
@@ -805,12 +876,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                     {/* ─── coluna direita ─── */}
                                     <Box sx={{ flex: 1, width: '100%', minWidth: 0, gap: 2, display: 'flex', flexDirection: 'column' }}>
                                         <ChartCard title="Padronização Visual">
-                                            <Box sx={{ p: 1.5, display: 'flex', alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
-                                                <Typography variant={isMobile ? 'subtitle1' : 'h5'}>
-                                                    <b>Média {padronizacaoByBaseLastVisit.length === 1 ? 'da base' : 'regional'}:</b>{' '}
-                                                    {resumo?.indicePadronizacao !== undefined && resumo?.indicePadronizacao !== null ? `${resumo.indicePadronizacao.toFixed(1)}%` : '—'}
-                                                </Typography>
-                                            </Box>
+                                            <ScoreHero
+                                                scope={padronizacaoByBaseLastVisit.length === 1 ? 'da base' : 'regional'}
+                                                value={resumo?.indicePadronizacao}
+                                            />
 
                                             {padronizacaoByBaseLastVisit.length === 0 ? (
                                                 <Placeholder text="Nenhum dado de padronização encontrado na última visita." />
@@ -848,30 +917,8 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                                     <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(2), flexShrink: 0 }} />
                                                                                     <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
                                                                                 </Box>
-                                                                                <Box sx={{ width: '100%' }}>
-                                                                                    <ResponsiveContainer width="100%" height={80}>
-                                                                                        <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 16, left: isMobile ? 4 : 20, bottom: 4 }}>
-                                                                                            <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} />
-                                                                                            <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={isMobile ? 70 : 80} />
-                                                                                            <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, '']} />
-                                                                                            <Bar dataKey="porcentagem" radius={[0, 4, 4, 0]}>
-                                                                                                {dados.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                                                                                            </Bar>
-                                                                                        </BarChart>
-                                                                                    </ResponsiveContainer>
-                                                                                </Box>
-                                                                                <Box sx={{ mt: 1, overflowX: 'auto' }}>
-                                                                                    <Table size="small"><TableHead><TableRow>
-                                                                                        <TableCell sx={{ width: '40%', fontSize: { xs: '0.72rem', md: '0.875rem' } }}><strong>Status</strong></TableCell>
-                                                                                        <TableCell align="right" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}><strong>%</strong></TableCell>
-                                                                                    </TableRow></TableHead><TableBody>
-                                                                                            {dados.map((item, ii) => (
-                                                                                                <TableRow key={ii} sx={{ borderLeft: `3px solid ${item.fill}` }}>
-                                                                                                    <TableCell><Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: item.fill, flexShrink: 0 }} /><Typography variant="body2" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{item.name}</Typography></Box></TableCell>
-                                                                                                    <TableCell align="right"><Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.72rem', md: '0.875rem' } }}>{item.porcentagem.toFixed(1)}%</Typography></TableCell>
-                                                                                                </TableRow>
-                                                                                            ))}
-                                                                                        </TableBody></Table>
+                                                                                <Box>
+                                                                                    <StatusBreakdownCard title="Resumo da categoria" dados={dados} accent={getCorPorSummary(2)} showQuantity={false} />
                                                                                 </Box>
                                                                             </Paper>
                                                                         );
@@ -895,28 +942,31 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                         naoConforme: base.categorias?.[ci]?.naoConforme || 0,
                                                                     })).filter((d: any) => d.conforme + d.naoConforme > 0);
                                                                     return (
-                                                                        <Box key={cat.categoria}>
+                                                                        <Paper key={cat.categoria} variant="outlined" sx={{ p: { xs: 1.25, md: 2 }, mb: 2.5, borderRadius: 2, borderColor: `${getCorPorSummary(2)}33` }}>
                                                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, p: 1, bgcolor: `${getCorPorSummary(2)}20`, borderRadius: 1 }}>
                                                                                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: getCorPorSummary(2), flexShrink: 0 }} />
                                                                                 <Typography fontWeight="bold" sx={{ fontSize: { xs: '0.8rem', md: '1rem' } }}>{cat.categoria}</Typography>
                                                                             </Box>
-                                                                            <Box sx={{ width: '100%' }}>
+                                                                            <Box sx={{ width: '100%', ...chartShellSx }}>
                                                                                 <ResponsiveContainer width="100%" height={chartH}>
                                                                                     <BarChart
                                                                                         data={dadosCat.map((d: any) => { const tot = d.conforme + d.naoConforme; return { baseName: d.baseName, conformidade: tot > 0 ? Number(((d.conforme / tot) * 100).toFixed(1)) : 0 }; })}
-                                                                                        margin={{ top: 4, right: 8, left: mLeft, bottom: xHeight }}
+                                                                                        margin={{ top: chartTop, right: chartRight, left: mLeft, bottom: xHeight }}
+                                                                                        barCategoryGap={isMobile ? '8%' : '12%'}
                                                                                     >
-                                                                                        <XAxis dataKey="baseName" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont }} interval={0} />
-                                                                                        <YAxis domain={[0, 100]} tick={{ fontSize: xFont }} tickFormatter={v => `${v}%`} width={yWidth} />
-                                                                                        <Tooltip formatter={v => `${Number(v).toFixed(1)}%`} labelFormatter={l => `Base: ${l}`} />
-                                                                                        <Bar dataKey="conformidade" radius={[4, 4, 0, 0]}>
-                                                                                            {dadosCat.map((d: any, i: number) => { const tot = d.conforme + d.naoConforme; const c = tot > 0 ? (d.conforme / tot) * 100 : 0; return <Cell key={i} fill={c >= 80 ? '#4caf50' : c >= 50 ? '#ff9800' : '#f44336'} />; })}
+                                                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(15, 23, 42, 0.10)" />
+                                                                                        <XAxis dataKey="baseName" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: 'rgba(15, 23, 42, 0.16)' }} interval={0} />
+                                                                                        <YAxis domain={[0, 100]} tick={{ fontSize: xFont, fill: '#64748b' }} tickFormatter={v => `${v}%`} width={yWidth} tickLine={false} axisLine={false} />
+                                                                                        <Tooltip formatter={v => `${Number(v).toFixed(1)}%`} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
+                                                                                        <Bar dataKey="conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
+                                                                                            {dadosCat.map((d: any, i: number) => { const tot = d.conforme + d.naoConforme; const c = tot > 0 ? (d.conforme / tot) * 100 : 0; return <Cell key={i} fill={softScoreColor(c)} />; })}
+                                                                                            <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
                                                                                         </Bar>
                                                                                         <Legend content={() => <LegendaCores />} />
                                                                                     </BarChart>
                                                                                 </ResponsiveContainer>
                                                                             </Box>
-                                                                        </Box>
+                                                                        </Paper>
                                                                     );
                                                                 })}
                                                             </Paper>
@@ -929,14 +979,16 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                             <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#6363F8', flexShrink: 0 }} />
                                                             <Typography variant="subtitle1" fontWeight="bold">Conformidade Geral das Categorias</Typography>
                                                         </Box>
-                                                        <Box sx={{ width: '100%' }}>
+                                                        <Box sx={{ width: '100%', ...chartShellSx }}>
                                                             <ResponsiveContainer width="100%" height={chartH}>
-                                                                <BarChart data={processedData} margin={{ top: 4, right: 8, left: mLeft, bottom: xHeight }}>
-                                                                    <XAxis dataKey="name" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont }} interval={0} />
-                                                                    <YAxis domain={[0, 100]} tick={{ fontSize: xFont }} width={yWidth} />
-                                                                    <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} />
-                                                                    <Bar dataKey="conformidade" radius={[4, 4, 0, 0]}>
-                                                                        {processedData.map((d: any, i: number) => <Cell key={i} fill={d.conformidade >= 80 ? '#4caf50' : d.conformidade >= 50 ? '#ff9800' : '#f44336'} />)}
+                                                                <BarChart data={processedData} margin={{ top: chartTop, right: chartRight, left: mLeft, bottom: xHeight }} barCategoryGap={isMobile ? '8%' : '12%'}>
+                                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(15, 23, 42, 0.10)" />
+                                                                    <XAxis dataKey="name" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: 'rgba(15, 23, 42, 0.16)' }} interval={0} />
+                                                                    <YAxis domain={[0, 100]} tick={{ fontSize: xFont, fill: '#64748b' }} tickFormatter={v => `${v}%`} width={yWidth} tickLine={false} axisLine={false} />
+                                                                    <Tooltip formatter={v => [`${v}%`, 'Conformidade']} labelFormatter={l => `Base: ${l}`} contentStyle={polishedTooltip} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
+                                                                    <Bar dataKey="conformidade" radius={[7, 7, 0, 0]} maxBarSize={isMobile ? 30 : 46}>
+                                                                        {processedData.map((d: any, i: number) => <Cell key={i} fill={softScoreColor(Number(d.conformidade))} />)}
+                                                                        <LabelList dataKey="conformidade" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 10, fontWeight: 800, fill: '#334155' }} />
                                                                         <Legend content={() => <LegendaCores />} />
                                                                     </Bar>
                                                                 </BarChart>

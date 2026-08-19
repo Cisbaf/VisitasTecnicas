@@ -13,7 +13,7 @@ import { ptBR } from 'date-fns/locale/pt-BR';
 import { Dayjs } from 'dayjs';
 import { addDays, format } from 'date-fns';
 import {
-    Bar, BarChart, Cell, Legend, Pie, PieChart,
+    Bar, BarChart, Cell, LabelList, Legend, Pie, PieChart,
     ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 
@@ -140,6 +140,7 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             Indefinido: total > 0 ? parseFloat(((base.status.indefinido / total) * 100).toFixed(1)) : 0,
         };
     });
+    const basesSemChecklist = viaturaStatusPorBase.filter((base: any) => !basesComChecklist.includes(base.baseId));
 
     /* Dimensões adaptativas de gráfico */
     const chartH = isMobile ? 220 : 300;
@@ -160,6 +161,53 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
             ))}
         </Box>
     );
+
+    const scoreColor = (value: number) => value >= 80 ? '#2e7d32' : value >= 50 ? '#ed6c02' : '#d32f2f';
+
+    const BaseScoreChart = ({ data, emptyText = 'Nenhum dado disponível.' }: { data: { name: string; value: number }[]; emptyText?: string }) => {
+        const rows = data
+            .filter((item) => item.name && !Number.isNaN(Number(item.value)))
+            .map((item) => ({ ...item, value: Math.max(0, Math.min(100, Number(item.value))) }))
+            .sort((a, b) => a.value - b.value);
+
+        if (rows.length === 0) {
+            return <Placeholder text={emptyText} />;
+        }
+
+        const chartRows = rows.map((item) => ({
+            ...item,
+            label: t(item.name, isMobile ? 8 : 12),
+            fill: scoreColor(item.value),
+        }));
+
+        return (
+            <Box sx={{ width: '100%', pb: 1 }}>
+                <ResponsiveContainer width="100%" height={isMobile ? 280 : 320}>
+                    <BarChart data={chartRows} margin={{ top: 24, right: 8, left: -14, bottom: isMobile ? 64 : 58 }} barCategoryGap={isMobile ? '12%' : '18%'}>
+                        <XAxis
+                            dataKey="label"
+                            interval={0}
+                            angle={-35}
+                            textAnchor="end"
+                            height={isMobile ? 64 : 58}
+                            tick={{ fontSize: isMobile ? 9 : 10 }}
+                        />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickFormatter={v => `${v}%`} width={34} />
+                        <Tooltip
+                            formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Conformidade']}
+                            labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.name ?? ''}
+                            contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}
+                        />
+                        <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={isMobile ? 18 : 28}>
+                            {chartRows.map((item, index) => <Cell key={`${item.name}-${index}`} fill={item.fill} />)}
+                            <LabelList dataKey="value" position="top" formatter={(value: any) => `${Number(value).toFixed(0)}%`} style={{ fontSize: isMobile ? 8 : 9, fontWeight: 700 }} />
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+                <LegendaCores />
+            </Box>
+        );
+    };
 
     /* Timeline: lista no mobile, bolinhas no desktop */
     const VisitaTimeline = ({ visitas, cor }: { visitas: any[], cor: string }) => {
@@ -979,11 +1027,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                                                     {basesComChecklist.length > 0 ? (
                                                                         basesComChecklist.map((id: number) => {
-                                                                            const base = basesList.find((b: any) => b.id === id);
                                                                             const bs = viaturaStatusPorBase.find((b: any) => b.baseId === id);
                                                                             return (
                                                                                 <Box key={id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                                    <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>{base?.nome || `Base ${id}`}</Typography>
+                                                                                    <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>{bs?.baseNome || `Base ${id}`}</Typography>
                                                                                     {bs && <Chip size="small" label={`${bs.status.operacional} ✓`} color="success" variant="outlined" />}
                                                                                 </Box>
                                                                             );
@@ -997,13 +1044,12 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
                                                                     <Typography variant="subtitle2" fontWeight="bold">Sem Checklist</Typography>
                                                                 </Box>
                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                                    {basesList.filter((b: any) => !basesComChecklist.includes(b.id)).length > 0 ? (
-                                                                        basesList.filter((b: any) => !basesComChecklist.includes(b.id)).map((base: any) => {
-                                                                            const bs = viaturaStatusPorBase.find((b: any) => b.baseId === base.id);
+                                                                    {basesSemChecklist.length > 0 ? (
+                                                                        basesSemChecklist.map((base: any) => {
                                                                             return (
-                                                                                <Box key={base.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                                    <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>{base.nome}</Typography>
-                                                                                    <Chip size="small" label={bs ? `${bs.status.indefinido} ✗` : 'Sem viaturas'} color="error" variant="outlined" />
+                                                                                <Box key={base.baseId} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                                                                                    <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}>{base.baseNome}</Typography>
+                                                                                    <Chip size="small" label={base.status.indefinido > 0 ? `${base.status.indefinido} ✗` : 'Sem viaturas'} color="error" variant="outlined" />
                                                                                 </Box>
                                                                             );
                                                                         })
@@ -1015,18 +1061,10 @@ export default function AdminHomePage({ baseId }: { baseId?: string }) {
 
                                                     <Divider sx={{ my: 2 }} />
                                                     <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Status das Viaturas por Base</Typography>
-                                                    <Box sx={{ width: '100%' }}>
-                                                        <ResponsiveContainer width="100%" height={chartH}>
-                                                            <BarChart data={chartData} margin={{ top: 4, right: 8, left: mLeft, bottom: xHeight }}>
-                                                                <XAxis dataKey="name" angle={xAngle} textAnchor="end" height={xHeight} tick={{ fontSize: xFont }} interval={0} />
-                                                                <YAxis tickFormatter={v => `${v}%`} domain={[0, 100]} tick={{ fontSize: xFont }} width={yWidth} />
-                                                                <Tooltip formatter={(v: number) => `${v}%`} />
-                                                                <Legend wrapperStyle={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }} />
-                                                                <Bar dataKey="Operacional" stackId="a" fill="#4caf50" name="Com Check-List" />
-                                                                <Bar dataKey="Indefinido" stackId="a" fill="#f21c24" name="Sem Check-List" />
-                                                            </BarChart>
-                                                        </ResponsiveContainer>
-                                                    </Box>
+                                                    <BaseScoreChart
+                                                        data={chartData.map((item: any) => ({ name: item.name, value: item.Operacional }))}
+                                                        emptyText="Nenhum status de viatura encontrado."
+                                                    />
                                                 </Box>
                                             )}
                                         </ChartCard>
